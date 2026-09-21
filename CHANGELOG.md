@@ -8,6 +8,11 @@ Versionierung nach [Semantic Versioning](https://semver.org/lang/de/).
 ## [Unreleased]
 
 ### Added
+- `docs/STATUS.md`: Projektstand & Handover für die nächste Session (Stand,
+  offene Punkte, Startanleitung, Fallstricke).
+- `docs/decisions/ADR-0003-windows-subst-pfad.md`: Windows-`subst`-Laufwerk
+  (`D:\ => C:\_projects\fislw`) und Vite-Pfadauflösung; Fix in `vite.config.ts`
+  (direkter Pfad statt `realpath`), Arbeitsrichtlinie „nur auf C: arbeiten".
 - Monorepo-Grundgerüst: npm workspaces, TypeScript (`tsconfig.base.json`),
   Vitest (`vitest.config.ts`).
 - Paket `@tac/client`: React + Vite Brett-UI (ARCH-OVERVIEW §7):

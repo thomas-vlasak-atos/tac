@@ -4,6 +4,8 @@ Einstiegspunkt in die Projektdokumentation.
 
 ## Struktur
 
+- **[STATUS.md](./STATUS.md)** – aktueller Projektstand & Handover für die nächste
+  Session (was ist da, was ist offen, wie startet man). **Guter Einstiegspunkt.**
 - **[architecture/](./architecture/)** – Architekturentscheidungen und -überblick
   - `ARCH-OVERVIEW.md` – Gesamtarchitektur
 - **[requirements/](./requirements/)** – fachliche Anforderungen / Spielregeln
@@ -11,6 +13,8 @@ Einstiegspunkt in die Projektdokumentation.
   - `REQ-RULES.md` – Spielregeln als **Referenz** (nicht technisch erzwungen)
 - **[decisions/](./decisions/)** – Architecture Decision Records (ADRs)
   - `ADR-0001-freies-brett.md` – freies Brett statt Regel-Engine
+  - `ADR-0002-hosting-und-sitzplatz-links.md` – Heim-Server + Sitzplatz-Links
+  - `ADR-0003-windows-subst-pfad.md` – Windows-`subst`-Pfad & Vite-Auflösung
 
 ## Traceability
 
