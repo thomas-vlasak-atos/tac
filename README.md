@@ -29,8 +29,11 @@ Frühe Phase. Vorhanden:
 - Paket `@tac/server`: WebSocket-Server (State-Synchronisierer) mit reiner,
   testbarer Raum-Logik (Beitreten, Kugeln bewegen, Geben, Ablegen, Tauschen,
   Verlauf, Sichtbarkeitsfilter) – mit Tests.
+- Paket `@tac/client`: React + Vite Brett-UI. Schematisches SVG-Brett (berechnete
+  Geometrie), Kugeln per Drag & Drop mit Herkunfts-Marker, Handkarten, Ablage,
+  Geben-Steuerung, Verlauf, Beitritts-Bildschirm (inkl. URL-Parameter).
 
-Als Nächstes: Brett-Client (`packages/client`, React + Vite).
+Als Nächstes: Design-Feinschliff und lokales Zusammenspiel zu viert testen.
 
 ## Dokumentation
 
@@ -67,12 +70,18 @@ npm run test:watch
 npm run typecheck
 
 # Server starten (WebSocket, Standardport 3001)
-npm run dev --workspace @tac/server
+npm run dev:server
+
+# Client starten (Vite, http://localhost:5173) – in zweitem Terminal
+npm run dev:client
 ```
 
-Der vollständige Entwicklungsstart (Server + Client, `npm run dev`) folgt, sobald
-der Client existiert. Diese Anleitung wird bei jeder Änderung am Setup/Start-Prozess
-aktuell gehalten.
+Zum lokalen Spielen: Server starten, dann Client starten und pro Spieler einen
+Browser-Tab auf `http://localhost:5173` öffnen. Über URL-Parameter lässt sich der
+Beitritt vorbelegen, z. B. `http://localhost:5173/?room=abc&name=Anna&seat=0`
+(siehe `docs/decisions/ADR-0002-hosting-und-sitzplatz-links.md`).
+
+Diese Anleitung wird bei jeder Änderung am Setup/Start-Prozess aktuell gehalten.
 
 ## Monorepo-Struktur
 
@@ -80,7 +89,7 @@ aktuell gehalten.
 packages/
   shared/   @tac/shared – gemeinsame Typen & reine Funktionen (Deck, State)
   server/   @tac/server – WebSocket-Server, hält & synchronisiert den Zustand
-  client/   (folgt) React + Vite Brett-UI
+  client/   @tac/client – React + Vite Brett-UI (SVG, Drag & Drop)
 docs/       Anforderungen, Architektur, Entscheidungen
 ```
 

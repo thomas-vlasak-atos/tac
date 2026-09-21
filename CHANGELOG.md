@@ -10,6 +10,18 @@ Versionierung nach [Semantic Versioning](https://semver.org/lang/de/).
 ### Added
 - Monorepo-Grundgerüst: npm workspaces, TypeScript (`tsconfig.base.json`),
   Vitest (`vitest.config.ts`).
+- Paket `@tac/client`: React + Vite Brett-UI (ARCH-OVERVIEW §7):
+  - Reine, testbare Brett-Geometrie (`board/geometry.ts`): Kreisfelder,
+    Startfelder (0/16/32/48), Häuser (radial nach innen), Vorfelder – mit Tests.
+  - SVG-Brett (`board/Board.tsx`): Felder, Häuser, Kugeln; Kugeln per
+    Drag & Drop frei bewegbar (REQ-BOARD B3) mit Herkunfts-Marker (B4a),
+    Snapping auf nächstes Ziel-Feld.
+  - WebSocket-Hook (`net/useTacSocket.ts`): Verbindung, StateUpdate empfangen,
+    Aktionen senden.
+  - UI: Handkarten (legen/tauschen), Verlaufs-Panel, Ablage, Geben-/Meister-/
+    Reset-Steuerung, Beitritts-Bildschirm mit URL-Vorbelegung
+    (`?room=&name=&seat=`, ADR-0002).
+  - Root-Skripte `dev:server` / `dev:client`.
 - Paket `@tac/server`: WebSocket-Server als State-Synchronisierer (kein
   Regel-Schiedsrichter, ADR-0001):
   - Reine, testbare Raum-Logik (`room.ts`): `moveBall` (freies Ziehen inkl.
