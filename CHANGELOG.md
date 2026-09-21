@@ -10,6 +10,20 @@ Versionierung nach [Semantic Versioning](https://semver.org/lang/de/).
 ### Added
 - Monorepo-Grundgerüst: npm workspaces, TypeScript (`tsconfig.base.json`),
   Vitest (`vitest.config.ts`).
+- Paket `@tac/server`: WebSocket-Server als State-Synchronisierer (kein
+  Regel-Schiedsrichter, ADR-0001):
+  - Reine, testbare Raum-Logik (`room.ts`): `moveBall` (freies Ziehen inkl.
+    Werfen am Zielfeld), `dealCards` (mischen & reihum austeilen), `playCard`,
+    `swapWithPartner`, `joinRoom` (Sitzplatzvergabe + Reconnect über Namen),
+    `resetGame`, `setMasterMode`, `toPublicState` (Sichtbarkeitsfilter), Verlauf.
+  - WebSocket-Transport (`server.ts`): Räume, Aktionen anwenden, gefilterter
+    Broadcast (jeder Client sieht nur die eigene Hand).
+  - Tests (Vitest): 15 Tests für die Raum-Logik, alle grün.
+  - Manueller Smoke-Test bestätigt End-to-End: Join → Deal → MoveBall →
+    Verlaufseintrag, mit korrekter Sichtbarkeitsfilterung.
+  - Dev-Laufzeit über `tsx` (Node löst `.js`→`.ts`-Importe nativ nicht auf).
+- Planungs-ADR `docs/decisions/ADR-0002-hosting-und-sitzplatz-links.md`:
+  Heim-Server + Sitzplatz-basierte Beitritts-Links, Tunnel-Optionen.
 - Paket `@tac/shared`:
   - Domänentypen (`Seat`, `Team`, `Color`, `Ball`, `BallPosition`, `Player`).
   - Kartendefinitionen (`Card`, Deck-Häufigkeiten, Meisterkarten) und

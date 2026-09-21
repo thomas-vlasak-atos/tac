@@ -43,6 +43,12 @@
   landet die dort liegende Kugel zurück in ihrem Vorfeld (bequeme Standardaktion;
   alternativ per Kontextaktion "ins Vorfeld"). *Optional/konfigurierbar; Details
   im UI-Feinschliff.*
+  - **B4a – Herkunfts-Marker:** Während/nach dem Ziehen wird das Ausgangsfeld
+    der Kugel markiert (Sicherheit beim Rückwärtsziehen / TAC). Rein visuell.
+  - **B4b – Wurf-Interaktion:** Lässt man die gezogene Kugel auf einem besetzten
+    Feld los, wird die dort liegende Kugel "aufgenommen" (→ ihr Vorfeld); das Feld
+    wird dadurch frei und die gezogene Kugel nimmt den Platz ein. Ein Feld trägt
+    immer genau eine Kugel (kein Stapeln). Serverseitig bereits so umgesetzt.
 - **B5 – Snapping:** Kugeln rasten auf Felder ein (sauberes, klares Bild statt
   Pixelgeschiebe).
 - **B6 – Synchronisation:** Jede Kugelbewegung ist für alle Spieler sofort sichtbar.

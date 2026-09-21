@@ -26,9 +26,11 @@ Frühe Phase. Vorhanden:
 - Monorepo-Grundgerüst (npm workspaces, TypeScript, Vitest).
 - Paket `@tac/shared`: gemeinsame Typen (GameState, Kugeln, Karten, Aktionen),
   Deck-Erstellung, Mischen & Austeilen – mit Tests.
+- Paket `@tac/server`: WebSocket-Server (State-Synchronisierer) mit reiner,
+  testbarer Raum-Logik (Beitreten, Kugeln bewegen, Geben, Ablegen, Tauschen,
+  Verlauf, Sichtbarkeitsfilter) – mit Tests.
 
-Als Nächstes: WebSocket-Server (`packages/server`) und Brett-Client
-(`packages/client`).
+Als Nächstes: Brett-Client (`packages/client`, React + Vite).
 
 ## Dokumentation
 
@@ -63,10 +65,13 @@ npm run test:watch
 
 # TypeScript typprüfen (alle Pakete)
 npm run typecheck
+
+# Server starten (WebSocket, Standardport 3001)
+npm run dev --workspace @tac/server
 ```
 
-Der Entwicklungsstart (Server + Client, `npm run dev`) folgt, sobald diese
-Pakete existieren. Diese Anleitung wird bei jeder Änderung am Setup/Start-Prozess
+Der vollständige Entwicklungsstart (Server + Client, `npm run dev`) folgt, sobald
+der Client existiert. Diese Anleitung wird bei jeder Änderung am Setup/Start-Prozess
 aktuell gehalten.
 
 ## Monorepo-Struktur
@@ -74,7 +79,7 @@ aktuell gehalten.
 ```
 packages/
   shared/   @tac/shared – gemeinsame Typen & reine Funktionen (Deck, State)
-  server/   (folgt) WebSocket-Server, hält & synchronisiert den Zustand
+  server/   @tac/server – WebSocket-Server, hält & synchronisiert den Zustand
   client/   (folgt) React + Vite Brett-UI
 docs/       Anforderungen, Architektur, Entscheidungen
 ```
