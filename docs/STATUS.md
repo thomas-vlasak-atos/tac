@@ -103,13 +103,21 @@ npm run typecheck  # tsc --build über alle Pakete
 - [x] WebSocket-Verbindung stabil (StrictMode-Doppel-Mount behoben).
 
 ### Layout/UX – dokumentiert, noch nicht umgesetzt (fürs finale Layout)
+- [ ] **B4b – Quellfeld markieren:** beim Ziehen das Ausgangsfeld der Kugel
+      hervorheben (Sicherheit bei Rückwärts/TAC/Verklicken).
 - [ ] **B8 – Eigene Perspektive unten:** Brett je Spieler so drehen, dass der
       eigene Sitzplatz unten liegt; eigenen Platz/Farbe deutlich markieren.
+      (Aktuell ist immer Blau/Sitz 0 unten, unabhängig vom eigenen Platz.)
 - [ ] **K4 – Ablage in der Mitte** (wie echtes TAC) statt separater Liste.
 - [ ] **K4a – Urheber sichtbar:** an jeder abgelegten Karte erkennen, wer sie
       gelegt hat (Server kennt den Handelnden bereits).
 - [ ] **K4b – Karte zurücknehmen:** versehentlich/zu früh gelegte Karte zurück
       auf die Hand holen (ohne Regelprüfung, Vertrauen wie offline).
+- [ ] **K4c – Natürlicher Kartenstapel (Gimmick):** Karten in der Mitte leicht
+      zufällig versetzt/gedreht darstellen (wie echt); optional, verzichtbar.
+- [ ] **K4d – Runden-Ablagestapel + Einsicht:** Mitte pro Runde auf einen
+      Ablagestapel räumen; gelegte Karten der Runde per Mouseover in Reihenfolge
+      ansehen (löst Überdeckungsproblem gestapelter Karten).
 
 ### Als Nächstes geplant
 - [ ] Manuelles 4-Spieler-Spiel lokal testen (Drag & Drop, Sync, Wurf-Gefühl).

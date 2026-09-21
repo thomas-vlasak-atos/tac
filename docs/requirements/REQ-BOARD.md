@@ -49,6 +49,10 @@
 - **B4a – Mehrere Kugeln auf einem Feld (v0.4):** Liegen mehrere Kugeln auf
   demselben Feld, werden sie leicht **gefächert** gezeichnet, damit jede einzeln
   greifbar bleibt (kein Stapel, aus dem man untenliegende nicht mehr fassen kann).
+- **B4b – Quellfeld markieren (geplant, noch nicht umgesetzt):** Während des
+  Ziehens (und ggf. kurz danach) wird das **Ausgangsfeld**, von dem die Kugel
+  kam, hervorgehoben. Gibt Sicherheit beim Rückwärtsziehen / TAC / Verklicken.
+  Rein visuell.
 - **B5 – Snapping:** Kugeln rasten auf Felder ein (sauberes, klares Bild statt
   Pixelgeschiebe).
 - **B6 – Synchronisation:** Jede Kugelbewegung ist für alle Spieler sofort sichtbar.
@@ -77,6 +81,15 @@
   oder zu früh gelegte Karte kann zurück auf die Hand des ursprünglichen Spielers
   geholt werden. Bewusst ohne Regelprüfung (Vertrauen wie offline). Sinnvoll auf
   die zuletzt gelegte(n) Karte(n) beschränken; Detailumfang beim UI-Feinschliff.
+- **K4c – Natürlicher Kartenstapel (optionales Gimmick, geplant):** Die in die
+  Mitte gelegten Karten werden leicht **zufällig versetzt und gedreht**
+  dargestellt, wie echte Karten auf dem Tisch (nie exakt übereinander). Rein
+  visuell, „nice to have"; kann entfallen, falls zu komplex/fehleranfällig.
+- **K4d – Runden-Ablagestapel + Einsicht (geplant, noch nicht umgesetzt):** Da
+  sich gestapelte Karten in der Mitte überdecken, wird pro Runde die Mitte auf
+  einen **Ablagestapel** geräumt. Die gelegten Karten der aktuellen (bzw. letzten)
+  Runde lassen sich per **Mouseover** in ihrer Reihenfolge einsehen. Ergänzt den
+  Zugverlauf (H1) um eine karten-orientierte Ansicht.
 - **K5 – Tauschen mit Partner:** In der Tauschphase gibt jeder verdeckt 1 Karte an
   den Partner; Ansicht der erhaltenen Karte erst nach eigener Abgabe.
 - **K6 – Melden (optional):** Einfaches "kann / kann nicht"-Signal (Handzeichen-
