@@ -41,8 +41,13 @@ export function defaultGeometry(size = 1000): BoardGeometry {
   return {
     size,
     center: { x: size / 2, y: size / 2 },
-    circleRadius: size * 0.4,
-    fieldRadius: size * 0.018,
+    // Kreis kleiner halten, damit Vorfelder außerhalb noch vollständig ins
+    // Bild passen (Vorfeld liegt bei circleRadius + ~5*fieldRadius).
+    circleRadius: size * 0.34,
+    // Feldradius so, dass sich benachbarte Kreisfelder NICHT überlappen.
+    // Abstand benachbarter Felder ~= 2*R*sin(pi/64) ≈ 33.4 bei R=340.
+    // Radius 15 (Durchmesser 30) lässt etwas Luft.
+    fieldRadius: size * 0.015,
   };
 }
 

@@ -16,6 +16,7 @@ export type MoveTarget = BallPosition;
 export type ClientAction =
   | { type: "JoinRoom"; roomId: string; name: string; seat?: Seat }
   | { type: "MoveBall"; ballId: string; to: MoveTarget }
+  | { type: "SwapBalls"; ballA: string; ballB: string }
   | { type: "DealCards"; cardsPerPlayer?: number }
   | { type: "PlayCard"; cardId: string }
   | { type: "SwapWithPartner"; cardId: string }

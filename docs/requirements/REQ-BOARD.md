@@ -36,22 +36,29 @@
 - **B1 – Brettdarstellung:** Ein TAC-Brett mit Spielkreis (64 Felder), 4 Startfeldern,
   4 Häusern (je 4 Felder) und 4 Vorfeldern. Grafik eigenständig gestaltet.
 - **B2 – Kugeln:** 16 Kugeln, 4 Farben à 4. Startlage: alle im jeweiligen Vorfeld.
-- **B3 – Freie Bewegung:** Jeder Spieler kann Kugeln per **Drag & Drop** auf jedes
-  beliebige Feld ziehen (auch fremde Kugeln – Vertrauen wie offline). Keine
-  Regelprüfung, kein "verbotener Zug".
-- **B4 – Kugel werfen:** Zieht man eine Kugel auf ein Feld mit anderer Kugel,
-  landet die dort liegende Kugel zurück in ihrem Vorfeld (bequeme Standardaktion;
-  alternativ per Kontextaktion "ins Vorfeld"). *Optional/konfigurierbar; Details
-  im UI-Feinschliff.*
-  - **B4a – Herkunfts-Marker:** Während/nach dem Ziehen wird das Ausgangsfeld
-    der Kugel markiert (Sicherheit beim Rückwärtsziehen / TAC). Rein visuell.
-  - **B4b – Wurf-Interaktion:** Lässt man die gezogene Kugel auf einem besetzten
-    Feld los, wird die dort liegende Kugel "aufgenommen" (→ ihr Vorfeld); das Feld
-    wird dadurch frei und die gezogene Kugel nimmt den Platz ein. Ein Feld trägt
-    immer genau eine Kugel (kein Stapeln). Serverseitig bereits so umgesetzt.
+- **B3 – Freie Bewegung:** Jeder Spieler kann Kugeln frei auf jedes beliebige
+  Feld setzen (auch fremde Kugeln – Vertrauen wie offline). Keine Regelprüfung,
+  kein "verbotener Zug".
+- **B3a – Bedienung per Drag & Drop (Stand v0.4):** Kugel greifen und auf ein
+  Feld ziehen; beim Loslassen rastet sie auf das nächstgelegene Feld ein.
+  (Ein Klick-Modell mit Tausch wurde erprobt, aber zugunsten von Drag & Drop
+  wieder verworfen.)
+- **B4 – Werfen (überarbeitet, seit v0.3):** Es gibt **kein** automatisches
+  Zurückwerfen ins Vorfeld mehr. Wer eine Kugel ins Vorfeld schicken will, zieht
+  sie per Drag & Drop dorthin.
+- **B4a – Mehrere Kugeln auf einem Feld (v0.4):** Liegen mehrere Kugeln auf
+  demselben Feld, werden sie leicht **gefächert** gezeichnet, damit jede einzeln
+  greifbar bleibt (kein Stapel, aus dem man untenliegende nicht mehr fassen kann).
 - **B5 – Snapping:** Kugeln rasten auf Felder ein (sauberes, klares Bild statt
   Pixelgeschiebe).
 - **B6 – Synchronisation:** Jede Kugelbewegung ist für alle Spieler sofort sichtbar.
+- **B7 – Leere Plätze sichtbar:** Vorfeld- und Hausplätze werden auch dann als
+  leere Felder gezeichnet, wenn keine Kugel darauf liegt (Orientierung).
+- **B8 – Eigene Perspektive unten (geplant, noch nicht umgesetzt):** Das Brett
+  wird für jeden Spieler so gedreht, dass sein **eigener Sitzplatz immer unten**
+  erscheint (wie am echten Tisch). Rein visuell (Rotation der Darstellung um den
+  Mittelpunkt anhand des eigenen `seat`); die Spielpositionen selbst ändern sich
+  nicht. Zusätzlich der eigene Sitzplatz/Farbe deutlich markiert.
 
 ## 4. Karten (digital verwaltet)
 
@@ -60,8 +67,16 @@
 - **K2 – Geben:** Auf Auslösung (z. B. Button "Geben") mischt die App und teilt
   je 5 Karten aus (Meisterrunde: 6). Wer gibt, wandert reihum.
 - **K3 – Eigene Hand:** Jeder sieht **nur seine eigene** Hand (verdeckt für andere).
-- **K4 – Karte ablegen/spielen:** Karte offen in die Mitte (Ablagestapel) legen.
-  Für alle sichtbar (welche Karte gespielt wurde).
+- **K4 – Karte ablegen/spielen:** Karte offen in die **Mitte** (Ablage) legen –
+  wie im echten TAC. Für alle sichtbar, welche Karte gespielt wurde.
+- **K4a – Urheber sichtbar (geplant, noch nicht umgesetzt):** Zu jeder abgelegten
+  Karte in der Mitte ist erkennbar, **wer** sie gelegt hat (z. B. farbiger Rand /
+  Position der Karte in Richtung des jeweiligen Spielers). Wird serverseitig
+  bereits vorbereitet, da der Verlauf den Handelnden kennt.
+- **K4b – Karte zurücknehmen (geplant, noch nicht umgesetzt):** Eine versehentlich
+  oder zu früh gelegte Karte kann zurück auf die Hand des ursprünglichen Spielers
+  geholt werden. Bewusst ohne Regelprüfung (Vertrauen wie offline). Sinnvoll auf
+  die zuletzt gelegte(n) Karte(n) beschränken; Detailumfang beim UI-Feinschliff.
 - **K5 – Tauschen mit Partner:** In der Tauschphase gibt jeder verdeckt 1 Karte an
   den Partner; Ansicht der erhaltenen Karte erst nach eigener Abgabe.
 - **K6 – Melden (optional):** Einfaches "kann / kann nicht"-Signal (Handzeichen-

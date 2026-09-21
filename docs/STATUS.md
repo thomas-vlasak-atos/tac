@@ -49,18 +49,19 @@ WebSocket-Server = **State-Synchronisierer** (kein Schiedsrichter).
 - `index.ts` – Start (Port 3001, per `PORT` konfigurierbar).
 - Laufzeit über `tsx` (Node löst `.js`→`.ts` nicht nativ auf).
 
-### `@tac/client` (funktional fertig, im Browser noch NICHT vom Nutzer bestätigt)
+### `@tac/client` (funktional fertig, im Browser bestätigt lauffähig)
 React + Vite, schematisches SVG-Brett.
 - `board/geometry.ts` – reine, getestete Feldkoordinaten (Kreis, Startfelder
-  0/16/32/48, Häuser radial nach innen, Vorfelder).
-- `board/Board.tsx` – SVG-Brett; Kugeln per Drag & Drop frei bewegbar
-  (REQ-BOARD B3) mit **Herkunfts-Marker** (B4a), Snapping auf nächstes Ziel.
-- `net/useTacSocket.ts` – WebSocket-Hook.
+  0/16/32/48, Häuser radial nach innen, Vorfelder – alles im Bild).
+- `board/Board.tsx` – SVG-Brett; **Klick-Bedienung** (REQ-BOARD B3a): Kugel
+  anklicken = aufnehmen, freies Feld = setzen, andere Kugel = tauschen
+  (Trickser). Leere Plätze sichtbar (B7).
+- `net/useTacSocket.ts` – WebSocket-Hook (robust gegen StrictMode-Doppel-Mount).
 - `ui/Hand.tsx`, `ui/HistoryPanel.tsx`, `ui/JoinScreen.tsx` – Handkarten,
   Verlauf, Beitritt (mit URL-Parametern `?room=&name=&seat=`).
 - `App.tsx` / `main.tsx` – Zusammenbau, Steuerung (Geben/Meister/Reset).
 
-**Tests:** 45 Vitest-Tests, alle grün. `npm run typecheck` sauber.
+**Tests:** 48 Vitest-Tests, alle grün. `npm run typecheck` sauber.
 `npm run build` (Client) läuft.
 
 ---
@@ -96,12 +97,19 @@ npm run typecheck  # tsc --build über alle Pakete
 ## 4. Offene Punkte / Nächste Schritte
 
 ### Sofort (offen aus dieser Session)
-- [ ] **Client im Browser verifizieren.** Der Nutzer hatte einen
-      `Failed to load url /src/main.tsx`-Fehler (Ursache: Windows-`subst`,
-      siehe ADR-0003). Fix in `vite.config.ts` gesetzt (direkter Pfad, kein
-      `realpath`). **Muss vom Nutzer auf dem C:-Pfad final bestätigt werden.**
-      Falls weiter Fehler: vollständige Vite-Startausgabe + Browser-Konsole (F12)
-      einholen; prüfen, ob Terminal wirklich auf C: läuft (`pwd`).
+- [ ] **Feinschliff der Bedienung** im echten Spiel testen (zu viert):
+      Drag & Drop, gefächerte Kugeln auf gleichem Feld, Orientierung.
+- [x] Client lädt im Browser (Windows-`subst`-Problem gelöst, ADR-0003).
+- [x] WebSocket-Verbindung stabil (StrictMode-Doppel-Mount behoben).
+
+### Layout/UX – dokumentiert, noch nicht umgesetzt (fürs finale Layout)
+- [ ] **B8 – Eigene Perspektive unten:** Brett je Spieler so drehen, dass der
+      eigene Sitzplatz unten liegt; eigenen Platz/Farbe deutlich markieren.
+- [ ] **K4 – Ablage in der Mitte** (wie echtes TAC) statt separater Liste.
+- [ ] **K4a – Urheber sichtbar:** an jeder abgelegten Karte erkennen, wer sie
+      gelegt hat (Server kennt den Handelnden bereits).
+- [ ] **K4b – Karte zurücknehmen:** versehentlich/zu früh gelegte Karte zurück
+      auf die Hand holen (ohne Regelprüfung, Vertrauen wie offline).
 
 ### Als Nächstes geplant
 - [ ] Manuelles 4-Spieler-Spiel lokal testen (Drag & Drop, Sync, Wurf-Gefühl).

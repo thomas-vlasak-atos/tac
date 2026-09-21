@@ -7,7 +7,24 @@ Versionierung nach [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+### Changed
+- **Bedienmodell auf Klick + Tausch umgestellt** (REQ-BOARD B3a): Kugel anklicken
+  (aufnehmen) → freies Feld anklicken (setzen) oder andere Kugel anklicken
+  (tauschen, entspricht Trickser). Ersetzt Drag & Drop.
+- **Kein automatisches Werfen mehr** (REQ-BOARD B4 überarbeitet): `moveBall`
+  wirft nicht mehr ins Vorfeld; zwei Kugeln dürfen dieselbe Position belegen.
+  Wer werfen will, setzt die Kugel per Klick ins Vorfeld.
+- Brett-Geometrie angepasst, damit Häuser und Vorfelder vollständig sichtbar
+  sind (kleinerer Kreisradius, größere Felder).
+- Client-WebSocket-Hook: robust gegen React-StrictMode-Doppel-Mount
+  (kein "closed before connection established" mehr).
+
 ### Added
+- Server: `swapBalls`-Aktion (zwei Kugeln tauschen) + Client-Aktion `SwapBalls`.
+- Board: leere Plätze (Vorfeld, Haus, Startfelder) sichtbar gezeichnet
+  (REQ-BOARD B7); Bedienhinweis im UI.
+- Tests: `swapBalls`, angepasster `moveBall`-Test, Vorfeld-in-Bild-Test
+  (48 Tests, alle grün).
 - `docs/STATUS.md`: Projektstand & Handover für die nächste Session (Stand,
   offene Punkte, Startanleitung, Fallstricke).
 - `docs/decisions/ADR-0003-windows-subst-pfad.md`: Windows-`subst`-Laufwerk

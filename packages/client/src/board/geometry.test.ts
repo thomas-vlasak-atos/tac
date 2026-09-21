@@ -97,4 +97,17 @@ describe("vorfeldBallPosition", () => {
       }
     }
   });
+
+  it("hält alle Vorfeld-Kugeln innerhalb der Zeichenfläche (0..size)", () => {
+    for (const seat of [0, 1, 2, 3] as Seat[]) {
+      for (let slot = 0; slot < 4; slot++) {
+        const p = vorfeldBallPosition(seat, slot, geo);
+        // Mit Feldradius-Puffer vollständig im Bild.
+        expect(p.x - geo.fieldRadius).toBeGreaterThanOrEqual(0);
+        expect(p.y - geo.fieldRadius).toBeGreaterThanOrEqual(0);
+        expect(p.x + geo.fieldRadius).toBeLessThanOrEqual(geo.size);
+        expect(p.y + geo.fieldRadius).toBeLessThanOrEqual(geo.size);
+      }
+    }
+  });
 });

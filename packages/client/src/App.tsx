@@ -106,7 +106,16 @@ export function App() {
               </label>
             </div>
 
-            <Board balls={state.balls} onMoveBall={moveBall} ownSeat={seat} />
+            <Board
+              balls={state.balls}
+              onMoveBall={moveBall}
+              ownSeat={seat}
+            />
+            <p style={{ fontSize: 13, color: "#64748b", margin: "6px 0 0" }}>
+              Bedienung: Kugel greifen und auf ein Feld ziehen. Liegen mehrere
+              Kugeln auf einem Feld, werden sie gefächert dargestellt – so bleibt
+              jede greifbar.
+            </p>
 
             <div style={{ marginTop: 12 }}>
               <h3 style={{ margin: "0 0 6px" }}>Deine Handkarten</h3>

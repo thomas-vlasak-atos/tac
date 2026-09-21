@@ -13,6 +13,7 @@ import {
   moveBall,
   partnerSeat,
   playCard,
+  swapBalls,
   swapWithPartner,
   toPublicState,
 } from "./room.js";
@@ -37,24 +38,45 @@ describe("moveBall", () => {
     expect(s1.history.at(-1)!.text).toContain("Feld 12");
   });
 
-  it("wirft eine am Zielfeld liegende Kugel zurück ins Vorfeld (B4)", () => {
+  it("wirft NICHT automatisch: zwei Kugeln dürfen dieselbe Position belegen (B4 überarbeitet)", () => {
     let s = createInitialState();
     // gelb-0 auf Feld 20 stellen ...
     s = moveBall(s, "gelb-0", { kind: "FELD", index: 20 }, 1);
-    // ... dann blau-0 auf dasselbe Feld ziehen -> gelb-0 wird geworfen
+    // ... dann blau-0 auf dasselbe Feld setzen -> gelb-0 bleibt (kein Werfen)
     s = moveBall(s, "blau-0", { kind: "FELD", index: 20 }, 0);
 
     const blau = s.balls.find((b) => b.id === "blau-0")!;
     const gelb = s.balls.find((b) => b.id === "gelb-0")!;
     expect(blau.position).toEqual({ kind: "FELD", index: 20 });
-    expect(gelb.position).toEqual({ kind: "VORFELD", owner: 1 });
-    expect(s.history.at(-1)!.text).toContain("geworfen");
+    expect(gelb.position).toEqual({ kind: "FELD", index: 20 });
+    expect(s.history.at(-1)!.text).not.toContain("geworfen");
   });
 
   it("ignoriert unbekannte Kugel-IDs (Konsistenz)", () => {
     const s0 = createInitialState();
     const s1 = moveBall(s0, "gibtsnicht", { kind: "FELD", index: 1 }, 0);
     expect(s1).toBe(s0);
+  });
+});
+
+describe("swapBalls", () => {
+  it("tauscht die Positionen zweier Kugeln (B3a / Trickser)", () => {
+    let s = createInitialState();
+    s = moveBall(s, "blau-0", { kind: "FELD", index: 10 }, 0);
+    s = moveBall(s, "rot-0", { kind: "FELD", index: 40 }, 3);
+    s = swapBalls(s, "blau-0", "rot-0", 0);
+
+    const blau = s.balls.find((b) => b.id === "blau-0")!;
+    const rot = s.balls.find((b) => b.id === "rot-0")!;
+    expect(blau.position).toEqual({ kind: "FELD", index: 40 });
+    expect(rot.position).toEqual({ kind: "FELD", index: 10 });
+    expect(s.history.at(-1)!.text).toContain("getauscht");
+  });
+
+  it("ignoriert Tausch mit sich selbst oder unbekannter Kugel", () => {
+    const s0 = createInitialState();
+    expect(swapBalls(s0, "blau-0", "blau-0", 0)).toBe(s0);
+    expect(swapBalls(s0, "blau-0", "gibtsnicht", 0)).toBe(s0);
   });
 });
 

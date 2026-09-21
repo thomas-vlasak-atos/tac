@@ -10,7 +10,6 @@
  */
 
 import {
-  type Ball,
   type BallPosition,
   type Card,
   cardLabel,
@@ -64,9 +63,10 @@ function seatOfBall(state: GameState, ballId: string): Seat | null {
 }
 
 /**
- * Setzt eine Kugel auf eine neue Position. Liegt am Ziel bereits eine andere
- * Kugel (nur bei FELD relevant), wird diese in ihr Vorfeld zurückgelegt
- * ("geworfen"). REQ-BOARD B4.
+ * Setzt eine Kugel auf eine neue Position (freies Bewegen, REQ-BOARD B3).
+ * Es wird NICHT mehr automatisch geworfen: Zwei Kugeln können denselben Platz
+ * belegen (der Client bietet zum Umsortieren/Tauschen das Klick-Modell B3a).
+ * Wer eine Kugel ins Vorfeld schicken will, setzt sie dorthin.
  */
 export function moveBall(
   state: GameState,
@@ -78,27 +78,38 @@ export function moveBall(
   if (!moving) return state; // unbekannte Kugel: ignorieren (Konsistenz)
 
   const from = moving.position;
-  let thrownText = "";
-
-  const balls: Ball[] = state.balls.map((b) => {
-    // Kugel am Zielfeld werfen (nur exakt gleiches Kreisfeld).
-    if (
-      b.id !== ballId &&
-      to.kind === "FELD" &&
-      b.position.kind === "FELD" &&
-      b.position.index === to.index
-    ) {
-      thrownText = ` (${b.color} geworfen)`;
-      return { ...b, position: { kind: "VORFELD", owner: b.owner } };
-    }
-    return b;
-  });
-
-  const next = balls.map((b) => (b.id === ballId ? { ...b, position: to } : b));
+  const next = state.balls.map((b) =>
+    b.id === ballId ? { ...b, position: to } : b,
+  );
 
   const text = `${moving.color}: ${describePosition(from)} → ${describePosition(
     to,
-  )}${thrownText}`;
+  )}`;
+  return pushHistory({ ...state, balls: next }, actor, text);
+}
+
+/**
+ * Tauscht die Positionen zweier Kugeln (REQ-BOARD B3a, entspricht Trickser).
+ * Ignoriert, wenn eine der Kugeln unbekannt ist oder beide identisch sind.
+ */
+export function swapBalls(
+  state: GameState,
+  ballAId: string,
+  ballBId: string,
+  actor: Seat | null,
+): GameState {
+  if (ballAId === ballBId) return state;
+  const a = state.balls.find((b) => b.id === ballAId);
+  const b = state.balls.find((x) => x.id === ballBId);
+  if (!a || !b) return state;
+
+  const next = state.balls.map((ball) => {
+    if (ball.id === ballAId) return { ...ball, position: b.position };
+    if (ball.id === ballBId) return { ...ball, position: a.position };
+    return ball;
+  });
+
+  const text = `${a.color} ↔ ${b.color} getauscht`;
   return pushHistory({ ...state, balls: next }, actor, text);
 }
 

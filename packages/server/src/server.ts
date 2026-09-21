@@ -24,6 +24,7 @@ import {
   playCard,
   resetGame,
   setMasterMode,
+  swapBalls,
   swapWithPartner,
   toPublicState,
 } from "./room.js";
@@ -118,6 +119,9 @@ function handleAction(conn: Connection, action: ClientAction): void {
   switch (action.type) {
     case "MoveBall":
       room.state = moveBall(room.state, action.ballId, action.to, seat);
+      break;
+    case "SwapBalls":
+      room.state = swapBalls(room.state, action.ballA, action.ballB, seat);
       break;
     case "DealCards":
       room.state = dealCards(room.state, action.cardsPerPlayer ?? 5);

@@ -40,14 +40,28 @@ export function useTacSocket(url: string): UseTacSocket {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    let disposed = false;
     const socket = new WebSocket(url);
     socketRef.current = socket;
     setStatus("connecting");
 
-    socket.onopen = () => setStatus("open");
-    socket.onclose = () => setStatus("closed");
-    socket.onerror = () => setError("Verbindungsfehler");
+    socket.onopen = () => {
+      if (disposed) return;
+      setStatus("open");
+    };
+    socket.onclose = () => {
+      if (disposed) return;
+      setStatus("closed");
+    };
+    socket.onerror = () => {
+      // Wird auch beim absichtlichen Schließen einer noch nicht offenen
+      // Verbindung (React StrictMode Doppel-Mount) ausgelöst -> ignorieren,
+      // wenn dieser Effekt bereits aufgeräumt wird.
+      if (disposed) return;
+      setError("Verbindungsfehler");
+    };
     socket.onmessage = (event) => {
+      if (disposed) return;
       let msg: ServerMessage;
       try {
         msg = JSON.parse(String(event.data)) as ServerMessage;
@@ -66,7 +80,16 @@ export function useTacSocket(url: string): UseTacSocket {
       }
     };
 
-    return () => socket.close();
+    return () => {
+      disposed = true;
+      // Eine noch im Aufbau befindliche Verbindung erst nach dem Öffnen schließen,
+      // sonst "closed before the connection is established".
+      if (socket.readyState === WebSocket.CONNECTING) {
+        socket.addEventListener("open", () => socket.close());
+      } else {
+        socket.close();
+      }
+    };
   }, [url]);
 
   const send = useCallback((action: ClientAction) => {

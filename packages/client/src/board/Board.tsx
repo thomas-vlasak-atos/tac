@@ -1,11 +1,17 @@
 /**
  * Brett-Komponente: rendert Felder, Häuser, Vorfelder und Kugeln als SVG.
- * Kugeln sind per Drag & Drop frei bewegbar (REQ-BOARD B3), mit Herkunfts-Marker
- * (B4a). Das Werfen erledigt der Server (B4/B4b).
+ *
+ * Bedienung per Drag & Drop (REQ-BOARD B3):
+ * - Kugel greifen und auf ein beliebiges Feld ziehen.
+ * - Beim Loslassen rastet die Kugel auf das nächstgelegene Feld ein.
+ * - Liegen mehrere Kugeln auf demselben Feld, werden sie leicht gefächert
+ *   gezeichnet, damit jede einzeln greifbar bleibt (kein Werfen ins Vorfeld).
+ *
+ * Leere Plätze (Vorfeld/Haus/Startfelder) werden sichtbar gezeichnet (B7).
  */
 
 import type { Ball, BallPosition, Seat } from "@tac/shared";
-import { CIRCLE_FIELD_COUNT, SEATS } from "@tac/shared";
+import { BALLS_PER_PLAYER, CIRCLE_FIELD_COUNT, SEATS } from "@tac/shared";
 import { useState } from "react";
 import { BALL_FILL, BALL_STROKE } from "./colors.js";
 import {
@@ -18,27 +24,75 @@ import {
   vorfeldBallPosition,
 } from "./geometry.js";
 
-/** Ermittelt die Bildschirmposition einer Kugel anhand ihrer Spielposition. */
-function ballScreenPosition(ball: Ball, geo: BoardGeometry): Point {
-  const pos = ball.position;
+const COLOR_BY_SEAT_LOCAL = ["blau", "gelb", "gruen", "rot"] as const;
+
+/** Basis-Bildschirmposition eines Feldes (ohne Fächerung). */
+function fieldBasePosition(pos: BallPosition, ball: Ball, geo: BoardGeometry): Point {
   switch (pos.kind) {
     case "FELD":
       return circleFieldPosition(pos.index, geo);
     case "HAUS":
       return housePositions(pos.owner, geo)[pos.slot] ?? geo.center;
     case "VORFELD": {
-      // Kugel-Slot aus der ID ableiten (z. B. "blau-2" -> 2).
       const slot = Number(ball.id.split("-")[1] ?? 0);
       return vorfeldBallPosition(pos.owner, slot, geo);
     }
   }
 }
 
-/** Findet die nächstgelegene Ziel-Spielposition zu einem SVG-Punkt. */
-function nearestTarget(
-  point: Point,
+/** Prüft, ob zwei Positionen dasselbe Feld meinen. */
+function samePosition(a: BallPosition, b: BallPosition): boolean {
+  if (a.kind !== b.kind) return false;
+  if (a.kind === "FELD" && b.kind === "FELD") return a.index === b.index;
+  if (a.kind === "HAUS" && b.kind === "HAUS")
+    return a.owner === b.owner && a.slot === b.slot;
+  if (a.kind === "VORFELD" && b.kind === "VORFELD") return a.owner === b.owner;
+  return false;
+}
+
+/**
+ * Berechnet Bildschirmpositionen aller Kugeln inkl. Fächerung, wenn mehrere
+ * Kugeln auf demselben FELD liegen (Vorfeld ist bereits pro Slot verteilt).
+ */
+function computeBallPositions(
+  balls: Ball[],
   geo: BoardGeometry,
-): { pos: BallPosition; dist: number } {
+): Map<string, Point> {
+  const out = new Map<string, Point>();
+
+  // Kugeln je Kreisfeld gruppieren (nur FELD-Positionen fächern wir).
+  const byField = new Map<number, Ball[]>();
+  for (const ball of balls) {
+    if (ball.position.kind === "FELD") {
+      const arr = byField.get(ball.position.index) ?? [];
+      arr.push(ball);
+      byField.set(ball.position.index, arr);
+    }
+  }
+
+  for (const ball of balls) {
+    const base = fieldBasePosition(ball.position, ball, geo);
+    if (ball.position.kind === "FELD") {
+      const group = byField.get(ball.position.index)!;
+      if (group.length > 1) {
+        const idx = group.findIndex((b) => b.id === ball.id);
+        // Kleiner Kreis-Fächer um die Feldmitte.
+        const angle = (idx / group.length) * 2 * Math.PI;
+        const r = geo.fieldRadius * 0.7;
+        out.set(ball.id, {
+          x: base.x + r * Math.cos(angle),
+          y: base.y + r * Math.sin(angle),
+        });
+        continue;
+      }
+    }
+    out.set(ball.id, base);
+  }
+  return out;
+}
+
+/** Findet die nächstgelegene Ziel-Spielposition zu einem SVG-Punkt. */
+function nearestTarget(point: Point, geo: BoardGeometry): BallPosition {
   let best: { pos: BallPosition; dist: number } | null = null;
   const consider = (pos: BallPosition, p: Point) => {
     const d = Math.hypot(point.x - p.x, point.y - p.y);
@@ -49,36 +103,35 @@ function nearestTarget(
     consider({ kind: "FELD", index: i }, circleFieldPosition(i, geo));
   }
   for (const seat of SEATS) {
-    const house = housePositions(seat, geo);
-    house.forEach((p, slot) => consider({ kind: "HAUS", owner: seat, slot }, p));
-    for (let s = 0; s < 4; s++) {
+    housePositions(seat, geo).forEach((p, slot) =>
+      consider({ kind: "HAUS", owner: seat, slot }, p),
+    );
+    for (let s = 0; s < BALLS_PER_PLAYER; s++) {
       consider({ kind: "VORFELD", owner: seat }, vorfeldBallPosition(seat, s, geo));
     }
   }
-  return best!;
+  return best!.pos;
 }
 
 export interface BoardProps {
   balls: Ball[];
-  /** Callback, wenn eine Kugel auf ein Ziel gezogen wurde. */
   onMoveBall: (ballId: string, to: BallPosition) => void;
-  /** Eigener Sitzplatz (für spätere Hervorhebung; aktuell nur Info). */
   ownSeat: Seat | null;
   size?: number;
 }
 
-/** Zustand während eines Drag-Vorgangs. */
 interface DragState {
   ballId: string;
-  origin: Point;
   current: Point;
+  moved: boolean;
 }
 
 export function Board({ balls, onMoveBall, size = 700 }: BoardProps) {
   const geo = defaultGeometry(1000);
   const [drag, setDrag] = useState<DragState | null>(null);
 
-  /** Rechnet Client-Koordinaten in SVG-Koordinaten um. */
+  const positions = computeBallPositions(balls, geo);
+
   const toSvg = (e: React.PointerEvent, svg: SVGSVGElement): Point => {
     const rect = svg.getBoundingClientRect();
     return {
@@ -91,20 +144,20 @@ export function Board({ balls, onMoveBall, size = 700 }: BoardProps) {
     const svg = (e.currentTarget as SVGElement).ownerSVGElement;
     if (!svg) return;
     (e.target as Element).setPointerCapture?.(e.pointerId);
-    const p = toSvg(e, svg);
-    setDrag({ ballId: ball.id, origin: ballScreenPosition(ball, geo), current: p });
+    setDrag({ ballId: ball.id, current: toSvg(e, svg), moved: false });
   };
 
   const handlePointerMove = (e: React.PointerEvent) => {
     if (!drag) return;
     const svg = e.currentTarget as SVGSVGElement;
-    setDrag({ ...drag, current: toSvg(e, svg) });
+    setDrag({ ...drag, current: toSvg(e, svg), moved: true });
   };
 
   const handlePointerUp = () => {
     if (!drag) return;
-    const { pos } = nearestTarget(drag.current, geo);
-    onMoveBall(drag.ballId, pos);
+    if (drag.moved) {
+      onMoveBall(drag.ballId, nearestTarget(drag.current, geo));
+    }
     setDrag(null);
   };
 
@@ -113,7 +166,7 @@ export function Board({ balls, onMoveBall, size = 700 }: BoardProps) {
       viewBox={`0 0 ${geo.size} ${geo.size}`}
       width={size}
       height={size}
-      style={{ touchAction: "none", userSelect: "none", maxWidth: "100%" }}
+      style={{ userSelect: "none", maxWidth: "100%", touchAction: "none" }}
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
     >
@@ -121,7 +174,7 @@ export function Board({ balls, onMoveBall, size = 700 }: BoardProps) {
       <circle
         cx={geo.center.x}
         cy={geo.center.y}
-        r={geo.circleRadius * 0.4}
+        r={geo.circleRadius * 0.42}
         fill="#f1f5f9"
         stroke="#cbd5e1"
         strokeWidth={2}
@@ -130,7 +183,8 @@ export function Board({ balls, onMoveBall, size = 700 }: BoardProps) {
       {/* Kreisfelder */}
       {Array.from({ length: CIRCLE_FIELD_COUNT }, (_, i) => {
         const p = circleFieldPosition(i, geo);
-        const isStart = SEATS.some((s) => startIndexForSeat(s) === i);
+        const startSeat = SEATS.find((s) => startIndexForSeat(s) === i);
+        const isStart = startSeat !== undefined;
         return (
           <circle
             key={`f-${i}`}
@@ -138,13 +192,13 @@ export function Board({ balls, onMoveBall, size = 700 }: BoardProps) {
             cy={p.y}
             r={geo.fieldRadius}
             fill={isStart ? "#e2e8f0" : "#ffffff"}
-            stroke={isStart ? "#475569" : "#cbd5e1"}
-            strokeWidth={isStart ? 3 : 1.5}
+            stroke={isStart ? BALL_STROKE[COLOR_BY_SEAT_LOCAL[startSeat!]] : "#cbd5e1"}
+            strokeWidth={isStart ? 4 : 1.5}
           />
         );
       })}
 
-      {/* Häuser + Vorfeld-Umrisse je Spieler */}
+      {/* Häuser: 4 leere Plätze je Spieler */}
       {SEATS.map((seat) => (
         <g key={`house-${seat}`}>
           {housePositions(seat, geo).map((p, slot) => (
@@ -154,40 +208,50 @@ export function Board({ balls, onMoveBall, size = 700 }: BoardProps) {
               cy={p.y}
               r={geo.fieldRadius}
               fill="#fef9c3"
-              stroke={BALL_STROKE[["blau", "gelb", "gruen", "rot"][seat] as never]}
+              stroke={BALL_STROKE[COLOR_BY_SEAT_LOCAL[seat]]}
               strokeWidth={2}
-              opacity={0.9}
             />
           ))}
         </g>
       ))}
 
-      {/* Herkunfts-Marker (B4a) während des Ziehens */}
-      {drag && (
-        <circle
-          cx={drag.origin.x}
-          cy={drag.origin.y}
-          r={geo.fieldRadius * 1.4}
-          fill="none"
-          stroke="#0f172a"
-          strokeDasharray="6 4"
-          strokeWidth={2}
-        />
-      )}
+      {/* Vorfelder: 4 leere Plätze je Spieler */}
+      {SEATS.map((seat) => (
+        <g key={`vorfeld-${seat}`}>
+          {Array.from({ length: BALLS_PER_PLAYER }, (_, slot) => {
+            const p = vorfeldBallPosition(seat, slot, geo);
+            return (
+              <circle
+                key={`v-${seat}-${slot}`}
+                cx={p.x}
+                cy={p.y}
+                r={geo.fieldRadius}
+                fill="#f8fafc"
+                stroke={BALL_STROKE[COLOR_BY_SEAT_LOCAL[seat]]}
+                strokeWidth={1.5}
+                strokeDasharray="4 3"
+              />
+            );
+          })}
+        </g>
+      ))}
 
-      {/* Kugeln */}
+      {/* Kugeln (Drag & Drop) */}
       {balls.map((ball) => {
         const isDragged = drag?.ballId === ball.id;
-        const p = isDragged ? drag!.current : ballScreenPosition(ball, geo);
+        const p =
+          isDragged && drag!.moved
+            ? drag!.current
+            : (positions.get(ball.id) ?? geo.center);
         return (
           <circle
             key={ball.id}
             cx={p.x}
             cy={p.y}
-            r={geo.fieldRadius * 1.15}
+            r={geo.fieldRadius * 0.95}
             fill={BALL_FILL[ball.color]}
-            stroke={BALL_STROKE[ball.color]}
-            strokeWidth={2.5}
+            stroke={isDragged ? "#0f172a" : BALL_STROKE[ball.color]}
+            strokeWidth={isDragged ? 4 : 2.5}
             style={{ cursor: "grab" }}
             onPointerDown={(e) => handlePointerDown(e, ball)}
           />
@@ -196,3 +260,6 @@ export function Board({ balls, onMoveBall, size = 700 }: BoardProps) {
     </svg>
   );
 }
+
+// Wird aktuell nicht extern benötigt, bleibt aber als Helfer erhalten.
+export { samePosition };
