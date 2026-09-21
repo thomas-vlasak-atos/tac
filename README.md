@@ -21,8 +21,14 @@ eigenständig gestaltet und bilden keine geschützten Originalmaterialien nach.
 
 ## Projektstatus
 
-Frühe Phase: Dokumentation und Projektstruktur. Die Spiel-Engine wird als
-Nächstes implementiert (siehe `docs/architecture/ARCH-OVERVIEW.md`).
+Frühe Phase. Vorhanden:
+- Vollständige Dokumentation (Anforderungen, Architektur, Entscheidungen).
+- Monorepo-Grundgerüst (npm workspaces, TypeScript, Vitest).
+- Paket `@tac/shared`: gemeinsame Typen (GameState, Kugeln, Karten, Aktionen),
+  Deck-Erstellung, Mischen & Austeilen – mit Tests.
+
+Als Nächstes: WebSocket-Server (`packages/server`) und Brett-Client
+(`packages/client`).
 
 ## Dokumentation
 
@@ -41,22 +47,37 @@ Nächstes implementiert (siehe `docs/architecture/ARCH-OVERVIEW.md`).
 - **Tests:** Vitest
 - **Monorepo:** npm workspaces
 
-## Setup (wird ergänzt, sobald Code vorhanden ist)
+## Setup
 
 > Voraussetzung: Node.js >= 20 (entwickelt mit Node 26), npm >= 10.
 
 ```bash
-# Abhängigkeiten installieren (sobald package.json existiert)
+# Abhängigkeiten installieren
 npm install
 
 # Tests ausführen
 npm test
 
-# Entwicklung starten (Server + Client) – folgt
-npm run dev
+# Tests im Watch-Modus
+npm run test:watch
+
+# TypeScript typprüfen (alle Pakete)
+npm run typecheck
 ```
 
-Diese Anleitung wird bei jeder Änderung am Setup/Start-Prozess aktuell gehalten.
+Der Entwicklungsstart (Server + Client, `npm run dev`) folgt, sobald diese
+Pakete existieren. Diese Anleitung wird bei jeder Änderung am Setup/Start-Prozess
+aktuell gehalten.
+
+## Monorepo-Struktur
+
+```
+packages/
+  shared/   @tac/shared – gemeinsame Typen & reine Funktionen (Deck, State)
+  server/   (folgt) WebSocket-Server, hält & synchronisiert den Zustand
+  client/   (folgt) React + Vite Brett-UI
+docs/       Anforderungen, Architektur, Entscheidungen
+```
 
 ## Mitwirken
 

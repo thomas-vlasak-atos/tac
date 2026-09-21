@@ -7,6 +7,23 @@ Versionierung nach [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+### Added
+- Monorepo-Grundgerüst: npm workspaces, TypeScript (`tsconfig.base.json`),
+  Vitest (`vitest.config.ts`).
+- Paket `@tac/shared`:
+  - Domänentypen (`Seat`, `Team`, `Color`, `Ball`, `BallPosition`, `Player`).
+  - Kartendefinitionen (`Card`, Deck-Häufigkeiten, Meisterkarten) und
+    Anzeigenamen.
+  - Reine Funktionen `buildDeck`, `shuffle` (Fisher-Yates), `deal`
+    (reihum, Standard 5 / Meisterrunde 6 Karten).
+  - `GameState` / `PublicGameState` (mit Sichtbarkeitsfilterung), Zugverlauf.
+  - `createInitialState` / `createInitialBalls` (Startlage: alle Kugeln im
+    Vorfeld).
+  - Netzwerk-Nachrichten & Aktionstypen (`ClientAction`, `ServerMessage`).
+  - Tests (Vitest): 21 Tests für Deck/Mischen/Austeilen und Anfangszustand,
+    alle grün.
+- README: Setup-Anleitung (install, test, typecheck) und Monorepo-Struktur.
+
 ### Changed
 - **Konzeptwechsel:** Statt einer regel-erzwingenden Engine wird ein **freies
   Brett** umgesetzt (Spieler ziehen selbst, keine Regelprüfung). Siehe
