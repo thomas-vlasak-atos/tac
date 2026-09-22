@@ -7,6 +7,34 @@ Versionierung nach [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+### Added
+- `docs/architecture/ARCH-BOARD-GEOMETRY.md`: vollständige Herleitung der
+  Brett-Geometrie (hexagonales Kreisgitter, Ringe, Hauszentren, Hausmulden)
+  aus dem einen Grundmaß `r`, inkl. Bauplan für einen späteren eigenständigen
+  SVG-Generator des kompletten Spielfelds.
+- Overlay-Kalibrierung auf 1024×1024 sowie versetzte Hausfelder nach der
+  tatsächlichen Brettvorlage.
+- `vorlage/Board.png` als Brettgrundlage mit transparenten interaktiven SVG-
+  Overlays für Kugeln, Feldnummern und letzte-Zug-Markierung.
+- Umschaltbare Feldnummern, Kartenrücken mit Handkartenanzahl sowie bestätigte
+  Teufel-Einsicht und Narr-Handweitergabe.
+- Anforderungen für Feldnummern, Kartenrücken sowie bestätigte Teufel- und
+  Narr-Sonderaktionen dokumentiert.
+- Persistente visuelle Markierung von Quelle und Ziel des letzten Kugelzugs.
+- SVG-Brett im Stil der Vorlagen: Holzmaserung, eingelassener Lochkranz,
+  florale Gravuren, zentrale Mulde und vier Eckmulden.
+- Sichtbare Anzeige von aktuellem/nächstem Geber und verbleibendem Reststapel.
+- Freiwillige Tauschphase mit verdeckten Kartenangeboten an den gegenüberliegenden
+  Partner. Karten können per Drag & Drop zum Partner oder zum Brett gezogen werden.
+- Vorhandene Kartenentwürfe aus `cards/` werden direkt als PNG-Kartenbilder im
+  Client verwendet; fehlende Entwürfe erhalten einen Text-Fallback.
+- Hochwertige Holz-/Murmelfassung des Bretts mit eigener Spielerperspektive,
+  Quellfeld-Hervorhebung und zentraler Kartenablage.
+- Grafische Handkarten sowie Ablagemetadaten (Urheber, Versatz, Drehung) und
+  Rücknahme der eigenen zuletzt abgelegten Karte.
+- `REQ-DESIGN` als verbindliche Dokumentation für die realistische Brett- und
+  Kartendarstellung sowie die vorläufige Deck-Annahme.
+
 ### Changed
 - **Bedienmodell auf Klick + Tausch umgestellt** (REQ-BOARD B3a): Kugel anklicken
   (aufnehmen) → freies Feld anklicken (setzen) oder andere Kugel anklicken
@@ -16,6 +44,15 @@ Versionierung nach [Semantic Versioning](https://semver.org/lang/de/).
   Wer werfen will, setzt die Kugel per Klick ins Vorfeld.
 - Brett-Geometrie angepasst, damit Häuser und Vorfelder vollständig sichtbar
   sind (kleinerer Kreisradius, größere Felder).
+- **Hausmulden geometrisch aus dem Kreisgitter berechnet** (`geometry.ts`):
+  `housePositions` leitet Hauszentren (`±√3·r` / `±2·r`) und Mulden
+  (Ring `r/√3`, korrigierte Winkel je Haus) statt hardcodierter Zentren und
+  fehlerhafter Uhrzeiten ab. Neues Feld `BoardGeometry.gridRadius` als einziges
+  Grundmaß. Rechtes Haus war zunächst um 180° verdreht (identische Winkel wie
+  links); korrigiert, sodass die seitlichen Mulden aller Häuser nach innen
+  zeigen. `circleRadius` (64 Laufbahn-Mulden) liegt jetzt mittig zwischen
+  innerem Ring (`3r`) und äußerem Ring (`2√3·r`). Zentrum und Maßstab gegen
+  `vorlage/Board.png` kalibriert. Siehe `ARCH-BOARD-GEOMETRY.md`.
 - Client-WebSocket-Hook: robust gegen React-StrictMode-Doppel-Mount
   (kein "closed before connection established" mehr).
 

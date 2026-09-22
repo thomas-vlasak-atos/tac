@@ -13,7 +13,6 @@
 
 import {
   CIRCLE_FIELD_COUNT,
-  HOUSE_SLOT_COUNT,
   type Seat,
   SEATS,
 } from "@tac/shared";
@@ -30,24 +29,37 @@ export interface BoardGeometry {
   size: number;
   /** Mittelpunkt. */
   center: Point;
-  /** Radius des großen Spielkreises. */
+  /**
+   * Grundradius r des hexagonalen Kreisgitters (siehe vorlage/board.svg).
+   * Alle weiteren Maße leiten sich hieraus ab.
+   */
+  gridRadius: number;
+  /** Radius des großen Spielkreises (64er-Lochkranz = 2*sqrt(3)*r). */
   circleRadius: number;
   /** Radius eines einzelnen Feldes (zum Zeichnen). */
   fieldRadius: number;
 }
 
-/** Standard-Geometrie für eine 1000x1000-Zeichenfläche. */
-export function defaultGeometry(size = 1000): BoardGeometry {
+/** Standard-Geometrie für das originale 1024x1024-Brettbild. */
+export function defaultGeometry(size = 1024): BoardGeometry {
+  // Grundradius r des Kreisgitters. Aus ihm folgen alle weiteren Maße.
+  // Faktor gegen vorlage/Board.png kalibriert (magenta äußerer Ring deckt sich
+  // mit dem Lochkranz).
+  const gridRadius = size * 0.1385;
+  // Die 64 Laufbahn-Mulden liegen MITTIG zwischen innerem Ring (3*r) und
+  // äußerem Ring (2*sqrt(3)*r). Daher liegt ihr Radius auf deren Mittelwert.
+  const innerRing = 3 * gridRadius;
+  const outerRing = 2 * Math.sqrt(3) * gridRadius;
+  const circleRadius = (innerRing + outerRing) / 2;
   return {
     size,
-    center: { x: size / 2, y: size / 2 },
-    // Kreis kleiner halten, damit Vorfelder außerhalb noch vollständig ins
-    // Bild passen (Vorfeld liegt bei circleRadius + ~5*fieldRadius).
-    circleRadius: size * 0.34,
+    // Brettmitte des Hintergrundbilds ist minimal aus der geometrischen Mitte
+    // verschoben (Kalibrierung gegen vorlage/Board.png).
+    center: { x: size / 2 - 4, y: size / 2 - 3 },
+    gridRadius,
+    circleRadius,
     // Feldradius so, dass sich benachbarte Kreisfelder NICHT überlappen.
-    // Abstand benachbarter Felder ~= 2*R*sin(pi/64) ≈ 33.4 bei R=340.
-    // Radius 15 (Durchmesser 30) lässt etwas Luft.
-    fieldRadius: size * 0.015,
+    fieldRadius: size * 0.013,
   };
 }
 
@@ -96,19 +108,55 @@ export function allCircleFieldPositions(geo: BoardGeometry): Point[] {
  * slot 0 liegt am weitesten außen (Hauseingang), slot 3 am tiefsten innen.
  */
 export function housePositions(seat: Seat, geo: BoardGeometry): Point[] {
-  const startIdx = startIndexForSeat(seat);
-  const angle = angleForFieldIndex(startIdx);
-  const dirX = Math.cos(angle);
-  const dirY = Math.sin(angle);
-  // Häuser beginnen etwas innerhalb des Kreises und gehen weiter nach innen.
-  const firstRadius = geo.circleRadius - geo.fieldRadius * 4;
-  const gap = geo.fieldRadius * 2.6;
+  // Geometrische Herleitung aus dem hexagonalen Kreisgitter (siehe
+  // vorlage/board.svg). Alles wird aus dem Gitter-Grundradius r abgeleitet,
+  // damit nur EIN Maß nötig ist und keine Zentren hardcodiert sind.
+  //
+  // Bezüge im Gitter:
+  //   - horizontaler Spaltenabstand: r*sqrt(3)/2
+  //   - vertikaler Reihenabstand:    r
+  //   - äußerer Ring (64er-Lochkranz): R_ring = 2*sqrt(3)*r
+  //   - Hauszentren links/rechts: ±sqrt(3)*r horizontal vom Brettzentrum
+  //   - Hauszentren oben/unten:   ±2*r vertikal vom Brettzentrum
+  //   - Hausmulden liegen auf einem Kreis mit R_mulde = r/sqrt(3)
+  //     um das jeweilige Hauszentrum.
+  //
+  // Mulden-Winkel (0° = rechts, gegen den Uhrzeigersinn in Standard-Mathe;
+  // in SVG zeigt +y nach unten, daher wird sin(angle) subtrahiert):
+  //   - links/rechts: achsen-orientiert  {0, 60, 180, 300}°
+  //   - oben/unten:   um 30° gedreht (Dreieckslücken) {0, 60, 120, 180}°
+  const SQRT3 = Math.sqrt(3);
 
-  return Array.from({ length: HOUSE_SLOT_COUNT }, (_, slot) => {
-    const r = firstRadius - slot * gap;
+  // Gitter-Grundradius (siehe defaultGeometry). Der große Kreis entspricht
+  // dem äußeren Ring 2*sqrt(3)*r, daher r = circleRadius / (2*sqrt(3)).
+  const r = geo.gridRadius;
+  const rMulde = r / SQRT3;
+
+  const c = geo.center;
+  const centers: Record<Seat, Point> = {
+    0: { x: c.x, y: c.y + 2 * r }, // unten
+    1: { x: c.x - SQRT3 * r, y: c.y }, // links
+    2: { x: c.x, y: c.y - 2 * r }, // oben
+    3: { x: c.x + SQRT3 * r, y: c.y }, // rechts
+  };
+
+  // Winkel in Grad je Sitzplatz (an unserer verifizierten Vorlage geprüft,
+  // vorlage/board.svg). Die seitlichen Mulden zeigen bei ALLEN Häusern zur
+  // Brettmitte hin (nach innen), daher sind links/rechts bzw. oben/unten
+  // jeweils zueinander gespiegelt und NICHT identisch.
+  const anglesBySeat: Record<Seat, number[]> = {
+    0: [0, 60, 120, 180], // unten: 3, 1, 11, 9 Uhr (seitliche nach oben/innen)
+    1: [0, 60, 180, 300], // links: 3, 1, 9, 5 Uhr (seitliche nach rechts/innen)
+    2: [0, 300, 240, 180], // oben:  3, 5, 7, 9 Uhr (seitliche nach unten/innen)
+    3: [180, 120, 0, 240], // rechts: 9, 11, 3, 7 Uhr (seitliche nach links/innen)
+  };
+
+  const center = centers[seat];
+  return anglesBySeat[seat].map((deg) => {
+    const a = (deg * Math.PI) / 180;
     return {
-      x: geo.center.x + r * dirX,
-      y: geo.center.y + r * dirY,
+      x: center.x + rMulde * Math.cos(a),
+      y: center.y - rMulde * Math.sin(a),
     };
   });
 }
@@ -118,13 +166,14 @@ export function housePositions(seat: Seat, geo: BoardGeometry): Point[] {
  * Vorfelder liegen außerhalb des Kreises, in Richtung des Startfeldes.
  */
 export function vorfeldCenter(seat: Seat, geo: BoardGeometry): Point {
-  const startIdx = startIndexForSeat(seat);
-  const angle = angleForFieldIndex(startIdx);
-  const r = geo.circleRadius + geo.fieldRadius * 5;
-  return {
-    x: geo.center.x + r * Math.cos(angle),
-    y: geo.center.y + r * Math.sin(angle),
+  const margin = geo.size * 0.085;
+  const corners: Record<Seat, Point> = {
+    0: { x: margin, y: geo.size - margin },
+    1: { x: geo.size - margin, y: geo.size - margin },
+    2: { x: geo.size - margin, y: margin },
+    3: { x: margin, y: margin },
   };
+  return corners[seat];
 }
 
 /**
@@ -137,7 +186,7 @@ export function vorfeldBallPosition(
   geo: BoardGeometry,
 ): Point {
   const center = vorfeldCenter(seat, geo);
-  const spread = geo.fieldRadius * 2.4;
+  const spread = geo.fieldRadius * 2.9;
   // 2x2-Anordnung.
   const col = ballSlot % 2;
   const row = Math.floor(ballSlot / 2);

@@ -1,47 +1,34 @@
-/**
- * Handkarten-Leiste: zeigt die eigenen Karten und erlaubt Ablegen/Tauschen.
- *
- * Bezug: REQ-BOARD K3 (eigene Hand), K4 (ablegen), K5 (tauschen).
- */
+/** Hochwertige Spielkarten mit klarer Bedienung. */
 
 import { type Card, cardLabel } from "@tac/shared";
+import { CardArtwork } from "./cardArtwork.js";
 
 export interface HandProps {
   cards: Card[];
-  onPlay: (cardId: string) => void;
-  onSwap: (cardId: string) => void;
 }
 
-export function Hand({ cards, onPlay, onSwap }: HandProps) {
-  if (cards.length === 0) {
-    return <p style={{ color: "#64748b" }}>Keine Handkarten. „Geben" drücken.</p>;
-  }
+function cardTone(card: Card): { ink: string; accent: string } {
+  if (card.kind === "number") return { ink: "#4c2a1a", accent: "#c88b4a" };
+  if (card.kind === "tac") return { ink: "#233d5b", accent: "#5d91b8" };
+  if (card.kind === "trickster") return { ink: "#5c284b", accent: "#b56d9b" };
+  return { ink: "#4c2a1a", accent: "#d6a44b" };
+}
+
+export function Hand({ cards }: HandProps) {
+  if (cards.length === 0) return <p style={{ color: "#765234" }}>Keine Handkarten. „Geben“ drücken.</p>;
   return (
-    <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-      {cards.map((card) => (
-        <div
-          key={card.id}
-          style={{
-            border: "1px solid #cbd5e1",
-            borderRadius: 8,
-            padding: "8px 10px",
-            minWidth: 56,
-            textAlign: "center",
-            background: "#ffffff",
-            boxShadow: "0 1px 2px rgba(0,0,0,0.06)",
-          }}
-        >
-          <div style={{ fontWeight: 700, fontSize: 18 }}>{cardLabel(card)}</div>
-          <div style={{ display: "flex", gap: 4, marginTop: 6 }}>
-            <button type="button" onClick={() => onPlay(card.id)}>
-              legen
-            </button>
-            <button type="button" onClick={() => onSwap(card.id)}>
-              tauschen
-            </button>
-          </div>
-        </div>
-      ))}
+    <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "end" }}>
+      {cards.map((card) => {
+        const tone = cardTone(card);
+        const label = cardLabel(card);
+        return (
+          <article key={card.id} draggable onDragStart={(event) => event.dataTransfer.setData("text/tac-card", card.id)} style={{ width: 94, minHeight: 138, padding: 8, borderRadius: 10, border: `3px solid ${tone.accent}`, background: "linear-gradient(145deg, #fffdf7, #f2dfbd)", boxShadow: "0 5px 10px #4c2a1a30", color: tone.ink, display: "flex", flexDirection: "column", justifyContent: "space-between", cursor: "grab" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, fontWeight: 700 }}><span>{label}</span><span>♠</span></div>
+            <CardArtwork card={card} />
+            <div style={{ textAlign: "center", fontSize: 10, color: tone.ink, opacity: 0.75 }}>ziehen</div>
+          </article>
+        );
+      })}
     </div>
   );
 }

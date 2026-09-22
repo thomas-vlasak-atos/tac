@@ -7,7 +7,53 @@
  */
 
 import type { Card } from "./cards.js";
-import type { Ball, Player, Seat } from "./domain.js";
+import type { Ball, BallPosition, Player, Seat } from "./domain.js";
+
+/** Sichtbare Metadaten einer abgelegten Karte (REQ-BOARD K4a-d). */
+export interface DiscardEntry {
+  card: Card;
+  actor: Seat;
+  timestamp: number;
+  offset: number;
+  rotation: number;
+}
+
+/** Eine verdeckte Karte im freiwilligen Partnertausch. */
+export interface TradeOffer {
+  id: string;
+  from: Seat;
+  to: Seat;
+  card: Card;
+  claimed: boolean;
+}
+
+/** Öffentliche Sicht eines Tauschangebots. Die Karte bleibt zunächst verborgen. */
+export interface PublicTradeOffer {
+  id: string;
+  from: Seat;
+  to: Seat;
+  card?: Card;
+  claimed: boolean;
+}
+
+/** Rein visuelle Markierung des zuletzt bewegten Spielsteins. */
+export interface LastBallMove {
+  ballId: string;
+  from: BallPosition;
+  to: BallPosition;
+}
+
+/** Bestätigungsanfrage für die bewusste Teufel-Handeinsicht. */
+export interface DevilRequest {
+  id: string;
+  controller: Seat;
+  target: Seat;
+  approved: boolean;
+}
+
+export interface PublicDevilRequest extends DevilRequest {
+  visibleCards?: Card[];
+}
 
 /** Ein Eintrag im Zugverlauf (nur Anzeige, kein Undo). REQ-BOARD H1–H3. */
 export interface HistoryEntry {
@@ -31,6 +77,12 @@ export interface GameState {
   deck: Card[];
   /** Offen abgelegte Karten (für alle sichtbar). */
   discardPile: Card[];
+  discardEntries: DiscardEntry[];
+  tradeOffers: TradeOffer[];
+  nextTradeOfferId: number;
+  lastBallMove: LastBallMove | null;
+  devilRequests: DevilRequest[];
+  nextDevilRequestId: number;
   /** Handkarten je Sitzplatz (nur an den jeweiligen Spieler ausgeliefert). */
   hands: Card[][];
   /** Sitzplatz des aktuellen Gebers. */
@@ -53,6 +105,10 @@ export interface PublicGameState {
   players: (Player | null)[];
   balls: Ball[];
   discardPile: Card[];
+  discardEntries: DiscardEntry[];
+  tradeOffers: PublicTradeOffer[];
+  lastBallMove: LastBallMove | null;
+  devilRequests: PublicDevilRequest[];
   /** Anzahl Handkarten je Sitzplatz (nicht die Karten selbst). */
   handCounts: number[];
   /** Die eigene Hand des empfangenden Spielers. */

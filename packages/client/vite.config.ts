@@ -12,6 +12,11 @@ const workspaceRoot = fileURLToPath(new URL("../..", import.meta.url));
 export default defineConfig({
   root: rootDir,
   plugins: [react()],
+  build: {
+    // Separater Ausgabeordner: dist enthält noch Artefakte des früheren,
+    // workspace-weiten publicDir-Experiments und ist nicht sicher löschbar.
+    outDir: "dist-web",
+  },
   server: {
     port: 5173,
     host: true,

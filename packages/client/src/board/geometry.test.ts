@@ -15,7 +15,7 @@ import {
   vorfeldBallPosition,
 } from "./geometry.js";
 
-const geo = defaultGeometry(1000);
+const geo = defaultGeometry(1024);
 
 /** Abstand zweier Punkte. */
 function dist(a: { x: number; y: number }, b: { x: number; y: number }): number {
@@ -63,12 +63,9 @@ describe("housePositions", () => {
     for (const seat of [0, 1, 2, 3] as Seat[]) {
       const house = housePositions(seat, geo);
       expect(house.length).toBe(4);
-      // Jeder tiefere Slot liegt näher am Mittelpunkt.
-      for (let s = 1; s < house.length; s++) {
-        expect(dist(house[s]!, geo.center)).toBeLessThan(
-          dist(house[s - 1]!, geo.center),
-        );
-      }
+      // Die Referenz hat vier versetzte Punkte im kleinen Hauskreis, keine
+      // gerade radiale Linie.
+      expect(new Set(house.map((point) => `${point.x},${point.y}`)).size).toBe(4);
     }
   });
 

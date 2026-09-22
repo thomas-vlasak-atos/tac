@@ -103,38 +103,55 @@ npm run typecheck  # tsc --build über alle Pakete
 - [x] WebSocket-Verbindung stabil (StrictMode-Doppel-Mount behoben).
 
 ### Layout/UX – dokumentiert, noch nicht umgesetzt (fürs finale Layout)
-- [ ] **B4b – Quellfeld markieren:** beim Ziehen das Ausgangsfeld der Kugel
+- [x] **B4b – Quellfeld markieren:** beim Ziehen das Ausgangsfeld der Kugel
       hervorheben (Sicherheit bei Rückwärts/TAC/Verklicken).
-- [ ] **B8 – Eigene Perspektive unten:** Brett je Spieler so drehen, dass der
+- [x] **B8 – Eigene Perspektive unten:** Brett je Spieler so drehen, dass der
       eigene Sitzplatz unten liegt; eigenen Platz/Farbe deutlich markieren.
       (Aktuell ist immer Blau/Sitz 0 unten, unabhängig vom eigenen Platz.)
-- [ ] **K4 – Ablage in der Mitte** (wie echtes TAC) statt separater Liste.
-- [ ] **K4a – Urheber sichtbar:** an jeder abgelegten Karte erkennen, wer sie
+- [x] **K4 – Ablage in der Mitte** (wie echtes TAC) statt separater Liste.
+- [x] **K4a – Urheber sichtbar:** an jeder abgelegten Karte erkennen, wer sie
       gelegt hat (Server kennt den Handelnden bereits).
-- [ ] **K4b – Karte zurücknehmen:** versehentlich/zu früh gelegte Karte zurück
+- [x] **K4b – Karte zurücknehmen:** versehentlich/zu früh gelegte Karte zurück
       auf die Hand holen (ohne Regelprüfung, Vertrauen wie offline).
-- [ ] **K4c – Natürlicher Kartenstapel (Gimmick):** Karten in der Mitte leicht
+- [x] **K4c – Natürlicher Kartenstapel (Gimmick):** Karten in der Mitte leicht
       zufällig versetzt/gedreht darstellen (wie echt); optional, verzichtbar.
-- [ ] **K4d – Runden-Ablagestapel + Einsicht:** Mitte pro Runde auf einen
-      Ablagestapel räumen; gelegte Karten der Runde per Mouseover in Reihenfolge
-      ansehen (löst Überdeckungsproblem gestapelter Karten).
+- [~] **K4d – Runden-Ablagestapel + Einsicht:** Die letzten Karten werden als
+      sichtbarer Stapel überlagert und per Hover/Titel inspizierbar. Ein expliziter
+      Rundenabschluss zum Archivieren ist noch nicht vorhanden, weil das
+      ursprüngliche Modell keine Rundenaktion hatte.
 
 ### Als Nächstes geplant
 - [ ] Manuelles 4-Spieler-Spiel lokal testen (Drag & Drop, Sync, Wurf-Gefühl).
-- [ ] **Design-Beispiele** für zwei Optik-Richtungen erstellen (Wunsch des
-      Nutzers): (a) modern-flach/digital-nativ, (b) hochwertig-realistisch
-      (Holz/Murmeln, ohne "künstlichen" 3D-Look). Siehe REQ-BOARD §7.
-- [ ] UI-Feinschliff Wurf-Interaktion (REQ-BOARD B4b) und Snapping.
-- [ ] Tauschphase ggf. "geführt" (simultanes 1-Karten-Tauschen) statt direkter
-      Übergabe – aktuell vereinfacht (`swapWithPartner`).
+- [ ] UI-Feinschliff nach echtem Spiel mit vier Browser-Tabs.
+- [x] Tauschphase: freiwillige verdeckte Angebote und Annahme beim gegenüber-
+      sitzenden Partner; harte Wartepflicht bleibt bewusst ausgeschaltet.
+- [x] Geberrotation und sichtbare Anzeige von aktuellem/nächstem Geber sowie
+      Reststapelgröße.
 
 ### Später / optional
 - [ ] Hosting umsetzen (ADR-0002): Sitzplatz-Link-Erzeugung im Client,
       Cloudflare Tunnel o. Ä.
 - [ ] Optionale, **nicht-verbietende** Regel-Hilfen (auf Basis von REQ-RULES).
 - [ ] Optionales Undo (letzten Zug zurücknehmen) für Verklicker.
-- [ ] Exakte Deck-Zusammensetzung je Kartenwert verifizieren (aktuell sinnvolle
-      Annäherung in `cards.ts`, siehe REQ-RULES §3 / offener Punkt).
+- [ ] Exakte Deck-Zusammensetzung je Kartenwert verifizieren (aktuell
+      dokumentierte Annahme in `REQ-DESIGN`, siehe REQ-RULES §3).
+- [x] Brettdesign anhand der Vorlagen in `vorlage/` abgeglichen. Referenz sind ein
+      quadratisches Holzbrett, 64 eingelassene Kreisfelder, florale Linienstruktur,
+      zentrale Mulde und vier Eckmulden; die Bilder werden nicht als Hintergrund
+      verwendet.
+- [x] Erste interaktive SVG-Umsetzung der Brettreferenz umgesetzt.
+- [x] `vorlage/Board.png` als sichtbare Brettgrundlage eingebunden; interaktive
+      SVG-Overlays bleiben für Felder, Kugeln, Markierungen und Karten erhalten.
+- [x] Overlay-Geometrie auf das Originalmaß 1024×1024 umgestellt; Hauspositionen
+      anhand eigener Uhrpositions-Layouts je Seite kalibriert. Links und rechts
+      werden wegen ihrer freien Sektoren nicht als 90°-Drehung behandelt.
+- [x] Quelle und Ziel des letzten Kugelzugs bleiben für alle Spieler markiert,
+      bis eine andere Kugel bewegt wird; bewusst kein Undo/TAC-Automatismus.
+- [x] Feldnummern können lokal ein- und ausgeblendet werden.
+- [x] Fremde Hände werden als Kartenrücken mit Anzahl angezeigt.
+- [x] Teufel-Einsicht benötigt eine Bestätigung des Zielspielers; danach kann
+      der anfragende Spieler genau eine fremde Karte offen ausspielen.
+- [x] Narr-Aktion zur Weitergabe aller Hände an den rechten Nachbarn.
 
 ---
 

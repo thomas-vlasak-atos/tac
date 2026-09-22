@@ -5,13 +5,14 @@
  */
 
 import type { BallPosition, Seat } from "@tac/shared";
-import { cardLabel } from "@tac/shared";
 import { useState } from "react";
 import { Board } from "./board/Board.js";
 import { COLOR_LABEL } from "./board/colors.js";
 import { useTacSocket } from "./net/useTacSocket.js";
 import { Hand } from "./ui/Hand.js";
 import { HistoryPanel } from "./ui/HistoryPanel.js";
+import { CardBack } from "./ui/CardBack.js";
+import { CardArtwork } from "./ui/cardArtwork.js";
 import { type JoinInfo, JoinScreen } from "./ui/JoinScreen.js";
 
 /** Liest Vorbelegungen aus der URL (ADR-0002 Sitzplatz-Links). */
@@ -37,6 +38,7 @@ export function App() {
   const [join, setJoin] = useState<JoinInfo | null>(null);
   const { status, state, seat, error, send } = useTacSocket(serverUrl());
   const [joined, setJoined] = useState(false);
+  const [showFieldNumbers, setShowFieldNumbers] = useState(false);
 
   // Nach Verbindungsaufbau automatisch beitreten (einmalig).
   if (join && status === "open" && !joined) {
@@ -52,10 +54,10 @@ export function App() {
     send({ type: "MoveBall", ballId, to });
 
   return (
-    <div style={{ fontFamily: "system-ui", padding: 16, maxWidth: 1200, margin: "0 auto" }}>
+    <div style={{ minHeight: "100vh", background: "#f1dfc2", color: "#4c2a1a", fontFamily: "Georgia, serif", padding: "20px clamp(12px, 3vw, 36px)" }}>
       <header style={{ display: "flex", alignItems: "baseline", gap: 16 }}>
-        <h1 style={{ margin: 0 }}>TAC Online</h1>
-        <span style={{ color: "#64748b" }}>
+        <h1 style={{ margin: 0, letterSpacing: 2 }}>TAC <span style={{ color: "#9b5c31" }}>ONLINE</span></h1>
+        <span style={{ color: "#765234", fontFamily: "system-ui", fontSize: 13 }}>
           Raum <strong>{join.roomId}</strong> ·{" "}
           {seat != null ? (
             <>
@@ -79,7 +81,7 @@ export function App() {
       {!state ? (
         <p>Lade Spielzustand…</p>
       ) : (
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 300px", gap: 16, marginTop: 12 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) 300px", gap: 18, margin: "18px auto 0", maxWidth: 1320 }}>
           <div>
             <div style={{ display: "flex", gap: 8, marginBottom: 8 }}>
               <button type="button" onClick={() => send({ type: "DealCards" })}>
@@ -105,12 +107,31 @@ export function App() {
                 Meisterversion
               </label>
             </div>
+            <div style={{ display: "flex", gap: 16, flexWrap: "wrap", marginBottom: 10, color: "#765234", fontFamily: "system-ui", fontSize: 13 }}>
+              <span><strong>Aktueller Geber:</strong> {COLOR_LABEL[( ["blau", "gelb", "gruen", "rot"] as const)[state.dealer]]}</span>
+              <span><strong>Nächster Geber:</strong> {COLOR_LABEL[( ["blau", "gelb", "gruen", "rot"] as const)[(state.dealer + 1) % 4]]}</span>
+              <span><strong>Reststapel:</strong> {state.deckCount} Karten</span>
+            </div>
 
-            <Board
-              balls={state.balls}
-              onMoveBall={moveBall}
-              ownSeat={seat}
-            />
+              <div
+                onDragOver={(event) => event.preventDefault()}
+                onDrop={(event) => {
+                  event.preventDefault();
+                  const cardId = event.dataTransfer.getData("text/tac-card");
+                  if (cardId) send({ type: "PlayCard", cardId });
+                }}
+              >
+                <Board
+                  balls={state.balls}
+                  lastBallMove={state.lastBallMove}
+                  showFieldNumbers={showFieldNumbers}
+                  discardEntries={state.discardEntries}
+                  onMoveBall={moveBall}
+                  onReturnCard={(cardId) => send({ type: "ReturnCard", cardId })}
+                  ownSeat={seat}
+                />
+              </div>
+              <label style={{ display: "inline-flex", gap: 6, alignItems: "center", marginTop: 7, color: "#765234", fontFamily: "system-ui", fontSize: 13 }}><input type="checkbox" checked={showFieldNumbers} onChange={(event) => setShowFieldNumbers(event.target.checked)} /> Feldnummern anzeigen</label>
             <p style={{ fontSize: 13, color: "#64748b", margin: "6px 0 0" }}>
               Bedienung: Kugel greifen und auf ein Feld ziehen. Liegen mehrere
               Kugeln auf einem Feld, werden sie gefächert dargestellt – so bleibt
@@ -121,36 +142,47 @@ export function App() {
               <h3 style={{ margin: "0 0 6px" }}>Deine Handkarten</h3>
               <Hand
                 cards={state.ownHand}
-                onPlay={(cardId) => send({ type: "PlayCard", cardId })}
-                onSwap={(cardId) => send({ type: "SwapWithPartner", cardId })}
               />
             </div>
 
-            <div style={{ marginTop: 12 }}>
-              <h3 style={{ margin: "0 0 6px" }}>Ablage</h3>
-              {state.discardPile.length === 0 ? (
-                <span style={{ color: "#94a3b8" }}>leer</span>
-              ) : (
-                <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-                  {state.discardPile.slice(-8).map((c) => (
-                    <span
-                      key={c.id}
-                      style={{
-                        border: "1px solid #cbd5e1",
-                        borderRadius: 6,
-                        padding: "4px 8px",
-                        background: "#fff",
-                      }}
-                    >
-                      {cardLabel(c)}
-                    </span>
-                  ))}
-                </div>
-              )}
+            <div
+              onDragOver={(event) => event.preventDefault()}
+              onDrop={(event) => {
+                event.preventDefault();
+                const cardId = event.dataTransfer.getData("text/tac-card");
+                if (cardId) send({ type: "OfferCardToPartner", cardId });
+              }}
+              style={{ marginTop: 14, padding: 14, border: "2px dashed #a56b3d", borderRadius: 12, background: "#ead0a8", color: "#6b3d22" }}
+            >
+              <strong>Zum Partner legen</strong>
+              <div style={{ fontSize: 13, marginTop: 4 }}>Karte hierher ziehen oder über „anbieten“ ablegen. Die Karte bleibt für den Partner verdeckt, bis er sie nimmt.</div>
             </div>
+
+            {state.tradeOffers.length > 0 && (
+              <div style={{ marginTop: 12, padding: 12, borderRadius: 12, background: "#f5e5c8", border: "1px solid #c8955c" }}>
+                <strong>Partnertausch</strong>
+                <div style={{ display: "grid", gap: 6, marginTop: 8 }}>
+                  {state.tradeOffers.filter((offer) => !offer.claimed).map((offer) => {
+                    const isMine = offer.from === seat;
+                    const isForMe = offer.to === seat;
+                    return (
+                      <div key={offer.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, fontSize: 13 }}>
+                        <span>{isMine ? "Deine verdeckte Karte beim Partner" : isForMe ? "Verdeckte Karte vom Partner" : "Partnerkarte angeboten"}</span>
+                        {isForMe && <button type="button" onClick={() => send({ type: "ClaimTradeOffer", offerId: offer.id })}>nehmen</button>}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
           </div>
 
           <aside>
+            <div style={{ padding: 12, borderRadius: 12, background: "#ead0a8", color: "#6b3d22", fontFamily: "system-ui", fontSize: 13 }}><strong>Spielerhände</strong>{state.players.map((player, index) => player && index !== seat ? <div key={player.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 8 }}><span>{player.name}</span><CardBack count={state.handCounts[index] ?? 0} /></div> : null)}</div>
+            <div style={{ marginTop: 12, padding: 12, borderRadius: 12, background: "#f5e5c8", color: "#6b3d22", fontFamily: "system-ui", fontSize: 13 }}><strong>Meisteraktionen</strong><div style={{ marginTop: 8, display: "grid", gap: 6 }}>{state.players.map((player, index) => player && index !== seat ? <button key={player.id} type="button" onClick={() => send({ type: "RequestDevilView", target: index as Seat })}>Teufel bei {player.name}</button> : null)}<button type="button" onClick={() => send({ type: "PassHandsRight" })}>Narr: alle Hände weitergeben</button></div></div>
+            {state.devilRequests.map((request) => request.target === seat && !request.approved ? <div key={request.id} style={{ marginTop: 12, padding: 12, borderRadius: 12, background: "#fff0c9", border: "2px solid #bb7a38", fontFamily: "system-ui", fontSize: 13 }}>Ein Spieler möchte deine Karten für den Teufel ansehen.<button type="button" onClick={() => send({ type: "ApproveDevilView", requestId: request.id })} style={{ display: "block", marginTop: 8 }}>Erlauben</button></div> : null)}
+            {state.devilRequests.map((request) => request.controller === seat && request.approved && request.visibleCards ? <div key={request.id} style={{ marginTop: 12, padding: 12, borderRadius: 12, background: "#ead0a8", fontFamily: "system-ui", fontSize: 13 }}><strong>Teufel-Hand</strong><div style={{ display: "flex", gap: 5, flexWrap: "wrap", marginTop: 8 }}>{request.visibleCards.map((card) => <button key={card.id} type="button" onClick={() => send({ type: "PlayForeignCard", requestId: request.id, cardId: card.id })} style={{ width: 52, padding: 2, background: "#fff8e7", border: "1px solid #a56b3d" }}><CardArtwork card={card} compact /></button>)}</div></div> : null)}
             <HistoryPanel entries={state.history} />
             <div style={{ marginTop: 12, fontSize: 13, color: "#64748b" }}>
               <strong>Spieler</strong>

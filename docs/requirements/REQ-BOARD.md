@@ -1,7 +1,7 @@
 # Anforderungen: TAC – Freies Online-Brett
 
 **Kennung:** `REQ-BOARD`
-**Version:** 0.1 (Entwurf)
+**Version:** 0.2
 **Stand:** 2026-09-21
 **Status:** AKTIV – dies ist die primäre Produktanforderung.
 
@@ -35,6 +35,8 @@
 
 - **B1 – Brettdarstellung:** Ein TAC-Brett mit Spielkreis (64 Felder), 4 Startfeldern,
   4 Häusern (je 4 Felder) und 4 Vorfeldern. Grafik eigenständig gestaltet.
+  Geometrische Herleitung (Grundgitter, Ringe, Hauszentren, Hausmulden aus dem
+  einen Grundmaß `r`) siehe `docs/architecture/ARCH-BOARD-GEOMETRY.md`.
 - **B2 – Kugeln:** 16 Kugeln, 4 Farben à 4. Startlage: alle im jeweiligen Vorfeld.
 - **B3 – Freie Bewegung:** Jeder Spieler kann Kugeln frei auf jedes beliebige
   Feld setzen (auch fremde Kugeln – Vertrauen wie offline). Keine Regelprüfung,
@@ -129,6 +131,16 @@
 
 ## 8. Offene Punkte
 
-- [ ] Genaues Wurf-Verhalten bei B4 (automatisch vs. Bestätigung).
-- [ ] Umfang der Kartenautomatik (nur Geben, oder auch Tauschphase geführt?).
-- [ ] Design-Richtung des Bretts (eigener Track, nach lauffähigem Prototyp).
+- [x] Wurf-Verhalten: kein automatisches Werfen; Kugeln werden frei per Drag &
+  Drop ins Vorfeld gesetzt.
+- [x] Kartenautomatik: digitale Hand, zentrale Ablage und freiwillig geführter
+  verdeckter Partnertausch; die Spieler führen die Spielphase weiterhin selbst.
+- [x] Design-Richtung: hochwertig-realistisch, dokumentiert in `REQ-DESIGN`.
+- [x] Letzter Kugelzug bleibt rein visuell mit Quelle und Ziel markiert, bis die
+  nächste Kugel bewegt wird. Das ersetzt kein Undo und keine Regel-Engine.
+- [ ] Feldnummern sind über einen lokalen UI-Schalter einblendbar.
+- [ ] Fremde Hände werden als Kartenrücken mit sichtbarer Anzahl dargestellt.
+- [ ] Teufel-Sonderaktion: Zielspieler bestätigt die Einsicht; danach darf der
+  Teufel eine Karte aus dessen Hand offen ausspielen.
+- [ ] Narr-Sonderaktion: alle Hände können bewusst an den rechten Nachbarn
+  weitergegeben werden.

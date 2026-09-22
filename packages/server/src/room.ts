@@ -20,6 +20,8 @@ import {
   type HistoryEntry,
   type Player,
   type PublicGameState,
+  type PublicDevilRequest,
+  type PublicTradeOffer,
   type Seat,
   shuffle,
   TEAM_BY_SEAT,
@@ -85,7 +87,11 @@ export function moveBall(
   const text = `${moving.color}: ${describePosition(from)} → ${describePosition(
     to,
   )}`;
-  return pushHistory({ ...state, balls: next }, actor, text);
+  return pushHistory(
+    { ...state, balls: next, lastBallMove: { ballId, from, to } },
+    actor,
+    text,
+  );
 }
 
 /**
@@ -125,11 +131,12 @@ export function dealCards(
 ): GameState {
   const shuffled = shuffle(state.deck, rng);
   const { hands, rest } = deal(shuffled, cardsPerPlayer, 4);
-  const withState: GameState = { ...state, hands, deck: rest };
+  const nextDealer = ((state.dealer + 1) % 4) as Seat;
+  const withState: GameState = { ...state, hands, deck: rest, dealer: nextDealer };
   return pushHistory(
     withState,
     state.dealer,
-    `Geber ${COLOR_BY_SEAT[state.dealer]}: ${cardsPerPlayer} Karten ausgeteilt`,
+    `Geber ${COLOR_BY_SEAT[state.dealer]}: ${cardsPerPlayer} Karten ausgeteilt; nächster Geber ${COLOR_BY_SEAT[nextDealer]}`,
   );
 }
 
@@ -154,11 +161,58 @@ export function playCard(
     ...state,
     hands,
     discardPile: [...state.discardPile, card],
+    discardEntries: [
+      ...state.discardEntries,
+      {
+        card,
+        actor: seat,
+        timestamp: Date.now(),
+        offset: state.discardEntries.length % 7,
+        rotation: ((state.discardEntries.length * 13) % 15) - 7,
+      },
+    ],
   };
   return pushHistory(
     withState,
     seat,
     `${COLOR_BY_SEAT[seat]}: Karte ${cardLabel(card)} abgelegt`,
+  );
+}
+
+/** Nimmt die eigene zuletzt abgelegte Karte wieder auf (REQ-BOARD K4b). */
+export function returnCard(
+  state: GameState,
+  seat: Seat,
+  cardId: string,
+): GameState {
+  let entryIndex = -1;
+  for (let index = state.discardEntries.length - 1; index >= 0; index--) {
+    const entry = state.discardEntries[index];
+    if (entry?.actor === seat && entry.card.id === cardId) {
+      entryIndex = index;
+      break;
+    }
+  }
+  if (entryIndex < 0) return state;
+
+  const entry = state.discardEntries[entryIndex]!;
+  let pileIndex = -1;
+  for (let index = state.discardPile.length - 1; index >= 0; index--) {
+    if (state.discardPile[index]?.id === cardId) {
+      pileIndex = index;
+      break;
+    }
+  }
+  if (pileIndex < 0) return state;
+  const discardPile = state.discardPile.filter((_, index) => index !== pileIndex);
+  const discardEntries = state.discardEntries.filter((_, index) => index !== entryIndex);
+  const hands = state.hands.map((hand, index) =>
+    index === seat ? [...hand, entry.card] : hand,
+  );
+  return pushHistory(
+    { ...state, hands, discardPile, discardEntries },
+    seat,
+    `${COLOR_BY_SEAT[seat]}: Karte ${cardLabel(entry.card)} zurückgenommen`,
   );
 }
 
@@ -189,6 +243,99 @@ export function swapWithPartner(
     seat,
     `${COLOR_BY_SEAT[seat]}: Karte an Partner ${COLOR_BY_SEAT[partner]} getauscht`,
   );
+}
+
+/** Legt eine Karte verdeckt für den gegenüberliegenden Partner bereit. */
+export function offerCardToPartner(
+  state: GameState,
+  seat: Seat,
+  cardId: string,
+): GameState {
+  const partner = partnerSeat(seat);
+  const card = state.hands[seat]?.find((item) => item.id === cardId);
+  if (!card) return state;
+  const hands = state.hands.map((hand, index) =>
+    index === seat ? hand.filter((item) => item.id !== cardId) : hand,
+  );
+  const offer = {
+    id: `trade-${state.nextTradeOfferId}`,
+    from: seat,
+    to: partner,
+    card,
+    claimed: false,
+  };
+  return pushHistory(
+    { ...state, hands, tradeOffers: [...state.tradeOffers, offer], nextTradeOfferId: state.nextTradeOfferId + 1 },
+    seat,
+    `${COLOR_BY_SEAT[seat]}: Karte verdeckt für Partner bereitgelegt`,
+  );
+}
+
+/** Nimmt ein eigenes, verdecktes Partnerangebot an. */
+export function claimTradeOffer(
+  state: GameState,
+  seat: Seat,
+  offerId: string,
+): GameState {
+  const offer = state.tradeOffers.find(
+    (item) => item.id === offerId && item.to === seat && !item.claimed,
+  );
+  if (!offer) return state;
+  const tradeOffers = state.tradeOffers.map((item) =>
+    item.id === offerId ? { ...item, claimed: true } : item,
+  );
+  const hands = state.hands.map((hand, index) =>
+    index === seat ? [...hand, offer.card] : hand,
+  );
+  return pushHistory(
+    { ...state, hands, tradeOffers },
+    seat,
+    `${COLOR_BY_SEAT[seat]}: Partnerkarte genommen`,
+  );
+}
+
+/** Fragt den Zielspieler um Erlaubnis, seine Hand für den Teufel zu sehen. */
+export function requestDevilView(state: GameState, controller: Seat, target: Seat): GameState {
+  if (controller === target) return state;
+  const request = {
+    id: `devil-${state.nextDevilRequestId}`,
+    controller,
+    target,
+    approved: false,
+  };
+  return pushHistory(
+    { ...state, devilRequests: [...state.devilRequests, request], nextDevilRequestId: state.nextDevilRequestId + 1 },
+    controller,
+    `${COLOR_BY_SEAT[controller]} fragt ${COLOR_BY_SEAT[target]} um Teufel-Handeinsicht`,
+  );
+}
+
+/** Bestätigt die Einsicht, ohne die Zielhand an andere Spieler zu senden. */
+export function approveDevilView(state: GameState, target: Seat, requestId: string): GameState {
+  const request = state.devilRequests.find((item) => item.id === requestId && item.target === target && !item.approved);
+  if (!request) return state;
+  const devilRequests = state.devilRequests.map((item) => item.id === requestId ? { ...item, approved: true } : item);
+  return pushHistory({ ...state, devilRequests }, target, `${COLOR_BY_SEAT[target]} erlaubt die Teufel-Handeinsicht`);
+}
+
+/** Spielt genau eine Karte aus der bestätigten fremden Hand offen aus. */
+export function playForeignCard(state: GameState, controller: Seat, requestId: string, cardId: string): GameState {
+  const request = state.devilRequests.find((item) => item.id === requestId && item.controller === controller && item.approved);
+  if (!request) return state;
+  const card = state.hands[request.target]?.find((item) => item.id === cardId);
+  if (!card) return state;
+  const devilRequests = state.devilRequests.filter((item) => item.id !== requestId);
+  return playCard(
+    { ...state, devilRequests },
+    request.target,
+    cardId,
+  );
+}
+
+/** Gibt alle Hände verdeckt an den rechten Nachbarn weiter (Narr). */
+export function passHandsRight(state: GameState, actor: Seat): GameState {
+  const hands = state.hands.map((_, index) => state.hands[(index + 3) % 4] ?? []);
+  return pushHistory({ ...state, hands }, actor, `${COLOR_BY_SEAT[actor]}: Alle Hände an den rechten Nachbarn weitergegeben`);
 }
 
 /** Der gegenübersitzende Partner-Sitzplatz. */
@@ -292,6 +439,19 @@ export function toPublicState(
     players: state.players,
     balls: state.balls,
     discardPile: state.discardPile,
+    discardEntries: state.discardEntries,
+    tradeOffers: state.tradeOffers.map((offer): PublicTradeOffer => ({
+      id: offer.id,
+      from: offer.from,
+      to: offer.to,
+      claimed: offer.claimed,
+      ...(offer.from === viewer || offer.claimed ? { card: offer.card } : {}),
+    })),
+    lastBallMove: state.lastBallMove,
+    devilRequests: state.devilRequests.map((request): PublicDevilRequest => ({
+      ...request,
+      ...(request.approved && request.controller === viewer ? { visibleCards: state.hands[request.target] ?? [] } : {}),
+    })),
     handCounts: state.hands.map((h) => h.length),
     ownHand: viewer != null ? (state.hands[viewer] ?? []) : [],
     deckCount: state.deck.length,

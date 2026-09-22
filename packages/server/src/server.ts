@@ -22,7 +22,14 @@ import {
   markDisconnected,
   moveBall,
   playCard,
+  offerCardToPartner,
+  claimTradeOffer,
+  requestDevilView,
+  approveDevilView,
+  playForeignCard,
+  passHandsRight,
   resetGame,
+  returnCard,
   setMasterMode,
   swapBalls,
   swapWithPartner,
@@ -129,8 +136,29 @@ function handleAction(conn: Connection, action: ClientAction): void {
     case "PlayCard":
       room.state = playCard(room.state, seat, action.cardId);
       break;
+    case "ReturnCard":
+      room.state = returnCard(room.state, seat, action.cardId);
+      break;
     case "SwapWithPartner":
       room.state = swapWithPartner(room.state, seat, action.cardId);
+      break;
+    case "OfferCardToPartner":
+      room.state = offerCardToPartner(room.state, seat, action.cardId);
+      break;
+    case "ClaimTradeOffer":
+      room.state = claimTradeOffer(room.state, seat, action.offerId);
+      break;
+    case "RequestDevilView":
+      room.state = requestDevilView(room.state, seat, action.target);
+      break;
+    case "ApproveDevilView":
+      room.state = approveDevilView(room.state, seat, action.requestId);
+      break;
+    case "PlayForeignCard":
+      room.state = playForeignCard(room.state, seat, action.requestId, action.cardId);
+      break;
+    case "PassHandsRight":
+      room.state = passHandsRight(room.state, seat);
       break;
     case "Announce":
       // Rein informativ; als Verlaufseintrag über moveBall-artiges Muster

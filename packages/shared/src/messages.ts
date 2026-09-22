@@ -19,7 +19,14 @@ export type ClientAction =
   | { type: "SwapBalls"; ballA: string; ballB: string }
   | { type: "DealCards"; cardsPerPlayer?: number }
   | { type: "PlayCard"; cardId: string }
+  | { type: "ReturnCard"; cardId: string }
   | { type: "SwapWithPartner"; cardId: string }
+  | { type: "OfferCardToPartner"; cardId: string }
+  | { type: "ClaimTradeOffer"; offerId: string }
+  | { type: "RequestDevilView"; target: Seat }
+  | { type: "ApproveDevilView"; requestId: string }
+  | { type: "PlayForeignCard"; requestId: string; cardId: string }
+  | { type: "PassHandsRight" }
   | { type: "Announce"; canOpen: boolean }
   | { type: "SetMasterMode"; enabled: boolean }
   | { type: "ResetGame" };
