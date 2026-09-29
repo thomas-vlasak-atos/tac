@@ -1,7 +1,7 @@
 # ADR-0002: Hosting & Beitritt über Sitzplatz-Links (Entwurf)
 
-**Status:** proposed (Diskussionsstand, noch nicht umgesetzt)
-**Datum:** 2026-09-21
+**Status:** teilweise umgesetzt (kostenloser Cloud-Test via Render)
+**Datum:** 2026-09-21 (aktualisiert 2026-09-29)
 
 ## Kontext
 
@@ -60,3 +60,33 @@ erreichbar. Kandidaten:
   generieren) und das Auslesen von `roomId`/`seat`/`name` aus der URL.
 - Serverseitig ist die Grundlage (`JoinRoom` mit Sitzplatz) bereits vorhanden.
 - Keine Änderung am aktuellen Umsetzungsstand nötig; dies ist ein Planungs-ADR.
+
+## Umsetzung: kostenloser Cloud-Test via Render (2026-09-29)
+
+Für einen ersten Online-Test (zunächst nur zum Ausprobieren, möglichst kostenlos)
+wurde **Option 4 (kleiner Cloud-Host)** mit **Render** gewählt statt des Heim-
+Servers. Gründe: kein laufender Heim-PC nötig, ein weitergebbarer Link, TLS/`wss`
+inklusive. Der Free-Tier reicht für den Test.
+
+**Aufteilung (siehe `render.yaml` im Repo-Root):**
+
+- `tac-server` – Web Service (Node, Free-Tier). WebSockets brauchen einen
+  dauerhaft laufenden Prozess (kein Serverless). Der Server öffnet jetzt einen
+  **HTTP-Server** auf `$PORT` (von Render gesetzt), der Health-Checks (`GET /`,
+  `/health` → 200) beantwortet **und** das WebSocket-Upgrade auf demselben Port
+  bedient (Render gibt pro Dienst nur einen Port frei).
+- `tac-client` – Static Site (kostenlos, CDN). Vite-Build nach
+  `packages/client/dist-web`. Die Server-Adresse kommt über die Build-Variable
+  `VITE_SERVER_URL` (Render füllt sie per `fromService` mit dem Server-Host; der
+  Client ergänzt das `wss://`-Schema selbst, siehe `serverUrl()` in `App.tsx`).
+
+**Bewusste Einschränkungen des Free-Tiers (für einen Test akzeptabel):**
+
+- Der Server **schläft** nach ~15 Min Inaktivität und braucht beim nächsten
+  Zugriff einige Sekunden zum Aufwachen.
+- Der Spielzustand liegt **nur im Speicher**: Neustart/Deploy setzt laufende
+  Partien zurück (Persistenz bleibt ein späterer, optionaler Punkt).
+
+Die ursprüngliche Tendenz (Heim-Server + Cloudflare Tunnel) bleibt als Alternative
+gültig, falls dauerhaft ohne Cloud-Abhängigkeit und ohne Schlaf-Verhalten
+gespielt werden soll.

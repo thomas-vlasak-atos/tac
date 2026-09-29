@@ -1,0 +1,47 @@
+# Render Blueprint für TAC Online (kostenloser Test)
+#
+# Deployt zwei Dienste aus diesem Monorepo:
+#   1. tac-server  – Node/WebSocket-Server (Web Service, Free-Tier)
+#   2. tac-client  – statischer Vite-Build (Static Site, kostenlos)
+#
+# Der Client erhält die WebSocket-URL des Servers über VITE_SERVER_URL zum
+# Build-Zeitpunkt. Render füllt den Server-Host automatisch aus `fromService`.
+#
+# Hinweise:
+# - Der Free-Web-Service schläft nach ~15 Min Inaktivität und braucht beim
+#   nächsten Zugriff einige Sekunden zum Aufwachen. Für einen Test ausreichend.
+# - Der Spielzustand liegt nur im Speicher: Ein Neustart/Deploy setzt laufende
+#   Partien zurück (bewusst, siehe ADR-0002).
+#
+# Siehe docs/decisions/ADR-0002-hosting-und-sitzplatz-links.md
+services:
+  - type: web
+    name: tac-server
+    runtime: node
+    plan: free
+    # WebSockets brauchen einen dauerhaft laufenden Prozess (kein Serverless).
+    buildCommand: npm install
+    startCommand: npm run start --workspace @tac/server
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_VERSION
+        value: "20"
+
+  - type: web
+    name: tac-client
+    runtime: static
+    buildCommand: npm install && npm run build --workspace @tac/client
+    staticPublishPath: packages/client/dist-web
+    # SPA: alle Pfade auf index.html umschreiben (Deep-Links wie /?room=...).
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    envVars:
+      # Render liefert nur den Hostnamen des Server-Dienstes; der Client-Code
+      # ergänzt das wss://-Schema automatisch (siehe serverUrl() in App.tsx).
+      - key: VITE_SERVER_URL
+        fromService:
+          type: web
+          name: tac-server
+          property: host

@@ -7,7 +7,21 @@ Versionierung nach [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+### Added
+- **Kostenloses Online-Test-Deployment (Render):** `render.yaml`-Blueprint mit
+  `tac-server` (Web Service, Node/WebSocket) und `tac-client` (Static Site). Der
+  Client erhält die Server-Adresse über `VITE_SERVER_URL`. README-Abschnitt und
+  ADR-0002 dokumentieren Setup und Free-Tier-Einschränkungen (Server schläft bei
+  Inaktivität, State nur im Speicher).
+
 ### Changed
+- **Server öffnet einen HTTP-Port mit Health-Check** (`GET /`, `/health` → 200)
+  und bedient das WebSocket-Upgrade über denselben Port. Voraussetzung für
+  Cloud-Hosting (Render gibt pro Dienst nur einen Port frei). Der Port kommt
+  weiterhin aus `PORT`.
+- **Client-Server-URL konfigurierbar:** `serverUrl()` nutzt `VITE_SERVER_URL`
+  (vollständige URL oder reiner Host, `wss://` wird ergänzt); ohne Variable
+  weiterhin `ws://<host>:3001` für lokale Entwicklung.
 - **Geben mischt nicht mehr** (entspricht dem offiziellen Regelheft: „der Stapel
   muss dazu nicht neu gemischt werden"): `dealCards` zieht nur noch von oben des
   Reststapels. Der Stapel wird stattdessen einmal beim Spielstart gemischt

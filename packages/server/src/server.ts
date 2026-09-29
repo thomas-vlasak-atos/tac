@@ -13,6 +13,7 @@
  */
 
 import { randomUUID } from "node:crypto";
+import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
 import type { ClientAction, GameState, Seat, ServerMessage } from "@tac/shared";
 import { createInitialState } from "@tac/shared";
 import { WebSocket, WebSocketServer } from "ws";
@@ -198,9 +199,33 @@ function handleClose(conn: Connection): void {
   }
 }
 
-/** Startet den WebSocket-Server auf dem angegebenen Port. */
+/**
+ * Startet den Server auf dem angegebenen Port.
+ *
+ * Es wird ein HTTP-Server erstellt, der zwei Zwecke erfüllt:
+ * 1. Einen Health-Check (GET /health, GET /) mit HTTP 200 – nötig für Hosting-
+ *    Plattformen wie Render, die einen offenen HTTP-Port und Health-Checks
+ *    erwarten und pro Dienst nur EINEN Port freigeben.
+ * 2. Das WebSocket-Upgrade auf demselben Port (der eigentliche Spielverkehr).
+ *
+ * So laufen HTTP-Health-Check und WebSocket über einen einzigen Port – das ist
+ * Voraussetzung für kostenloses Cloud-Hosting (siehe ADR-0002).
+ */
 export function startServer(port = 3001): WebSocketServer {
-  const wss = new WebSocketServer({ port });
+  const httpServer = createServer(
+    (req: IncomingMessage, res: ServerResponse) => {
+      // Einfacher Health-Check; alle GET-Anfragen mit 200 beantworten.
+      if (req.method === "GET") {
+        res.writeHead(200, { "content-type": "text/plain; charset=utf-8" });
+        res.end("TAC server ok");
+        return;
+      }
+      res.writeHead(404);
+      res.end();
+    },
+  );
+
+  const wss = new WebSocketServer({ server: httpServer });
 
   wss.on("connection", (socket: WebSocket) => {
     const conn: Connection = {
@@ -225,8 +250,11 @@ export function startServer(port = 3001): WebSocketServer {
     socket.on("error", () => handleClose(conn));
   });
 
-  // eslint-disable-next-line no-console
-  console.log(`TAC-Server läuft auf ws://localhost:${port}`);
+  // Auf allen Interfaces lauschen (0.0.0.0), damit Cloud-/LAN-Zugriff klappt.
+  httpServer.listen(port, () => {
+    // eslint-disable-next-line no-console
+    console.log(`TAC-Server läuft auf Port ${port} (HTTP-Health + WebSocket)`);
+  });
   return wss;
 }
 

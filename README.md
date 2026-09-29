@@ -83,6 +83,35 @@ Beitritt vorbelegen, z. B. `http://localhost:5173/?room=abc&name=Anna&seat=0`
 
 Diese Anleitung wird bei jeder Änderung am Setup/Start-Prozess aktuell gehalten.
 
+## Online-Test-Deployment (kostenlos, via Render)
+
+Für einen ersten Online-Test gibt es ein Render-Blueprint (`render.yaml`), das zwei
+Dienste im kostenlosen Tarif erzeugt:
+
+- **`tac-server`** – WebSocket-Server als Web Service (Node). Öffnet einen
+  HTTP-Port (`$PORT`) mit Health-Check (`/health`) und bedient das WebSocket-Upgrade
+  über denselben Port.
+- **`tac-client`** – statischer Vite-Build als Static Site (CDN). Bekommt die
+  Server-Adresse über die Build-Variable `VITE_SERVER_URL` (Render füllt den Host
+  automatisch aus dem Server-Dienst).
+
+Schritte:
+
+1. Repository auf GitHub pushen.
+2. In Render „New → Blueprint" wählen und das Repo verbinden; Render liest
+   `render.yaml` und legt beide Dienste an.
+3. Nach dem ersten Deploy die Client-URL öffnen (z. B.
+   `https://tac-client.onrender.com`), ggf. mit `?room=…&name=…&seat=…`.
+
+Hinweise zum Free-Tier: Der Server **schläft** nach einigen Minuten Inaktivität und
+braucht beim nächsten Zugriff ein paar Sekunden zum Aufwachen. Der Spielzustand
+liegt nur im Speicher (Neustart/Deploy = Partie zurückgesetzt). Details:
+`docs/decisions/ADR-0002-hosting-und-sitzplatz-links.md`.
+
+Lokal lässt sich die Server-Adresse ebenfalls über `VITE_SERVER_URL` setzen
+(z. B. in einer `.env` im Client-Paket); ohne die Variable wird
+`ws://<host>:3001` angenommen.
+
 ## Monorepo-Struktur
 
 ```
