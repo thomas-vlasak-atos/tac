@@ -96,9 +96,22 @@ npm run typecheck  # tsc --build über alle Pakete
 
 ## 4. Offene Punkte / Nächste Schritte
 
+### Online & Bedienung (Stand 2026-09-29)
+- [x] **Online spielbar (Render, kostenlos):** Client `https://tac-client.onrender.com`,
+      Server `https://tac-server-v5p7.onrender.com`. Blueprint `render.yaml`; Client-URL
+      über `VITE_SERVER_URL`. Free-Tier: Server schläft bei Inaktivität, State nur im RAM.
+- [x] **Karten per Klick** statt Drag & Drop (auswählen → „Ablegen"/„An Partner geben").
+      Kugeln bleiben Drag & Drop.
+- [x] **Verlauf mit Spielernamen** statt Farbe (Fallback Farbe bei freiem Sitz).
+- [x] **Sitzplatz-Verdrängung** per Link (`seat=`); Auto-Join nimmt nur freie Plätze.
+- [x] **Partnertausch** überarbeitet: 1× pro Runde, Angebot ersetz-/zurücknehmbar,
+      nehmen erst nach eigenem Angebot.
+- [x] **Meisterkarten-Anleitung** als Overlay im Client.
+- [ ] Bedienung im echten 4-Spieler-Spiel testen (jetzt online möglich); Feedback sammeln.
+
 ### Sofort (offen aus dieser Session)
 - [~] **Feinschliff der Bedienung** im echten Spiel testen (zu viert):
-      Drag & Drop, gefächerte Kugeln auf gleichem Feld, Orientierung.
+      Kartenklick, Kugel-Drag & Drop, gefächerte Kugeln auf gleichem Feld, Orientierung.
       Erster kleiner Test durchgeführt, Ergebnis positiv; weitere Bugfixes folgen.
 - [x] Client lädt im Browser (Windows-`subst`-Problem gelöst, ADR-0003).
 - [x] WebSocket-Verbindung stabil (StrictMode-Doppel-Mount behoben).

@@ -73,6 +73,11 @@
 - **K2 – Geben:** Auf Auslösung (z. B. Button "Geben") mischt die App und teilt
   je 5 Karten aus (Meisterrunde: 6). Wer gibt, wandert reihum.
 - **K3 – Eigene Hand:** Jeder sieht **nur seine eigene** Hand (verdeckt für andere).
+- **K3a – Kartenbedienung per Klick (Stand v0.5):** Eine Handkarte wird **angeklickt**
+  (ausgewählt, hervorgehoben); danach werden die möglichen Aktionen als Buttons
+  angeboten: „Ablegen (in die Mitte)" und „An Partner geben (verdeckt)". Ersetzt das
+  frühere Karten-Drag-&-Drop (auf Touch/kleinen Displays zuverlässiger). Die Kugeln
+  bleiben weiterhin per Drag & Drop bedienbar (B3a).
 - **K4 – Karte ablegen/spielen:** Karte offen in die **Mitte** (Ablage) legen –
   wie im echten TAC. Für alle sichtbar, welche Karte gespielt wurde.
 - **K4a – Urheber sichtbar (geplant, noch nicht umgesetzt):** Zu jeder abgelegten
@@ -93,7 +98,15 @@
   Runde lassen sich per **Mouseover** in ihrer Reihenfolge einsehen. Ergänzt den
   Zugverlauf (H1) um eine karten-orientierte Ansicht.
 - **K5 – Tauschen mit Partner:** In der Tauschphase gibt jeder verdeckt 1 Karte an
-  den Partner; Ansicht der erhaltenen Karte erst nach eigener Abgabe.
+  den Partner; Ansicht der erhaltenen Karte erst nach eigener Abgabe. Umsetzung
+  (Stand v0.5, „jeder nimmt selbst"):
+  - Genau **ein abgeschlossener Tausch pro Runde** (wird beim Geben zurückgesetzt).
+  - Solange der Partner die angebotene Karte **noch nicht genommen** hat, kann man
+    das Angebot **zurücknehmen** (Karte zurück auf die Hand) oder durch das Anbieten
+    einer **anderen** Karte ersetzen.
+  - Die Partnerkarte kann man erst **nehmen**, wenn man **selbst** eine Karte
+    angeboten hat (fairer Gleichzeitig-Tausch, keiner sieht die Karte vorab).
+  - Nach dem Nehmen ist der Tausch für diese Runde abgeschlossen (kein Rückgängig).
 - **K6 – Melden (optional):** Einfaches "kann / kann nicht"-Signal (Handzeichen-
   Ersatz). Rein informativ, keine Prüfung.
 - **K7 – Kartensichtbarkeit-Sonderfälle (Teufel):** Werden Meisterkarten genutzt,

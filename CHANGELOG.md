@@ -8,13 +8,31 @@ Versionierung nach [Semantic Versioning](https://semver.org/lang/de/).
 ## [Unreleased]
 
 ### Added
+- **Meisterkarten-Anleitung im Client:** Button „Meisterkarten erklären" öffnet ein
+  Overlay mit Kurzbeschreibung zu Engel, Teufel, Krieger und Narr (angelehnt an die
+  Original-Infokarte). Reine Nachschlagehilfe, keine Regeldurchsetzung.
+- **Partnerangebot zurücknehmen:** Ein verdecktes Angebot kann zurückgezogen werden,
+  solange der Partner es noch nicht genommen hat (`RevokeTradeOffer`).
 - **Kostenloses Online-Test-Deployment (Render):** `render.yaml`-Blueprint mit
   `tac-server` (Web Service, Node/WebSocket) und `tac-client` (Static Site), beide
   in der Region `frankfurt`. Der Client erhält die Server-Adresse über
   `VITE_SERVER_URL`. README-Abschnitt und ADR-0002 dokumentieren Setup und
   Free-Tier-Einschränkungen (Server schläft bei Inaktivität, State nur im Speicher).
+- README: Beitritts-Links je Spieler/Sitzplatz für den Raum `tac`.
 
 ### Changed
+- **Karten werden per Klick bedient statt per Drag & Drop:** Eine Handkarte anklicken
+  wählt sie aus; darunter erscheinen die Aktionen „Ablegen (in die Mitte)" und „An
+  Partner geben (verdeckt)". Die Kugeln bleiben unverändert per Drag & Drop bedienbar.
+- **Verlauf zeigt Spielernamen statt Farbe**, wenn der Sitz belegt ist (Fallback auf
+  die Farbe bei unbesetztem Platz).
+- **Sitzplatzvergabe mit Verdrängung:** Ein Beitritt mit explizitem Sitzplatz (Link)
+  übernimmt den Platz immer und verdrängt den bisherigen Spieler (der eine Hinweis-
+  meldung erhält). Auto-Beitritt ohne Sitzplatz nimmt weiterhin nur freie Plätze.
+- **Partnertausch überarbeitet:** genau ein abgeschlossener Tausch pro Runde (wird
+  beim Geben zurückgesetzt); ein noch nicht genommenes eigenes Angebot wird durch ein
+  neues ersetzt (alte Karte zurück auf die Hand); „nehmen" ist erst möglich, nachdem
+  man selbst eine Karte angeboten hat.
 - **Server öffnet einen HTTP-Port mit Health-Check** (`GET /`, `/health` → 200)
   und bedient das WebSocket-Upgrade über denselben Port. Voraussetzung für
   Cloud-Hosting (Render gibt pro Dienst nur einen Port frei). Der Port kommt

@@ -62,6 +62,7 @@ export function App() {
   const [joined, setJoined] = useState(false);
   const [showFieldNumbers, setShowFieldNumbers] = useState(false);
   const [showMasterHelp, setShowMasterHelp] = useState(false);
+  const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
 
   // Nach Verbindungsaufbau automatisch beitreten (einmalig).
   if (join && status === "open" && !joined) {
@@ -131,14 +132,7 @@ export function App() {
               <span><strong>Reststapel:</strong> {state.deckCount} Karten</span>
             </div>
 
-              <div className="board-drop-zone"
-                onDragOver={(event) => event.preventDefault()}
-                onDrop={(event) => {
-                  event.preventDefault();
-                  const cardId = event.dataTransfer.getData("text/tac-card");
-                  if (cardId) send({ type: "PlayCard", cardId });
-                }}
-              >
+              <div className="board-drop-zone">
                 <Board
                   balls={state.balls}
                   lastBallMove={state.lastBallMove}
@@ -150,23 +144,6 @@ export function App() {
                 />
               </div>
               <label style={{ display: "inline-flex", gap: 6, alignItems: "center", marginTop: 7, color: "#765234", fontFamily: "system-ui", fontSize: 13 }}><input type="checkbox" checked={showFieldNumbers} onChange={(event) => setShowFieldNumbers(event.target.checked)} /> Feldnummern anzeigen</label>
-            <div
-              onDragOver={(event) => event.preventDefault()}
-              onDrop={(event) => {
-                event.preventDefault();
-                if (seat != null && state.tradeDone.includes(seat)) return;
-                const cardId = event.dataTransfer.getData("text/tac-card");
-                if (cardId) send({ type: "OfferCardToPartner", cardId });
-              }}
-              style={{ marginTop: 14, padding: 14, border: "2px dashed #a56b3d", borderRadius: 12, background: "#ead0a8", color: "#6b3d22", opacity: seat != null && state.tradeDone.includes(seat) ? 0.5 : 1 }}
-            >
-              <strong>Zum Partner legen</strong>
-              <div style={{ fontSize: 13, marginTop: 4 }}>
-                {seat != null && state.tradeDone.includes(seat)
-                  ? "Du hast in dieser Runde bereits getauscht."
-                  : "Karte hierher ziehen. Sie bleibt für den Partner verdeckt, bis er sie nimmt. Solange er sie nicht genommen hat, kannst du eine andere Karte anbieten oder sie zurücknehmen."}
-              </div>
-            </div>
 
             {(state.tradeOffers.length > 0) && (
               <div style={{ marginTop: 12, padding: 12, borderRadius: 12, background: "#f5e5c8", border: "1px solid #c8955c" }}>
@@ -203,7 +180,44 @@ export function App() {
           <aside>
             <div className="own-hand-panel" style={{ padding: 12, borderRadius: 12, background: "#f5e5c8", color: "#6b3d22" }}>
               <h3 style={{ margin: "0 0 8px" }}>Deine Handkarten</h3>
-              <Hand cards={state.ownHand} compact />
+              <Hand
+                cards={state.ownHand}
+                compact
+                selectedId={selectedCardId}
+                onSelect={(cardId) => setSelectedCardId((current) => (current === cardId ? null : cardId))}
+              />
+              {selectedCardId && state.ownHand.some((card) => card.id === selectedCardId) && (
+                <div style={{ marginTop: 10, display: "grid", gap: 6, fontFamily: "system-ui", fontSize: 13 }}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      send({ type: "PlayCard", cardId: selectedCardId });
+                      setSelectedCardId(null);
+                    }}
+                  >
+                    Ablegen (in die Mitte)
+                  </button>
+                  <button
+                    type="button"
+                    disabled={seat != null && state.tradeDone.includes(seat)}
+                    title={seat != null && state.tradeDone.includes(seat) ? "In dieser Runde bereits getauscht" : undefined}
+                    onClick={() => {
+                      send({ type: "OfferCardToPartner", cardId: selectedCardId });
+                      setSelectedCardId(null);
+                    }}
+                  >
+                    An Partner geben (verdeckt)
+                  </button>
+                  <button type="button" onClick={() => setSelectedCardId(null)}>
+                    Auswahl aufheben
+                  </button>
+                </div>
+              )}
+              {seat != null && state.tradeDone.includes(seat) && (
+                <p style={{ marginTop: 8, fontFamily: "system-ui", fontSize: 12, color: "#8a5a33" }}>
+                  Du hast in dieser Runde bereits mit dem Partner getauscht.
+                </p>
+              )}
             </div>
             <div style={{ padding: 12, borderRadius: 12, background: "#ead0a8", color: "#6b3d22", fontFamily: "system-ui", fontSize: 13 }}><strong>Sitzplätze</strong>{state.players.map((player, index) => <div key={index} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8, marginTop: 8 }}><span>Platz {index + 1}: {player ? `${player.name} (${COLOR_LABEL[player.color]})` : "frei"}{player && !player.connected ? " – getrennt" : ""}</span>{player && index !== seat && <CardBack count={state.handCounts[index] ?? 0} />}</div>)}</div>
             <div style={{ marginTop: 12, padding: 12, borderRadius: 12, background: "#f5e5c8", color: "#6b3d22", fontFamily: "system-ui", fontSize: 13 }}><strong>Meisteraktionen</strong><div style={{ marginTop: 8, display: "grid", gap: 6 }}>{seat != null && state.players[(seat + 1) % 4] ? <button type="button" onClick={() => send({ type: "RequestDevilView", target: ((seat + 1) % 4) as Seat })}>Teufel: Hand von {state.players[(seat + 1) % 4]?.name} ansehen</button> : null}<button type="button" onClick={() => send({ type: "PassHandsRight" })}>Narr: alle Hände weitergeben</button></div></div>
