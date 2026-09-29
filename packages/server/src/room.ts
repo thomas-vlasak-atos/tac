@@ -120,23 +120,66 @@ export function swapBalls(
 }
 
 /**
- * Mischt den Reststapel und teilt reihum Karten aus (Standard 5, Meister 6).
- * Übrige Karten werden zum neuen Reststapel; alte Hände werden ersetzt.
+ * Teilt reihum Karten aus (Standard 5, Meister 6), OHNE zu mischen.
+ * Der Reststapel liegt bereits gemischt bereit (initial in `createInitialState`
+ * bzw. nach `shuffleDiscard`); `Geben` zieht nur von oben – wie am echten Tisch.
+ * Übrige Karten bleiben Reststapel; alte Hände werden ersetzt.
  * REQ-BOARD K2.
  */
 export function dealCards(
   state: GameState,
-  cardsPerPlayer: number,
-  rng: () => number = Math.random,
+  _cardsPerPlayer = 5,
+  actor?: Seat,
 ): GameState {
-  const shuffled = shuffle(state.deck, rng);
-  const { hands, rest } = deal(shuffled, cardsPerPlayer, 4);
-  const nextDealer = ((state.dealer + 1) % 4) as Seat;
-  const withState: GameState = { ...state, hands, deck: rest, dealer: nextDealer };
+  // A deal is only possible after the previous hands have been played.
+  if (state.hands.some((hand) => hand.length > 0)) return state;
+  if (state.deck.length < 20) return state;
+
+  // The master deck has four regular rounds and one final six-card round.
+  const cardsPerPlayer = state.masterMode && state.deck.length === 24 ? 6 : 5;
+  const { hands, rest } = deal(state.deck, cardsPerPlayer, 4);
+  const dealer = actor ?? state.dealer;
+  const withState: GameState = {
+    ...state,
+    hands,
+    deck: rest,
+    dealer,
+    // The visible middle is the current round's discard area. The complete
+    // discardPile remains the separate archive.
+    discardEntries: [],
+    tradeOffers: [],
+  };
   return pushHistory(
     withState,
-    state.dealer,
-    `Geber ${COLOR_BY_SEAT[state.dealer]}: ${cardsPerPlayer} Karten ausgeteilt; nächster Geber ${COLOR_BY_SEAT[nextDealer]}`,
+    dealer,
+    `Geber ${COLOR_BY_SEAT[dealer]}: ${cardsPerPlayer} Karten ausgeteilt; nächste Runde ist ${COLOR_BY_SEAT[((dealer + 3) % 4) as Seat]} an der Reihe`,
+  );
+}
+
+/**
+ * Mischt den separaten Ablagestapel zurück in den Reststapel.
+ * Das ist erst möglich, wenn alle Handkarten gespielt und der Reststapel leer ist.
+ */
+export function shuffleDiscard(
+  state: GameState,
+  rng: () => number = Math.random,
+  actor?: Seat,
+): GameState {
+  if (state.deck.length > 0 || state.hands.some((hand) => hand.length > 0)) {
+    return state;
+  }
+  if (state.discardPile.length === 0) return state;
+
+  const dealer = actor ?? state.dealer;
+  return pushHistory(
+    {
+      ...state,
+      deck: shuffle(state.discardPile, rng),
+      discardPile: [],
+      discardEntries: [],
+    },
+    dealer,
+    `Ablagestapel gemischt; ${state.discardPile.length} Karten stehen wieder zum Geben bereit`,
   );
 }
 
@@ -296,7 +339,7 @@ export function claimTradeOffer(
 
 /** Fragt den Zielspieler um Erlaubnis, seine Hand für den Teufel zu sehen. */
 export function requestDevilView(state: GameState, controller: Seat, target: Seat): GameState {
-  if (controller === target) return state;
+  if (target !== leftNeighborSeat(controller)) return state;
   const request = {
     id: `devil-${state.nextDevilRequestId}`,
     controller,
@@ -308,6 +351,11 @@ export function requestDevilView(state: GameState, controller: Seat, target: Sea
     controller,
     `${COLOR_BY_SEAT[controller]} fragt ${COLOR_BY_SEAT[target]} um Teufel-Handeinsicht`,
   );
+}
+
+/** The seat immediately to the left in the clockwise table order. */
+export function leftNeighborSeat(seat: Seat): Seat {
+  return ((seat + 1) % 4) as Seat;
 }
 
 /** Bestätigt die Einsicht, ohne die Zielhand an andere Spieler zu senden. */
@@ -440,7 +488,7 @@ export function toPublicState(
     balls: state.balls,
     discardPile: state.discardPile,
     discardEntries: state.discardEntries,
-    tradeOffers: state.tradeOffers.map((offer): PublicTradeOffer => ({
+    tradeOffers: state.tradeOffers.filter((offer) => offer.from === viewer || offer.to === viewer).map((offer): PublicTradeOffer => ({
       id: offer.id,
       from: offer.from,
       to: offer.to,

@@ -9,9 +9,11 @@ import { createInitialState, type Seat } from "@tac/shared";
 import { describe, expect, it } from "vitest";
 import {
   dealCards,
+  shuffleDiscard,
   joinRoom,
   moveBall,
   partnerSeat,
+  leftNeighborSeat,
   playCard,
   offerCardToPartner,
   claimTradeOffer,
@@ -94,28 +96,63 @@ describe("swapBalls", () => {
 
 describe("dealCards", () => {
   it("teilt reihum 5 Karten pro Spieler aus und reduziert den Reststapel", () => {
-    const s0 = createInitialState();
-    const s1 = dealCards(s0, 5, seededRng(1));
+    const s0 = createInitialState({ rng: seededRng(1) });
+    const s1 = dealCards(s0, 5);
     for (const hand of s1.hands) expect(hand.length).toBe(5);
-    expect(s1.deck.length).toBe(100 - 20);
+    expect(s1.deck.length).toBe(104 - 20);
     expect(s1.history.at(-1)!.text).toContain("ausgeteilt");
   });
 
-  it("ist deterministisch bei gleichem Seed", () => {
-    const s0 = createInitialState();
-    const a = dealCards(s0, 5, seededRng(9)).hands.map((h) =>
-      h.map((c) => c.id),
+  it("mischt NICHT beim Geben, sondern zieht von oben des Reststapels", () => {
+    const s0 = createInitialState({ rng: seededRng(9) });
+    const deckBefore = s0.deck.map((c) => c.id);
+    const s1 = dealCards(s0, 5);
+    // Die 20 ausgeteilten Karten sind exakt die obersten 20 (reihum verteilt),
+    // der Reststapel ist unverändert der ursprüngliche Rest.
+    expect(s1.deck.map((c) => c.id)).toEqual(deckBefore.slice(20));
+  });
+
+  it("ist deterministisch bei gleichem Start-Seed", () => {
+    const a = dealCards(createInitialState({ rng: seededRng(9) }), 5).hands.map(
+      (h) => h.map((c) => c.id),
     );
-    const b = dealCards(s0, 5, seededRng(9)).hands.map((h) =>
-      h.map((c) => c.id),
+    const b = dealCards(createInitialState({ rng: seededRng(9) }), 5).hands.map(
+      (h) => h.map((c) => c.id),
     );
     expect(a).toEqual(b);
+  });
+
+  it("teilt in der letzten Meisterrunde automatisch 6 Karten aus", () => {
+    let s = createInitialState({ rng: seededRng(20) });
+    for (let round = 0; round < 4; round++) {
+      s = dealCards(s, 5);
+      s = { ...s, hands: [[], [], [], []] };
+    }
+    s = dealCards(s, 5);
+    expect(s.hands.every((hand) => hand.length === 6)).toBe(true);
+    expect(s.deck).toHaveLength(0);
+  });
+
+  it("gibt nicht erneut aus, solange Karten in einer Hand liegen", () => {
+    const s0 = dealCards(createInitialState({ rng: seededRng(1) }), 5);
+    expect(dealCards(s0, 5)).toBe(s0);
+  });
+
+  it("mischt den Ablagestapel erst bei leerem Reststapel zurück", () => {
+    let s = dealCards(createInitialState({ rng: seededRng(2) }), 5);
+    const card = s.hands[0]![0]!;
+    s = playCard(s, 0, card.id);
+    expect(shuffleDiscard(s, seededRng(3))).toBe(s);
+    s = { ...s, hands: [[], [], [], []], deck: [] };
+    const shuffled = shuffleDiscard(s, seededRng(3));
+    expect(shuffled.deck).toHaveLength(1);
+    expect(shuffled.discardPile).toEqual([]);
   });
 });
 
 describe("playCard", () => {
   it("legt eine Handkarte offen ab", () => {
-    let s = dealCards(createInitialState(), 5, seededRng(3));
+    let s = dealCards(createInitialState({ rng: seededRng(3) }), 5);
     const seat: Seat = 0;
     const card = s.hands[seat]![0]!;
     s = playCard(s, seat, card.id);
@@ -126,7 +163,7 @@ describe("playCard", () => {
   });
 
   it("ignoriert Karten, die nicht in der Hand liegen", () => {
-    const s0 = dealCards(createInitialState(), 5, seededRng(3));
+    const s0 = dealCards(createInitialState({ rng: seededRng(3) }), 5);
     const s1 = playCard(s0, 0, "keine-echte-id");
     expect(s1).toBe(s0);
   });
@@ -134,7 +171,7 @@ describe("playCard", () => {
 
 describe("returnCard", () => {
   it("nimmt die eigene abgelegte Karte wieder auf (K4b)", () => {
-    let s = dealCards(createInitialState(), 5, seededRng(7));
+    let s = dealCards(createInitialState({ rng: seededRng(7) }), 5);
     const card = s.hands[0]![0]!;
     s = playCard(s, 0, card.id);
     s = returnCard(s, 0, card.id);
@@ -145,7 +182,7 @@ describe("returnCard", () => {
 
 describe("swapWithPartner", () => {
   it("gibt eine Karte an den gegenübersitzenden Partner", () => {
-    let s = dealCards(createInitialState(), 5, seededRng(4));
+    let s = dealCards(createInitialState({ rng: seededRng(4) }), 5);
     const seat: Seat = 0;
     const partner = partnerSeat(seat);
     const card = s.hands[seat]![0]!;
@@ -165,12 +202,13 @@ describe("swapWithPartner", () => {
 
 describe("partner trade phase", () => {
   it("keeps an offered card hidden until the partner claims it", () => {
-    let s = dealCards(createInitialState(), 5, seededRng(8));
+    let s = dealCards(createInitialState({ rng: seededRng(8) }), 5);
     const card = s.hands[0]![0]!;
     s = offerCardToPartner(s, 0, card.id);
     const offer = s.tradeOffers[0]!;
     expect(s.hands[0]!.some((item) => item.id === card.id)).toBe(false);
     expect(toPublicState(s, 2).tradeOffers[0]!.card).toBeUndefined();
+    expect(toPublicState(s, 1).tradeOffers).toEqual([]);
     s = claimTradeOffer(s, 2, offer.id);
     expect(s.hands[2]!.some((item) => item.id === card.id)).toBe(true);
     expect(s.tradeOffers[0]!.claimed).toBe(true);
@@ -179,7 +217,7 @@ describe("partner trade phase", () => {
 
 describe("confirmed master actions", () => {
   it("requires target approval before a devil can play a foreign card", () => {
-    let s = dealCards(createInitialState(), 5, seededRng(11));
+    let s = dealCards(createInitialState({ rng: seededRng(11) }), 5);
     const foreignCard = s.hands[1]![0]!;
     s = requestDevilView(s, 0, 1);
     const request = s.devilRequests[0]!;
@@ -191,8 +229,15 @@ describe("confirmed master actions", () => {
     expect(s.hands[1]!.some((card) => card.id === foreignCard.id)).toBe(false);
   });
 
+  it("limits devil view to the left neighbor", () => {
+    const s = dealCards(createInitialState({ rng: seededRng(13) }), 5);
+    expect(leftNeighborSeat(0)).toBe(1);
+    expect(requestDevilView(s, 0, 2)).toBe(s);
+    expect(requestDevilView(s, 0, 1).devilRequests).toHaveLength(1);
+  });
+
   it("passes all hands to the right neighbor for the narrator action", () => {
-    let s = dealCards(createInitialState(), 5, seededRng(12));
+    let s = dealCards(createInitialState({ rng: seededRng(12) }), 5);
     const original = s.hands.map((hand) => hand[0]?.id);
     s = passHandsRight(s, 0);
     expect(s.hands.map((hand) => hand[0]?.id)).toEqual([original[3], original[0], original[1], original[2]]);
@@ -236,18 +281,18 @@ describe("joinRoom", () => {
 
 describe("toPublicState", () => {
   it("zeigt nur die eigene Hand, andere nur als Anzahl", () => {
-    const s = dealCards(createInitialState(), 5, seededRng(5));
+    const s = dealCards(createInitialState({ rng: seededRng(5) }), 5);
     const pub = toPublicState(s, 0);
 
     expect(pub.ownHand.length).toBe(5);
     expect(pub.handCounts).toEqual([5, 5, 5, 5]);
-    expect(pub.deckCount).toBe(80);
+    expect(pub.deckCount).toBe(84);
     // Es werden keine fremden Handkarten mitgeliefert.
     expect((pub as unknown as { hands?: unknown }).hands).toBeUndefined();
   });
 
   it("liefert leere eigene Hand für Zuschauer (viewer null)", () => {
-    const s = dealCards(createInitialState(), 5, seededRng(5));
+    const s = dealCards(createInitialState({ rng: seededRng(5) }), 5);
     const pub = toPublicState(s, null);
     expect(pub.ownHand).toEqual([]);
   });

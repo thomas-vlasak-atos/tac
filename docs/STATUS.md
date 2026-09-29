@@ -104,16 +104,16 @@ npm run typecheck  # tsc --build über alle Pakete
 - [x] WebSocket-Verbindung stabil (StrictMode-Doppel-Mount behoben).
 
 ### Deck-Zusammensetzung (aufgefallen im ersten Test)
-- [ ] **Kartenhäufigkeiten je Wert verifizieren:** Aktuell hat jeder Zahlenwert
-      1–13 (ohne 11) dieselbe Häufigkeit (3× pro Stapel, 6× im Deck), plus TAC 7×
-      und Trickser 7× pro Stapel. Das ist eine bewusste Annäherung
-      (`packages/shared/src/cards.ts` → `SINGLE_DECK_COUNTS`), **nicht** die echte
-      TAC-Verteilung. Dadurch wirken einzelne Werte im Spiel über-/unterrepräsentiert.
-      Zentral in `SINGLE_DECK_COUNTS` anpassbar, ohne übrige Logik zu berühren.
-      Kein Code-Bug – nur die Häufigkeitstabelle. Siehe REQ-RULES §3 / REQ-DESIGN.
-      *Technisch:* Der Reststapel wird beim `Geben` einmal komplett gemischt
-      (`dealCards` → `shuffle` + `deal` von oben), Reihenfolge steht danach fest;
-      es wird nicht pro Geben einzeln aus einem Pool gezogen.
+- [x] **Kartenhäufigkeiten je Wert verifiziert:** Anhand eines echten TAC-Kartensatzes
+      ausgezählt und in `SINGLE_DECK_COUNTS` (`packages/shared/src/cards.ts`) eingetragen:
+      1 und 13 je 9×, 7 achtmal, alle übrigen Zahlen (2,3,4,5,6,8,9,10,12) je 7×,
+      Trickser 7×, TAC 4× → 100 Basiskarten; +4 Meisterkarten = 104. Das Deck wird
+      nicht mehr aus zwei identischen Hälften gebaut, sondern direkt in Gesamt-Häufigkeit.
+- [x] **Mischen nur bei „Mischen", nicht bei jedem Geben:** `dealCards` mischt nicht
+      mehr, sondern zieht von oben des Reststapels (entspricht dem Regelheft: „der
+      Stapel muss dazu nicht neu gemischt werden"). Der Stapel wird einmal beim
+      Spielstart gemischt (`createInitialState` mit RNG); erneutes Mischen nur über
+      `shuffleDiscard` (Ablage zurückmischen).
 
 ### Layout/UX – dokumentiert, noch nicht umgesetzt (fürs finale Layout)
 - [x] **B4b – Quellfeld markieren:** beim Ziehen das Ausgangsfeld der Kugel
@@ -146,8 +146,8 @@ npm run typecheck  # tsc --build über alle Pakete
       Cloudflare Tunnel o. Ä.
 - [ ] Optionale, **nicht-verbietende** Regel-Hilfen (auf Basis von REQ-RULES).
 - [ ] Optionales Undo (letzten Zug zurücknehmen) für Verklicker.
-- [ ] Exakte Deck-Zusammensetzung je Kartenwert verifizieren (aktuell
-      dokumentierte Annahme in `REQ-DESIGN`, siehe REQ-RULES §3).
+- [x] Exakte Deck-Zusammensetzung je Kartenwert verifiziert (Auszählung echter
+      Kartensatz; eingetragen in `SINGLE_DECK_COUNTS`, siehe REQ-RULES §3).
 - [x] Brettdesign anhand der Vorlagen in `vorlage/` abgeglichen. Referenz sind ein
       quadratisches Holzbrett, 64 eingelassene Kreisfelder, florale Linienstruktur,
       zentrale Mulde und vier Eckmulden; die Bilder werden nicht als Hintergrund

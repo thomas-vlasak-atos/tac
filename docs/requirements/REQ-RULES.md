@@ -52,14 +52,22 @@ erzwungen.
 
 ## 3. Kartensatz
 
-Basis-Kartensatz (2 identische Stapel = 100 Karten):
+Basis-Kartensatz (100 Karten). Häufigkeit je Wert (Auszählung eines echten
+TAC-Kartensatzes; das offizielle Regelheft nennt nur die Gesamtzahl 100 und die
+Kartenwerte, keine Verteilung):
+- 1: 9× (Eröffnung), 2: 7×, 3: 7×, 4: 7× (rückwärts), 5: 7×, 6: 7×,
+  7: 8× (aufteilbar), 8: 7× (Aussetzen), 9: 7×, 10: 7×, 12: 7×, 13: 9× (Eröffnung)
+- **Trickser:** 7×
+- **TAC:** 4×
+- Summe: 89 Zahlen + 7 Trickser + 4 TAC = 100
 - **Normalkarten** (nur vorwärts, exakte Feldzahl): 2, 3, 5, 6, 9, 10, 12
 - **Sonderkarten:** 1, 4, 7, 8, 13, Trickser, TAC
 - **Meisterkarten** (je 1×, nur Meisterversion, +4 = 104 Karten):
   Engel, Teufel, Krieger, Narr
 
-Kartenanzahl pro Wert im Detail wird in `REQ-DECK` (separat) festgelegt; für die
-Engine ist zunächst nur die Wirkung je Kartentyp relevant.
+Die Verteilung ist nicht symmetrisch verdoppelbar (z. B. 9× die 1, 4× TAC); sie
+wird daher als komplettes Deck in `SINGLE_DECK_COUNTS` (`packages/shared/src/cards.ts`)
+gepflegt.
 
 ## 4. Spielablauf (Phasen)
 

@@ -24,11 +24,10 @@ function makeId(prefix: string, n: number): string {
 }
 
 /**
- * Baut die Karten eines EINZELNEN Stapels anhand der Häufigkeitstabelle.
- * @param counts Häufigkeiten (Standard: SINGLE_DECK_COUNTS)
- * @param stackTag Kürzel zur ID-Unterscheidung mehrerer Stapel (z. B. "a"/"b")
+ * Baut die Karten des kompletten Basisdecks anhand der Häufigkeitstabelle.
+ * @param counts Häufigkeiten des gesamten Decks (Standard: SINGLE_DECK_COUNTS)
  */
-function buildSingleDeck(counts: DeckCounts, stackTag: string): Card[] {
+function buildBaseDeck(counts: DeckCounts): Card[] {
   const cards: Card[] = [];
   let counter = 0;
 
@@ -36,18 +35,18 @@ function buildSingleDeck(counts: DeckCounts, stackTag: string): Card[] {
     const value = Number(valueStr);
     for (let i = 0; i < amount; i++) {
       cards.push({
-        id: makeId(`num${value}-${stackTag}`, counter++),
+        id: makeId(`num${value}`, counter++),
         kind: "number",
         value,
       });
     }
   }
   for (let i = 0; i < counts.tac; i++) {
-    cards.push({ id: makeId(`tac-${stackTag}`, counter++), kind: "tac" });
+    cards.push({ id: makeId("tac", counter++), kind: "tac" });
   }
   for (let i = 0; i < counts.trickster; i++) {
     cards.push({
-      id: makeId(`trickster-${stackTag}`, counter++),
+      id: makeId("trickster", counter++),
       kind: "trickster",
     });
   }
@@ -55,11 +54,11 @@ function buildSingleDeck(counts: DeckCounts, stackTag: string): Card[] {
 }
 
 /**
- * Baut den vollständigen Grundstapel für eine Partie: zwei identische Stapel.
- * In der Meisterversion werden die vier Meisterkarten hinzugefügt.
+ * Baut den vollständigen Grundstapel für eine Partie (100 Basiskarten).
+ * In der Meisterversion werden die vier Meisterkarten hinzugefügt (104 Karten).
  *
  * @param options.master Meisterversion (fügt Engel/Teufel/Krieger/Narr hinzu)
- * @param options.counts Häufigkeiten je Stapel (Standard: SINGLE_DECK_COUNTS)
+ * @param options.counts Häufigkeiten des Decks (Standard: SINGLE_DECK_COUNTS)
  * @returns unsortierter (aber deterministischer) Kartenstapel
  */
 export function buildDeck(options?: {
@@ -67,10 +66,7 @@ export function buildDeck(options?: {
   counts?: DeckCounts;
 }): Card[] {
   const counts = options?.counts ?? SINGLE_DECK_COUNTS;
-  const deck: Card[] = [
-    ...buildSingleDeck(counts, "a"),
-    ...buildSingleDeck(counts, "b"),
-  ];
+  const deck: Card[] = buildBaseDeck(counts);
 
   if (options?.master) {
     for (const kind of MASTER_CARD_KINDS) {

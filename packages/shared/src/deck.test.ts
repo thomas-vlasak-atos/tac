@@ -25,10 +25,10 @@ function seededRng(seed: number): Rng {
 }
 
 describe("buildDeck", () => {
-  it("erzeugt 100 Karten in der Basisversion (zwei Stapel)", () => {
+  it("erzeugt 100 Karten in der Basisversion", () => {
     // Given/When
     const deck = buildDeck();
-    // Then: 12 Werte * 3 + 7 TAC + 7 Trickser = 50 pro Stapel, *2 = 100
+    // Then: 89 Zahlenkarten + 7 Trickser + 4 TAC = 100
     expect(deck.length).toBe(100);
   });
 
@@ -41,15 +41,26 @@ describe("buildDeck", () => {
     }
   });
 
-  it("enthält jeden Zahlenwert genau doppelt so oft wie in einem Stapel", () => {
+  it("enthält jeden Zahlenwert exakt so oft wie in der Häufigkeitstabelle", () => {
     const deck = buildDeck();
     for (const value of NUMBER_VALUES) {
-      const expected = SINGLE_DECK_COUNTS.numbers[value]! * 2;
+      const expected = SINGLE_DECK_COUNTS.numbers[value]!;
       const actual = deck.filter(
         (c) => c.kind === "number" && c.value === value,
       ).length;
       expect(actual, `Wert ${value}`).toBe(expected);
     }
+  });
+
+  it("enthält die echte TAC-Verteilung (9x 1 und 13, 8x 7, 4x TAC, 7x Trickser)", () => {
+    const deck = buildDeck();
+    const count = (pred: (c: (typeof deck)[number]) => boolean) =>
+      deck.filter(pred).length;
+    expect(count((c) => c.kind === "number" && c.value === 1)).toBe(9);
+    expect(count((c) => c.kind === "number" && c.value === 13)).toBe(9);
+    expect(count((c) => c.kind === "number" && c.value === 7)).toBe(8);
+    expect(count((c) => c.kind === "tac")).toBe(4);
+    expect(count((c) => c.kind === "trickster")).toBe(7);
   });
 
   it("enthält keine 11 (existiert bei TAC nicht)", () => {

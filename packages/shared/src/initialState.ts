@@ -4,7 +4,7 @@
  * Bezug: docs/architecture/ARCH-OVERVIEW.md §3, REQ-BOARD (B2 Startlage).
  */
 
-import { buildDeck } from "./deck.js";
+import { buildDeck, type Rng, shuffle } from "./deck.js";
 import {
   BALLS_PER_PLAYER,
   type Ball,
@@ -33,21 +33,26 @@ export function createInitialBalls(): Ball[] {
 
 /**
  * Erzeugt einen frischen Spielzustand.
- * Der Stapel wird hier NICHT gemischt (das übernimmt das Geben bewusst separat),
- * bleibt aber deterministisch aufgebaut.
+ * Der Stapel wird EINMAL gemischt (wie ein gemischter Stapel am echten Tisch,
+ * der zum Geben bereitliegt). Das spätere `Geben` mischt bewusst NICHT erneut,
+ * sondern zieht von oben; erneutes Mischen erfolgt nur über den `Mischen`-Schritt
+ * (Ablagestapel zurückmischen).
  *
  * @param options.masterMode Meisterversion
  * @param options.dealer Startgeber (Standard: Sitzplatz 0)
+ * @param options.rng Zufallsgenerator zum initialen Mischen (Standard: Math.random)
  */
 export function createInitialState(options?: {
   masterMode?: boolean;
   dealer?: Seat;
+  rng?: Rng;
 }): GameState {
-  const masterMode = options?.masterMode ?? false;
+  const masterMode = options?.masterMode ?? true;
+  const rng = options?.rng ?? Math.random;
   return {
     players: [null, null, null, null],
     balls: createInitialBalls(),
-    deck: buildDeck({ master: masterMode }),
+    deck: shuffle(buildDeck({ master: masterMode }), rng),
     discardPile: [],
     discardEntries: [],
     tradeOffers: [],

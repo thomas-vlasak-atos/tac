@@ -43,29 +43,43 @@ export function cardLabel(card: Card): string {
 }
 
 /**
- * Definition, wie oft eine Kartenart pro Basisstapel vorkommt.
+ * Definition, wie oft eine Kartenart im GESAMTEN Basisstapel vorkommt.
  *
- * TAC wird mit ZWEI identischen Stapeln gespielt (zusammen 100 Basiskarten).
- * Diese Tabelle beschreibt EINEN Stapel; `buildDeck` verdoppelt entsprechend.
+ * TAC wird physisch mit zwei Kartenpäckchen gespielt, die zusammen die unten
+ * genannte Verteilung ergeben (insgesamt 100 Basiskarten). Da die tatsächlichen
+ * Häufigkeiten NICHT symmetrisch verdoppelbar sind (z. B. 9× die 1, 4× TAC),
+ * beschreibt diese Tabelle direkt das komplette Deck – nicht ein halbes Päckchen.
  *
- * Ein Stapel (50 Karten):
- * - Zahlen 1..13 (ohne 11): je 3 Stück  = 12 Werte * 3 = 36
- * - TAC: 7 Stück                        = 7
- * - Trickser: 7 Stück                   = 7
- * Summe                                 = 50
+ * Quelle: Auszählung eines echten TAC-Kartensatzes (bestätigt vom Projektinhaber).
+ * Das offizielle Regelheft nennt nur die Gesamtzahl (100) und die Kartenwerte,
+ * keine Häufigkeit je Wert.
+ *
+ * Gesamtes Basisdeck (100 Karten):
+ * - 1:  9   (Eröffnungskarte)
+ * - 2:  7
+ * - 3:  7
+ * - 4:  7   (rückwärts)
+ * - 5:  7
+ * - 6:  7
+ * - 7:  8   (aufteilbar, im Haus keine Schritte verschenkt)
+ * - 8:  7   (Aussetzen)
+ * - 9:  7
+ * - 10: 7
+ * - 12: 7
+ * - 13: 9   (Eröffnungskarte)
+ *   Zahlen zusammen                    = 89
+ * - Trickser: 7
+ * - TAC:      4
+ * Summe                                = 100
  *
  * Zwei Stapel => 100 Basiskarten (entspricht dem TACtik-Umfang).
- *
- * Anmerkung: Die genaue Stückzahl je Wert ist eine sinnvolle Annäherung an den
- * Originalumfang und in REQ-RULES §3 / REQ-DECK als offener Punkt vermerkt. Sie
- * lässt sich zentral hier anpassen, ohne Auswirkung auf die übrige Logik.
  */
 export interface DeckCounts {
-  /** Häufigkeit je Zahlenwert (Schlüssel = Wert). */
+  /** Häufigkeit je Zahlenwert (Schlüssel = Wert), gesamtes Deck. */
   numbers: Record<number, number>;
-  /** Häufigkeit der TAC-Karte. */
+  /** Häufigkeit der TAC-Karte im gesamten Deck. */
   tac: number;
-  /** Häufigkeit des Tricksers. */
+  /** Häufigkeit des Tricksers im gesamten Deck. */
   trickster: number;
 }
 
@@ -74,10 +88,26 @@ export const NUMBER_VALUES: readonly number[] = [
   1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 13,
 ];
 
-/** Standard-Zusammensetzung eines einzelnen Stapels. */
+/**
+ * Standard-Zusammensetzung des gesamten Basisdecks (100 Karten).
+ * Zentral anpassbar, ohne Auswirkung auf die übrige Logik.
+ */
 export const SINGLE_DECK_COUNTS: DeckCounts = {
-  numbers: Object.fromEntries(NUMBER_VALUES.map((v) => [v, 3])),
-  tac: 7,
+  numbers: {
+    1: 9,
+    2: 7,
+    3: 7,
+    4: 7,
+    5: 7,
+    6: 7,
+    7: 8,
+    8: 7,
+    9: 7,
+    10: 7,
+    12: 7,
+    13: 9,
+  },
+  tac: 4,
   trickster: 7,
 };
 

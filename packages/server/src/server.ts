@@ -18,6 +18,7 @@ import { createInitialState } from "@tac/shared";
 import { WebSocket, WebSocketServer } from "ws";
 import {
   dealCards,
+  shuffleDiscard,
   joinRoom,
   markDisconnected,
   moveBall,
@@ -131,7 +132,10 @@ function handleAction(conn: Connection, action: ClientAction): void {
       room.state = swapBalls(room.state, action.ballA, action.ballB, seat);
       break;
     case "DealCards":
-      room.state = dealCards(room.state, action.cardsPerPlayer ?? 5);
+      room.state = dealCards(room.state, 5, seat);
+      break;
+    case "ShuffleCards":
+      room.state = shuffleDiscard(room.state, Math.random, seat);
       break;
     case "PlayCard":
       room.state = playCard(room.state, seat, action.cardId);

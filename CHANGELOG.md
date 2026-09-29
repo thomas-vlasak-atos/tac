@@ -8,10 +8,18 @@ Versionierung nach [Semantic Versioning](https://semver.org/lang/de/).
 ## [Unreleased]
 
 ### Changed
-- `docs/STATUS.md` aktualisiert (Stand 2026-09-29): erster 4-Spieler-Test positiv
-  vermerkt; neuer offener Punkt zur Verifikation der Kartenhäufigkeiten je Wert
-  (aktuell gleichverteilte Annäherung in `SINGLE_DECK_COUNTS`, nicht die echte
-  TAC-Verteilung) inkl. Erläuterung des Misch-/Geben-Mechanismus.
+- **Geben mischt nicht mehr** (entspricht dem offiziellen Regelheft: „der Stapel
+  muss dazu nicht neu gemischt werden"): `dealCards` zieht nur noch von oben des
+  Reststapels. Der Stapel wird stattdessen einmal beim Spielstart gemischt
+  (`createInitialState` mit optionalem RNG); erneutes Mischen erfolgt nur über
+  `shuffleDiscard` (Ablage zurückmischen). Tests entsprechend angepasst.
+- **Echte Kartenhäufigkeiten** statt gleichverteilter Annäherung: Das Basisdeck
+  wird nicht mehr aus zwei identischen Hälften gebaut, sondern direkt über die
+  ausgezählte Gesamtverteilung (`SINGLE_DECK_COUNTS`): 1 und 13 je 9×, 7 achtmal,
+  übrige Zahlen je 7×, Trickser 7×, TAC 4× (= 100 Basiskarten, +4 Meister = 104).
+  Dokumentiert in REQ-RULES §3.
+- `docs/STATUS.md` aktualisiert (Stand 2026-09-29): erster 4-Spieler-Test positiv;
+  Misch-/Geben-Verhalten und verifizierte Kartenverteilung als erledigt vermerkt.
 
 ### Fixed
 - Responsives Spiellayout verhindert abgeschnittene Bretter: Das Brett skaliert in

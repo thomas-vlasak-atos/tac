@@ -32,6 +32,12 @@ verändern.
   bleibt sichtbar.
 - `D8`: Sonderaktionen mit fremder Hand erfordern eine sichtbare Bestätigung des
   betroffenen Spielers.
+- `D9`: Das vollständige Brett bleibt auf Desktop- und kleinen Displays innerhalb
+  der verfügbaren Breite und Höhe sichtbar. Im Hochformat wird es zugunsten der
+  Bedienknöpfe und eigenen Handkarten höhenbegrenzt. Im Querformat stehen die
+  eigenen Handkarten neben dem Brett; die übrige Seitenleiste bleibt sekundär.
+- `D10`: Im Querformat werden die eigenen Handkarten neben dem Brett in einem
+  kompakten zweispaltigen Raster ohne horizontale Scrollleiste angezeigt.
 
 ## Deck-Annahme
 
@@ -59,8 +65,11 @@ dienen als Referenz; sie werden wegen enthaltener Kugeln, Karten und Perspektive
 nicht direkt als UI-Hintergrund eingeblendet. Die interaktiven Felder werden als
 eigene SVG-/CSS-Geometrie nachgebildet.
 
-Die Primärdokumente legen 100 Basiskarten fest, nennen aber keine Einzelhäufigkeit
-je Wert. Bis eine verbindliche `REQ-DECK` vorliegt, bleibt die bestehende und
-reproduzierbare Verteilung aktiv: zwei identische 50-Karten-Stapel, je 3 Karten
-pro Zahlenwert (ohne 11), 7 TAC-Karten und 7 Trickser. Diese Annahme betrifft
-nur das Austeilen; die Anwendung erzwingt weiterhin keine Kartenregeln.
+Die Primärdokumente (offizielles Regelheft) legen 100 Basiskarten fest, nennen
+aber keine Einzelhäufigkeit je Wert. Die Verteilung wurde daher anhand eines
+echten TAC-Kartensatzes ausgezählt und in `SINGLE_DECK_COUNTS`
+(`packages/shared/src/cards.ts`) hinterlegt: 1 und 13 je 9×, 7 achtmal, alle
+übrigen Zahlen je 7×, Trickser 7×, TAC 4× (= 100). Das Deck wird als komplette
+Häufigkeit gebaut (nicht mehr aus zwei identischen Hälften), da die Verteilung
+nicht symmetrisch verdoppelbar ist. Details siehe REQ-RULES §3. Diese Verteilung
+betrifft nur das Austeilen; die Anwendung erzwingt weiterhin keine Kartenregeln.
