@@ -85,9 +85,9 @@ export interface GameState {
   nextDevilRequestId: number;
   /** Handkarten je Sitzplatz (nur an den jeweiligen Spieler ausgeliefert). */
   hands: Card[][];
-  /** Sitzplatz des aktuellen Gebers. */
+  /** Sitzplatz des zuletzt bestätigten Gebers. */
   dealer: Seat;
-  /** Meisterversion aktiv? */
+  /** Meisterversion ist für TAC Online fest aktiviert. */
   masterMode: boolean;
   /** Zugverlauf (jüngste Einträge am Ende). */
   history: HistoryEntry[];

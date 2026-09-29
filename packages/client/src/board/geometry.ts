@@ -168,10 +168,10 @@ export function housePositions(seat: Seat, geo: BoardGeometry): Point[] {
 export function vorfeldCenter(seat: Seat, geo: BoardGeometry): Point {
   const margin = geo.size * 0.085;
   const corners: Record<Seat, Point> = {
-    0: { x: margin, y: geo.size - margin },
-    1: { x: geo.size - margin, y: geo.size - margin },
-    2: { x: geo.size - margin, y: margin },
-    3: { x: margin, y: margin },
+    0: { x: geo.size - margin, y: geo.size - margin },
+    1: { x: margin, y: geo.size - margin },
+    2: { x: margin, y: margin },
+    3: { x: geo.size - margin, y: margin },
   };
   return corners[seat];
 }

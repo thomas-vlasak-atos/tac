@@ -1,0 +1,78 @@
+/* Responsive table layout: the board must never create horizontal overflow. */
+.app-shell {
+  overflow-x: hidden;
+}
+
+.game-layout,
+.board-column,
+.board-drop-zone {
+  min-width: 0;
+}
+
+.board-drop-zone {
+  width: 100%;
+}
+
+.own-hand-panel {
+  min-width: 0;
+}
+
+.app-header {
+  flex-wrap: wrap;
+}
+
+@media (max-width: 900px) {
+  .game-layout {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  .own-hand-panel {
+    margin-top: 12px;
+  }
+}
+
+@media (orientation: portrait) and (max-width: 900px) {
+  .board-drop-zone {
+    width: min(100%, calc(100svh - 350px));
+    margin-inline: auto;
+  }
+}
+
+@media (orientation: landscape) and (min-width: 901px) {
+  .own-hand-panel .hand-cards-compact {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    align-items: stretch;
+  }
+
+  .own-hand-panel .hand-card-compact {
+    width: auto !important;
+    min-width: 0;
+    min-height: 148px !important;
+    aspect-ratio: 2 / 3;
+    padding: 6px !important;
+    border-width: 2px !important;
+  }
+}
+
+@media (max-width: 560px) {
+  .app-shell {
+    padding-top: 12px !important;
+    padding-bottom: 16px !important;
+  }
+
+  .app-header h1 {
+    font-size: 26px;
+  }
+
+  .app-header span {
+    width: 100%;
+  }
+
+  .hand-cards {
+    flex-wrap: nowrap !important;
+    overflow-x: auto;
+    padding: 4px 2px 10px;
+  }
+}

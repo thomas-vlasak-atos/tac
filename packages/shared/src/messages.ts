@@ -17,7 +17,8 @@ export type ClientAction =
   | { type: "JoinRoom"; roomId: string; name: string; seat?: Seat }
   | { type: "MoveBall"; ballId: string; to: MoveTarget }
   | { type: "SwapBalls"; ballA: string; ballB: string }
-  | { type: "DealCards"; cardsPerPlayer?: number }
+  | { type: "DealCards" }
+  | { type: "ShuffleCards" }
   | { type: "PlayCard"; cardId: string }
   | { type: "ReturnCard"; cardId: string }
   | { type: "SwapWithPartner"; cardId: string }

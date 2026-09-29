@@ -143,4 +143,33 @@
 - [ ] Teufel-Sonderaktion: Zielspieler bestätigt die Einsicht; danach darf der
   Teufel eine Karte aus dessen Hand offen ausspielen.
 - [ ] Narr-Sonderaktion: alle Hände können bewusst an den rechten Nachbarn
-  weitergegeben werden.
+      weitergegeben werden.
+
+## 9.1 Präzisierungen für den aktuellen Spielablauf
+
+- Die Anwendung verwendet standardmäßig die Meisterversion. Eine Umschaltung im
+  laufenden Spiel ist derzeit nicht Teil der Bedienung.
+- Der Button **Geben** teilt automatisch fünf Karten pro Spieler aus; bei genau
+  24 Restkarten werden automatisch sechs Karten pro Spieler ausgeteilt. Er ist
+  gesperrt, solange noch Handkarten vorhanden sind oder weniger als 20 Karten im
+  Reststapel liegen.
+- Der Button **Mischen** ist nur aktiv, wenn der Reststapel und alle Hände leer
+  sind. Er mischt den separaten Ablagestapel zurück in den Reststapel. Anschließend
+  kann wieder gegeben werden.
+- Die Karten der aktuellen Runde werden in der Mitte angezeigt. Beim nächsten
+  Austeilen wird diese sichtbare Mitte geleert; die bisher gespielten Karten bleiben
+  in einem separaten Archivstapel.
+- Ein Partnerangebot wird nur dem Absender und dem vorgesehenen Empfänger
+  angezeigt. Eine Tischdarstellung des verdeckten Tauschs bleibt eine UX-Frage.
+- Die Sitzübersicht zeigt für jeden Platz Name, Farbe und Verbindungsstatus.
+- Die Teufel-Einsicht ist ausschließlich für den linken Nachbarn des auslösenden
+  Spielers möglich; der Zielspieler muss weiterhin zustimmen.
+
+## 9.2 Noch zu diskutieren
+
+- Ob der Partnertausch künftig als sichtbares, aber verdecktes Ablegen an der
+  gegenüberliegenden Tischseite dargestellt wird oder bei der kompakten Angebotsliste bleibt.
+- Ob der erste Geber vor Spielbeginn ausdrücklich bestimmt oder per Zufall gewählt
+  wird. Während einer laufenden Runde soll der Geber nicht versehentlich geändert werden.
+- Ob das aktuelle freie Brett die Geberreihenfolge nur anzeigt oder zusätzlich den
+  erwarteten Geber technisch prüft.

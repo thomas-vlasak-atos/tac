@@ -50,8 +50,9 @@ describe("createInitialState", () => {
     expect(state.history).toEqual([]);
   });
 
-  it("nutzt in der Basisversion 100 Karten, in der Meisterversion 104", () => {
-    expect(createInitialState().deck.length).toBe(100);
+  it("nutzt standardmäßig die Meisterversion mit 104 Karten", () => {
+    expect(createInitialState().deck.length).toBe(104);
+    expect(createInitialState({ masterMode: false }).deck.length).toBe(100);
     expect(createInitialState({ masterMode: true }).deck.length).toBe(104);
   });
 

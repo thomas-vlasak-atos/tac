@@ -5,6 +5,7 @@ import { CardArtwork } from "./cardArtwork.js";
 
 export interface HandProps {
   cards: Card[];
+  compact?: boolean;
 }
 
 function cardTone(card: Card): { ink: string; accent: string } {
@@ -14,15 +15,15 @@ function cardTone(card: Card): { ink: string; accent: string } {
   return { ink: "#4c2a1a", accent: "#d6a44b" };
 }
 
-export function Hand({ cards }: HandProps) {
+export function Hand({ cards, compact = false }: HandProps) {
   if (cards.length === 0) return <p style={{ color: "#765234" }}>Keine Handkarten. „Geben“ drücken.</p>;
   return (
-    <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "end" }}>
+    <div className={`hand-cards${compact ? " hand-cards-compact" : ""}`} style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "end" }}>
       {cards.map((card) => {
         const tone = cardTone(card);
         const label = cardLabel(card);
         return (
-          <article key={card.id} draggable onDragStart={(event) => event.dataTransfer.setData("text/tac-card", card.id)} style={{ width: 94, minHeight: 138, padding: 8, borderRadius: 10, border: `3px solid ${tone.accent}`, background: "linear-gradient(145deg, #fffdf7, #f2dfbd)", boxShadow: "0 5px 10px #4c2a1a30", color: tone.ink, display: "flex", flexDirection: "column", justifyContent: "space-between", cursor: "grab" }}>
+          <article className={compact ? "hand-card-compact" : undefined} key={card.id} draggable onDragStart={(event) => event.dataTransfer.setData("text/tac-card", card.id)} style={{ width: 94, minHeight: 138, padding: 8, borderRadius: 10, border: `3px solid ${tone.accent}`, background: "linear-gradient(145deg, #fffdf7, #f2dfbd)", boxShadow: "0 5px 10px #4c2a1a30", color: tone.ink, display: "flex", flexDirection: "column", justifyContent: "space-between", cursor: "grab" }}>
             <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, fontWeight: 700 }}><span>{label}</span><span>♠</span></div>
             <CardArtwork card={card} />
             <div style={{ textAlign: "center", fontSize: 10, color: tone.ink, opacity: 0.75 }}>ziehen</div>
