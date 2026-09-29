@@ -1,7 +1,7 @@
 # Projektstatus & Handover für die nächste Session
 
 **Kennung:** `STATUS`
-**Stand:** 2026-09-21
+**Stand:** 2026-09-29
 **Zweck:** Schneller Wiedereinstieg – was ist da, was ist offen, wie startet man.
 
 ---
@@ -97,10 +97,23 @@ npm run typecheck  # tsc --build über alle Pakete
 ## 4. Offene Punkte / Nächste Schritte
 
 ### Sofort (offen aus dieser Session)
-- [ ] **Feinschliff der Bedienung** im echten Spiel testen (zu viert):
+- [~] **Feinschliff der Bedienung** im echten Spiel testen (zu viert):
       Drag & Drop, gefächerte Kugeln auf gleichem Feld, Orientierung.
+      Erster kleiner Test durchgeführt, Ergebnis positiv; weitere Bugfixes folgen.
 - [x] Client lädt im Browser (Windows-`subst`-Problem gelöst, ADR-0003).
 - [x] WebSocket-Verbindung stabil (StrictMode-Doppel-Mount behoben).
+
+### Deck-Zusammensetzung (aufgefallen im ersten Test)
+- [ ] **Kartenhäufigkeiten je Wert verifizieren:** Aktuell hat jeder Zahlenwert
+      1–13 (ohne 11) dieselbe Häufigkeit (3× pro Stapel, 6× im Deck), plus TAC 7×
+      und Trickser 7× pro Stapel. Das ist eine bewusste Annäherung
+      (`packages/shared/src/cards.ts` → `SINGLE_DECK_COUNTS`), **nicht** die echte
+      TAC-Verteilung. Dadurch wirken einzelne Werte im Spiel über-/unterrepräsentiert.
+      Zentral in `SINGLE_DECK_COUNTS` anpassbar, ohne übrige Logik zu berühren.
+      Kein Code-Bug – nur die Häufigkeitstabelle. Siehe REQ-RULES §3 / REQ-DESIGN.
+      *Technisch:* Der Reststapel wird beim `Geben` einmal komplett gemischt
+      (`dealCards` → `shuffle` + `deal` von oben), Reihenfolge steht danach fest;
+      es wird nicht pro Geben einzeln aus einem Pool gezogen.
 
 ### Layout/UX – dokumentiert, noch nicht umgesetzt (fürs finale Layout)
 - [x] **B4b – Quellfeld markieren:** beim Ziehen das Ausgangsfeld der Kugel
@@ -152,6 +165,19 @@ npm run typecheck  # tsc --build über alle Pakete
 - [x] Teufel-Einsicht benötigt eine Bestätigung des Zielspielers; danach kann
       der anfragende Spieler genau eine fremde Karte offen ausspielen.
 - [x] Narr-Aktion zur Weitergabe aller Hände an den rechten Nachbarn.
+- [x] Meisterversion als Standard festgelegt; **Geben** teilt automatisch 5 bzw. in
+      der letzten Runde 6 Karten aus. Erneutes Geben bei offenen Händen wird
+      verhindert; **Mischen** füllt bei leerem Reststapel den Stapel aus der Ablage.
+- [x] Sichtbare Kartenmitte wird beim neuen Geben geleert und als Archivstapel
+      getrennt weitergeführt.
+- [x] Partnerangebote werden nur Absender und Empfänger angezeigt.
+- [x] Vorfeld-Markierung verwendet die konkrete Kugelmulde statt eines großen
+      gemeinsamen Kreises.
+- [x] Responsives Layout hält das vollständige Brett sichtbar; auf kleinen
+      Displays steht die Seitenleiste unter dem Brett und die Handkarten bleiben
+      horizontal erreichbar.
+- [x] Im Querformat stehen die eigenen Handkarten neben dem Brett; im Hochformat
+      wird das Brett zusätzlich anhand der verfügbaren Höhe begrenzt.
 
 ---
 

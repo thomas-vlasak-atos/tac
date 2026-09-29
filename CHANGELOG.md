@@ -7,6 +7,34 @@ Versionierung nach [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+### Changed
+- `docs/STATUS.md` aktualisiert (Stand 2026-09-29): erster 4-Spieler-Test positiv
+  vermerkt; neuer offener Punkt zur Verifikation der Kartenhäufigkeiten je Wert
+  (aktuell gleichverteilte Annäherung in `SINGLE_DECK_COUNTS`, nicht die echte
+  TAC-Verteilung) inkl. Erläuterung des Misch-/Geben-Mechanismus.
+
+### Fixed
+- Responsives Spiellayout verhindert abgeschnittene Bretter: Das Brett skaliert in
+  die verfügbare Breite, und auf kleinen Displays wandert die Seitenleiste darunter.
+- Eigene Handkarten stehen im Querformat neben dem Brett und im Hochformat direkt
+  darunter; das Brett wird im Hochformat zusätzlich an die verfügbare Höhe angepasst.
+- Kartenhand im Querformat auf ein zweispaltiges Raster ohne horizontales Scrollen
+  umgestellt.
+- Karten im Querformat-Raster wieder im lesbaren Hochformat dargestellt.
+- Sitzübersicht zeigt alle Plätze mit Name und Farbe; die Teufel-Einsicht ist auf
+  den linken Nachbarn begrenzt.
+- Partnerangebote werden nicht mehr dem gegnerischen Team angezeigt.
+- `Geben` verhindert das Ersetzen noch vorhandener Handkarten und verteilt in der
+  letzten Meisterrunde automatisch sechs Karten. `Mischen` füllt den Reststapel
+  bei leerem Reststapel aus der separaten Ablage.
+- Die sichtbare Kartenmitte wird beim Austeilen geleert; die bisherige Ablage bleibt
+  als separates Archiv erhalten.
+- Die Markierung einer Kugel im Vorfeld ist auf die konkrete Ausgangsmulde begrenzt.
+
+### Changed
+- Die Meisterversion ist standardmäßig aktiv und wird im aktuellen Client nicht
+  mehr per Checkbox umgeschaltet.
+
 ### Added
 - `docs/architecture/ARCH-BOARD-GEOMETRY.md`: vollständige Herleitung der
   Brett-Geometrie (hexagonales Kreisgitter, Ringe, Hauszentren, Hausmulden)
