@@ -12,6 +12,9 @@
 #   nächsten Zugriff einige Sekunden zum Aufwachen. Für einen Test ausreichend.
 # - Der Spielzustand liegt nur im Speicher: Ein Neustart/Deploy setzt laufende
 #   Partien zurück (bewusst, siehe ADR-0002).
+# - Region: frankfurt (niedrige Latenz in Europa). Achtung: Die Region eines
+#   bereits angelegten Render-Dienstes lässt sich nicht per Blueprint umziehen;
+#   dazu die Dienste löschen und den Blueprint neu anwenden.
 #
 # Siehe docs/decisions/ADR-0002-hosting-und-sitzplatz-links.md
 services:
@@ -19,6 +22,7 @@ services:
     name: tac-server
     runtime: node
     plan: free
+    region: frankfurt
     # WebSockets brauchen einen dauerhaft laufenden Prozess (kein Serverless).
     buildCommand: npm install
     startCommand: npm run start --workspace @tac/server
@@ -30,6 +34,7 @@ services:
   - type: web
     name: tac-client
     runtime: static
+    region: frankfurt
     buildCommand: npm install && npm run build --workspace @tac/client
     staticPublishPath: packages/client/dist-web
     # SPA: alle Pfade auf index.html umschreiben (Deep-Links wie /?room=...).

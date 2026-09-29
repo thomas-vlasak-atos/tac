@@ -9,10 +9,10 @@ Versionierung nach [Semantic Versioning](https://semver.org/lang/de/).
 
 ### Added
 - **Kostenloses Online-Test-Deployment (Render):** `render.yaml`-Blueprint mit
-  `tac-server` (Web Service, Node/WebSocket) und `tac-client` (Static Site). Der
-  Client erhält die Server-Adresse über `VITE_SERVER_URL`. README-Abschnitt und
-  ADR-0002 dokumentieren Setup und Free-Tier-Einschränkungen (Server schläft bei
-  Inaktivität, State nur im Speicher).
+  `tac-server` (Web Service, Node/WebSocket) und `tac-client` (Static Site), beide
+  in der Region `frankfurt`. Der Client erhält die Server-Adresse über
+  `VITE_SERVER_URL`. README-Abschnitt und ADR-0002 dokumentieren Setup und
+  Free-Tier-Einschränkungen (Server schläft bei Inaktivität, State nur im Speicher).
 
 ### Changed
 - **Server öffnet einen HTTP-Port mit Health-Check** (`GET /`, `/health` → 200)
