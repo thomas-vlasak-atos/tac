@@ -43,10 +43,9 @@ services:
         source: /*
         destination: /index.html
     envVars:
-      # Render liefert nur den Hostnamen des Server-Dienstes; der Client-Code
-      # ergänzt das wss://-Schema automatisch (siehe serverUrl() in App.tsx).
+      # Feste WebSocket-URL des Server-Dienstes. Hinweis: `fromService` mit
+      # `property: host` liefert nur den Kurznamen (z. B. "tac-server-v5p7"),
+      # nicht die volle Domain – daher hier die vollständige öffentliche URL.
+      # Bei einem neu angelegten Server-Dienst diese URL entsprechend anpassen.
       - key: VITE_SERVER_URL
-        fromService:
-          type: web
-          name: tac-server
-          property: host
+        value: wss://tac-server-v5p7.onrender.com
