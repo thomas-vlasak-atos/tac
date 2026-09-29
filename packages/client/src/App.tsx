@@ -14,6 +14,7 @@ import { HistoryPanel } from "./ui/HistoryPanel.js";
 import { CardBack } from "./ui/CardBack.js";
 import { CardArtwork } from "./ui/cardArtwork.js";
 import { type JoinInfo, JoinScreen } from "./ui/JoinScreen.js";
+import { MasterCardsHelp } from "./ui/MasterCardsHelp.js";
 import "./styles.css";
 
 /** Liest Vorbelegungen aus der URL (ADR-0002 Sitzplatz-Links). */
@@ -60,6 +61,7 @@ export function App() {
   const { status, state, seat, error, send } = useTacSocket(serverUrl());
   const [joined, setJoined] = useState(false);
   const [showFieldNumbers, setShowFieldNumbers] = useState(false);
+  const [showMasterHelp, setShowMasterHelp] = useState(false);
 
   // Nach Verbindungsaufbau automatisch beitreten (einmalig).
   if (join && status === "open" && !joined) {
@@ -93,7 +95,16 @@ export function App() {
           )}{" "}
           · Verbindung: {status}
         </span>
+        <button
+          type="button"
+          onClick={() => setShowMasterHelp(true)}
+          style={{ marginLeft: "auto", fontFamily: "system-ui", fontSize: 13 }}
+        >
+          Meisterkarten erklären
+        </button>
       </header>
+
+      {showMasterHelp && <MasterCardsHelp onClose={() => setShowMasterHelp(false)} />}
 
       {error && (
         <p style={{ color: "#b91c1c" }}>Fehler: {error}</p>
@@ -143,26 +154,43 @@ export function App() {
               onDragOver={(event) => event.preventDefault()}
               onDrop={(event) => {
                 event.preventDefault();
+                if (seat != null && state.tradeDone.includes(seat)) return;
                 const cardId = event.dataTransfer.getData("text/tac-card");
                 if (cardId) send({ type: "OfferCardToPartner", cardId });
               }}
-              style={{ marginTop: 14, padding: 14, border: "2px dashed #a56b3d", borderRadius: 12, background: "#ead0a8", color: "#6b3d22" }}
+              style={{ marginTop: 14, padding: 14, border: "2px dashed #a56b3d", borderRadius: 12, background: "#ead0a8", color: "#6b3d22", opacity: seat != null && state.tradeDone.includes(seat) ? 0.5 : 1 }}
             >
               <strong>Zum Partner legen</strong>
-              <div style={{ fontSize: 13, marginTop: 4 }}>Karte hierher ziehen oder über „anbieten“ ablegen. Die Karte bleibt für den Partner verdeckt, bis er sie nimmt.</div>
+              <div style={{ fontSize: 13, marginTop: 4 }}>
+                {seat != null && state.tradeDone.includes(seat)
+                  ? "Du hast in dieser Runde bereits getauscht."
+                  : "Karte hierher ziehen. Sie bleibt für den Partner verdeckt, bis er sie nimmt. Solange er sie nicht genommen hat, kannst du eine andere Karte anbieten oder sie zurücknehmen."}
+              </div>
             </div>
 
-            {state.tradeOffers.length > 0 && (
+            {(state.tradeOffers.length > 0) && (
               <div style={{ marginTop: 12, padding: 12, borderRadius: 12, background: "#f5e5c8", border: "1px solid #c8955c" }}>
                 <strong>Partnertausch</strong>
                 <div style={{ display: "grid", gap: 6, marginTop: 8 }}>
                   {state.tradeOffers.filter((offer) => !offer.claimed).map((offer) => {
                     const isMine = offer.from === seat;
                     const isForMe = offer.to === seat;
+                    // Nehmen erst möglich, wenn man selbst schon angeboten hat.
+                    const iHaveOffered = state.tradeOffers.some((o) => o.from === seat);
                     return (
                       <div key={offer.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, fontSize: 13 }}>
                         <span>{isMine ? "Deine Karte liegt beim Partner bereit" : "Verdeckte Karte vom Partner"}</span>
-                        {isForMe && <button type="button" onClick={() => send({ type: "ClaimTradeOffer", offerId: offer.id })}>nehmen</button>}
+                        {isForMe && (
+                          <button
+                            type="button"
+                            disabled={!iHaveOffered}
+                            title={iHaveOffered ? undefined : "Erst selbst eine Karte anbieten"}
+                            onClick={() => send({ type: "ClaimTradeOffer", offerId: offer.id })}
+                          >
+                            nehmen
+                          </button>
+                        )}
+                        {isMine && <button type="button" onClick={() => send({ type: "RevokeTradeOffer", offerId: offer.id })}>zurücknehmen</button>}
                       </div>
                     );
                   })}

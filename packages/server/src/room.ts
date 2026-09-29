@@ -28,15 +28,24 @@ import {
 } from "@tac/shared";
 
 /** Menschlich lesbare Beschreibung einer Position (für den Verlauf). */
-function describePosition(pos: BallPosition): string {
+function describePosition(state: GameState, pos: BallPosition): string {
   switch (pos.kind) {
     case "VORFELD":
-      return `Vorfeld ${COLOR_BY_SEAT[pos.owner]}`;
+      return `Vorfeld ${seatLabel(state, pos.owner)}`;
     case "FELD":
       return `Feld ${pos.index}`;
     case "HAUS":
-      return `Haus ${COLOR_BY_SEAT[pos.owner]} #${pos.slot}`;
+      return `Haus ${seatLabel(state, pos.owner)} #${pos.slot}`;
   }
+}
+
+/**
+ * Anzeigename eines Sitzplatzes für den Verlauf: der Spielername, falls ein
+ * Spieler auf dem Sitz sitzt, sonst die Farbe als Fallback (unbesetzter Platz).
+ */
+function seatLabel(state: GameState, seat: Seat): string {
+  const player = state.players[seat];
+  return player?.name ?? COLOR_BY_SEAT[seat];
 }
 
 /** Hängt einen Verlaufseintrag an und liefert einen neuen Zustand. */
@@ -84,9 +93,10 @@ export function moveBall(
     b.id === ballId ? { ...b, position: to } : b,
   );
 
-  const text = `${moving.color}: ${describePosition(from)} → ${describePosition(
-    to,
-  )}`;
+  const text = `${seatLabel(state, moving.owner)}: ${describePosition(
+    state,
+    from,
+  )} → ${describePosition(state, to)}`;
   return pushHistory(
     { ...state, balls: next, lastBallMove: { ballId, from, to } },
     actor,
@@ -115,7 +125,8 @@ export function swapBalls(
     return ball;
   });
 
-  const text = `${a.color} ↔ ${b.color} getauscht`;
+  const actorLabel = actor != null ? `${seatLabel(state, actor)}: ` : "";
+  const text = `${actorLabel}${a.color} ↔ ${b.color} getauscht`;
   return pushHistory({ ...state, balls: next }, actor, text);
 }
 
@@ -148,11 +159,13 @@ export function dealCards(
     // discardPile remains the separate archive.
     discardEntries: [],
     tradeOffers: [],
+    // Neue Runde: jeder darf wieder genau einmal mit dem Partner tauschen.
+    tradeDone: [],
   };
   return pushHistory(
     withState,
     dealer,
-    `Geber ${COLOR_BY_SEAT[dealer]}: ${cardsPerPlayer} Karten ausgeteilt; nächste Runde ist ${COLOR_BY_SEAT[((dealer + 3) % 4) as Seat]} an der Reihe`,
+    `Geber ${seatLabel(state, dealer)}: ${cardsPerPlayer} Karten ausgeteilt; nächste Runde ist ${seatLabel(state, ((dealer + 3) % 4) as Seat)} an der Reihe`,
   );
 }
 
@@ -218,7 +231,7 @@ export function playCard(
   return pushHistory(
     withState,
     seat,
-    `${COLOR_BY_SEAT[seat]}: Karte ${cardLabel(card)} abgelegt`,
+    `${seatLabel(state, seat)}: Karte ${cardLabel(card)} abgelegt`,
   );
 }
 
@@ -255,7 +268,7 @@ export function returnCard(
   return pushHistory(
     { ...state, hands, discardPile, discardEntries },
     seat,
-    `${COLOR_BY_SEAT[seat]}: Karte ${cardLabel(entry.card)} zurückgenommen`,
+    `${seatLabel(state, seat)}: Karte ${cardLabel(entry.card)} zurückgenommen`,
   );
 }
 
@@ -284,20 +297,45 @@ export function swapWithPartner(
   return pushHistory(
     withState,
     seat,
-    `${COLOR_BY_SEAT[seat]}: Karte an Partner ${COLOR_BY_SEAT[partner]} getauscht`,
+    `${seatLabel(state, seat)}: Karte an Partner ${seatLabel(state, partner)} getauscht`,
   );
 }
 
-/** Legt eine Karte verdeckt für den gegenüberliegenden Partner bereit. */
+/**
+ * Legt eine Karte verdeckt für den gegenüberliegenden Partner bereit.
+ *
+ * Regeln (freiwilliger Partnertausch, genau 1× pro Runde):
+ * - Wer in dieser Runde bereits fertig getauscht hat (`tradeDone`), darf kein
+ *   neues Angebot mehr machen.
+ * - Solange der Partner das eigene Angebot NOCH NICHT genommen hat, ersetzt ein
+ *   neues Angebot das alte: die zuvor angebotene Karte kommt zurück auf die
+ *   Hand, die neue Karte liegt bereit. So kann man vor dem Zugriff des Partners
+ *   die angebotene Karte wechseln.
+ */
 export function offerCardToPartner(
   state: GameState,
   seat: Seat,
   cardId: string,
 ): GameState {
+  if (state.tradeDone.includes(seat)) return state;
   const partner = partnerSeat(seat);
   const card = state.hands[seat]?.find((item) => item.id === cardId);
   if (!card) return state;
-  const hands = state.hands.map((hand, index) =>
+
+  // Bestehendes eigenes, noch nicht genommenes Angebot zurück auf die Hand.
+  const priorOffer = state.tradeOffers.find(
+    (item) => item.from === seat && !item.claimed,
+  );
+  const remainingOffers = state.tradeOffers.filter(
+    (item) => !(item.from === seat && !item.claimed),
+  );
+  const handAfterReturn = priorOffer
+    ? state.hands.map((hand, index) =>
+        index === seat ? [...hand, priorOffer.card] : hand,
+      )
+    : state.hands;
+
+  const hands = handAfterReturn.map((hand, index) =>
     index === seat ? hand.filter((item) => item.id !== cardId) : hand,
   );
   const offer = {
@@ -308,13 +346,22 @@ export function offerCardToPartner(
     claimed: false,
   };
   return pushHistory(
-    { ...state, hands, tradeOffers: [...state.tradeOffers, offer], nextTradeOfferId: state.nextTradeOfferId + 1 },
+    { ...state, hands, tradeOffers: [...remainingOffers, offer], nextTradeOfferId: state.nextTradeOfferId + 1 },
     seat,
-    `${COLOR_BY_SEAT[seat]}: Karte verdeckt für Partner bereitgelegt`,
+    `${seatLabel(state, seat)}: Karte verdeckt für Partner bereitgelegt`,
   );
 }
 
-/** Nimmt ein eigenes, verdecktes Partnerangebot an. */
+/**
+ * Nimmt ein eigenes, verdecktes Partnerangebot an ("jeder nimmt selbst").
+ *
+ * Regeln:
+ * - Nehmen ist erst möglich, wenn man SELBST schon eine Karte angeboten hat
+ *   (fairer Gleichzeitig-Tausch: keiner sieht die Partnerkarte, ohne selbst
+ *   abgegeben zu haben).
+ * - Nach dem Nehmen ist der Sitz für diese Runde fertig (`tradeDone`) und darf
+ *   nichts mehr anbieten.
+ */
 export function claimTradeOffer(
   state: GameState,
   seat: Seat,
@@ -324,16 +371,48 @@ export function claimTradeOffer(
     (item) => item.id === offerId && item.to === seat && !item.claimed,
   );
   if (!offer) return state;
+  // Man muss selbst schon angeboten haben (offenes oder genommenes Angebot).
+  const hasOwnOffer = state.tradeOffers.some((item) => item.from === seat);
+  if (!hasOwnOffer) return state;
+
   const tradeOffers = state.tradeOffers.map((item) =>
     item.id === offerId ? { ...item, claimed: true } : item,
   );
   const hands = state.hands.map((hand, index) =>
     index === seat ? [...hand, offer.card] : hand,
   );
+  const tradeDone = state.tradeDone.includes(seat)
+    ? state.tradeDone
+    : [...state.tradeDone, seat];
+  return pushHistory(
+    { ...state, hands, tradeOffers, tradeDone },
+    seat,
+    `${seatLabel(state, seat)}: Partnerkarte genommen`,
+  );
+}
+
+/**
+ * Zieht ein eigenes, verdecktes Partnerangebot zurück, solange der Partner es
+ * noch NICHT beansprucht hat. Die Karte wandert zurück auf die Hand des
+ * Absenders. Nur der Absender (`from`) darf zurückziehen.
+ */
+export function revokeTradeOffer(
+  state: GameState,
+  seat: Seat,
+  offerId: string,
+): GameState {
+  const offer = state.tradeOffers.find(
+    (item) => item.id === offerId && item.from === seat && !item.claimed,
+  );
+  if (!offer) return state;
+  const tradeOffers = state.tradeOffers.filter((item) => item.id !== offerId);
+  const hands = state.hands.map((hand, index) =>
+    index === seat ? [...hand, offer.card] : hand,
+  );
   return pushHistory(
     { ...state, hands, tradeOffers },
     seat,
-    `${COLOR_BY_SEAT[seat]}: Partnerkarte genommen`,
+    `${seatLabel(state, seat)}: Partnerangebot zurückgezogen`,
   );
 }
 
@@ -349,7 +428,7 @@ export function requestDevilView(state: GameState, controller: Seat, target: Sea
   return pushHistory(
     { ...state, devilRequests: [...state.devilRequests, request], nextDevilRequestId: state.nextDevilRequestId + 1 },
     controller,
-    `${COLOR_BY_SEAT[controller]} fragt ${COLOR_BY_SEAT[target]} um Teufel-Handeinsicht`,
+    `${seatLabel(state, controller)} fragt ${seatLabel(state, target)} um Teufel-Handeinsicht`,
   );
 }
 
@@ -363,7 +442,7 @@ export function approveDevilView(state: GameState, target: Seat, requestId: stri
   const request = state.devilRequests.find((item) => item.id === requestId && item.target === target && !item.approved);
   if (!request) return state;
   const devilRequests = state.devilRequests.map((item) => item.id === requestId ? { ...item, approved: true } : item);
-  return pushHistory({ ...state, devilRequests }, target, `${COLOR_BY_SEAT[target]} erlaubt die Teufel-Handeinsicht`);
+  return pushHistory({ ...state, devilRequests }, target, `${seatLabel(state, target)} erlaubt die Teufel-Handeinsicht`);
 }
 
 /** Spielt genau eine Karte aus der bestätigten fremden Hand offen aus. */
@@ -383,7 +462,7 @@ export function playForeignCard(state: GameState, controller: Seat, requestId: s
 /** Gibt alle Hände verdeckt an den rechten Nachbarn weiter (Narr). */
 export function passHandsRight(state: GameState, actor: Seat): GameState {
   const hands = state.hands.map((_, index) => state.hands[(index + 3) % 4] ?? []);
-  return pushHistory({ ...state, hands }, actor, `${COLOR_BY_SEAT[actor]}: Alle Hände an den rechten Nachbarn weitergegeben`);
+  return pushHistory({ ...state, hands }, actor, `${seatLabel(state, actor)}: Alle Hände an den rechten Nachbarn weitergegeben`);
 }
 
 /** Der gegenübersitzende Partner-Sitzplatz. */
@@ -419,35 +498,62 @@ export function setMasterMode(state: GameState, enabled: boolean): GameState {
 
 /**
  * Weist einem beitretenden Client einen Sitzplatz zu.
- * - Bevorzugt den gewünschten Platz, falls frei.
- * - Sonst den ersten freien Platz.
- * @returns neuer Zustand + zugewiesener Sitz (oder null, wenn voll)
+ *
+ * Regeln:
+ * - **Expliziter Wunschsitz (`desiredSeat` gesetzt):** Der Beitretende bekommt
+ *   diesen Platz IMMER – auch wenn dort bereits jemand sitzt (der bisherige
+ *   Spieler wird verdrängt, egal ob online oder getrennt). So macht ein
+ *   Sitzplatz-Link den Platz gezielt frei. Der verdrängte Sitz wird zusätzlich
+ *   zurückgegeben, damit der Transport dessen alte Verbindung aufräumen kann.
+ * - **Kein Wunschsitz (Auto-Join):** Reconnect über den Namen (gleicher Name →
+ *   alter Platz); sonst der erste freie Platz. Es wird niemand verdrängt.
+ *
+ * @returns neuer Zustand, zugewiesener Sitz (oder null, wenn voll) und der
+ *          Sitz, dessen bisheriger Spieler verdrängt wurde (oder null).
  */
 export function joinRoom(
   state: GameState,
   playerId: string,
   name: string,
   desiredSeat?: Seat,
-): { state: GameState; seat: Seat | null } {
-  // Reconnect: gleicher Name auf bereits belegtem Platz.
+): { state: GameState; seat: Seat | null; displaced: Seat | null } {
+  // Fall A: Expliziter Wunschsitz – immer übernehmen, ggf. verdrängen.
+  if (desiredSeat != null) {
+    const previous = state.players[desiredSeat];
+    const displaced =
+      previous != null && previous.name !== name ? desiredSeat : null;
+    const player: Player = {
+      id: playerId,
+      name,
+      seat: desiredSeat,
+      team: TEAM_BY_SEAT[desiredSeat]!,
+      color: COLOR_BY_SEAT[desiredSeat]!,
+      connected: true,
+    };
+    const players = state.players.map((p, i) =>
+      i === desiredSeat ? player : p,
+    );
+    const note = displaced != null
+      ? `${name} (${COLOR_BY_SEAT[desiredSeat]}) übernimmt den Platz von ${previous!.name}`
+      : `${name} (${COLOR_BY_SEAT[desiredSeat]}) ist beigetreten`;
+    const withState = pushHistory({ ...state, players }, desiredSeat, note);
+    return { state: withState, seat: desiredSeat, displaced };
+  }
+
+  // Fall B: Auto-Join – Reconnect über Namen, sonst erster freier Platz.
   const existing = state.players.findIndex((p) => p?.name === name);
   if (existing >= 0) {
     const seat = existing as Seat;
     const players = state.players.map((p, i) =>
       i === seat && p ? { ...p, id: playerId, connected: true } : p,
     );
-    return { state: { ...state, players }, seat };
+    return { state: { ...state, players }, seat, displaced: null };
   }
 
   const isFree = (s: number) => state.players[s] == null;
-  let seat: Seat | null = null;
-  if (desiredSeat != null && isFree(desiredSeat)) {
-    seat = desiredSeat;
-  } else {
-    const free = [0, 1, 2, 3].find(isFree);
-    seat = free != null ? (free as Seat) : null;
-  }
-  if (seat == null) return { state, seat: null };
+  const free = [0, 1, 2, 3].find(isFree);
+  const seat: Seat | null = free != null ? (free as Seat) : null;
+  if (seat == null) return { state, seat: null, displaced: null };
 
   const player: Player = {
     id: playerId,
@@ -463,7 +569,7 @@ export function joinRoom(
     seat,
     `${name} (${COLOR_BY_SEAT[seat]}) ist beigetreten`,
   );
-  return { state: withState, seat };
+  return { state: withState, seat, displaced: null };
 }
 
 /** Markiert den Spieler auf einem Sitz als getrennt. */
@@ -495,6 +601,7 @@ export function toPublicState(
       claimed: offer.claimed,
       ...(offer.from === viewer || offer.claimed ? { card: offer.card } : {}),
     })),
+    tradeDone: state.tradeDone,
     lastBallMove: state.lastBallMove,
     devilRequests: state.devilRequests.map((request): PublicDevilRequest => ({
       ...request,

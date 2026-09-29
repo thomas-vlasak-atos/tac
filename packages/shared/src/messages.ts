@@ -24,6 +24,7 @@ export type ClientAction =
   | { type: "SwapWithPartner"; cardId: string }
   | { type: "OfferCardToPartner"; cardId: string }
   | { type: "ClaimTradeOffer"; offerId: string }
+  | { type: "RevokeTradeOffer"; offerId: string }
   | { type: "RequestDevilView"; target: Seat }
   | { type: "ApproveDevilView"; requestId: string }
   | { type: "PlayForeignCard"; requestId: string; cardId: string }

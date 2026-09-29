@@ -26,6 +26,7 @@ import {
   playCard,
   offerCardToPartner,
   claimTradeOffer,
+  revokeTradeOffer,
   requestDevilView,
   approveDevilView,
   playForeignCard,
@@ -88,7 +89,7 @@ function handleAction(conn: Connection, action: ClientAction): void {
   // JoinRoom ist der einzige Fall, der ohne bestehenden Raum funktioniert.
   if (action.type === "JoinRoom") {
     const room = getOrCreateRoom(action.roomId);
-    const { state, seat } = joinRoom(
+    const { state, seat, displaced } = joinRoom(
       room.state,
       conn.id,
       action.name,
@@ -98,9 +99,17 @@ function handleAction(conn: Connection, action: ClientAction): void {
       send(conn, { type: "Error", message: "Der Raum ist bereits voll." });
       return;
     }
-    // Alte Verbindung desselben Sitzes (Reconnect) aufräumen.
+    // Alte Verbindung(en) auf demselben Sitz aufräumen. Das deckt sowohl den
+    // Reconnect (gleicher Name) als auch die Verdrängung per Wunschsitz ab:
+    // Wer den Platz verliert, wird informiert und verliert seinen Sitzbezug.
     for (const other of room.connections) {
       if (other.seat === seat && other !== conn) {
+        if (displaced === seat) {
+          send(other, {
+            type: "Error",
+            message: `Dein Platz wurde von ${action.name} übernommen.`,
+          });
+        }
         other.seat = null;
       }
     }
@@ -152,6 +161,9 @@ function handleAction(conn: Connection, action: ClientAction): void {
       break;
     case "ClaimTradeOffer":
       room.state = claimTradeOffer(room.state, seat, action.offerId);
+      break;
+    case "RevokeTradeOffer":
+      room.state = revokeTradeOffer(room.state, seat, action.offerId);
       break;
     case "RequestDevilView":
       room.state = requestDevilView(room.state, seat, action.target);

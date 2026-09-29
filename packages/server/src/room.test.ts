@@ -17,6 +17,7 @@ import {
   playCard,
   offerCardToPartner,
   claimTradeOffer,
+  revokeTradeOffer,
   requestDevilView,
   approveDevilView,
   playForeignCard,
@@ -50,6 +51,20 @@ describe("moveBall", () => {
       from: { kind: "VORFELD", owner: 0 },
       to: { kind: "FELD", index: 12 },
     });
+  });
+
+  it("nutzt im Verlauf den Spielernamen statt der Farbe, wenn gesetzt", () => {
+    let s = createInitialState();
+    s = joinRoom(s, "id1", "Anna", 0).state; // Sitz 0 = blau
+    s = moveBall(s, "blau-0", { kind: "FELD", index: 12 }, 0);
+    const text = s.history.at(-1)!.text;
+    expect(text).toContain("Anna");
+    expect(text.startsWith("blau")).toBe(false);
+  });
+
+  it("fällt im Verlauf auf die Farbe zurück, wenn der Sitz unbesetzt ist", () => {
+    const s = moveBall(createInitialState(), "blau-0", { kind: "FELD", index: 12 }, 0);
+    expect(s.history.at(-1)!.text.startsWith("blau")).toBe(true);
   });
 
   it("wirft NICHT automatisch: zwei Kugeln dürfen dieselbe Position belegen (B4 überarbeitet)", () => {
@@ -209,9 +224,93 @@ describe("partner trade phase", () => {
     expect(s.hands[0]!.some((item) => item.id === card.id)).toBe(false);
     expect(toPublicState(s, 2).tradeOffers[0]!.card).toBeUndefined();
     expect(toPublicState(s, 1).tradeOffers).toEqual([]);
+    // Sitz 2 muss selbst zuerst anbieten, bevor er nehmen darf.
+    s = offerCardToPartner(s, 2, s.hands[2]![0]!.id);
     s = claimTradeOffer(s, 2, offer.id);
     expect(s.hands[2]!.some((item) => item.id === card.id)).toBe(true);
-    expect(s.tradeOffers[0]!.claimed).toBe(true);
+    expect(s.tradeOffers.find((o) => o.id === offer.id)!.claimed).toBe(true);
+  });
+
+  it("does not allow claiming before having offered a card oneself", () => {
+    let s = dealCards(createInitialState({ rng: seededRng(8) }), 5);
+    s = offerCardToPartner(s, 0, s.hands[0]![0]!.id);
+    const offer = s.tradeOffers[0]!;
+    // Sitz 2 hat noch nichts angeboten → nehmen wird ignoriert.
+    const after = claimTradeOffer(s, 2, offer.id);
+    expect(after).toBe(s);
+  });
+
+  it("marks the taker as done after claiming (only one trade per round)", () => {
+    let s = dealCards(createInitialState({ rng: seededRng(8) }), 5);
+    s = offerCardToPartner(s, 0, s.hands[0]![0]!.id);
+    const offer = s.tradeOffers[0]!;
+    s = offerCardToPartner(s, 2, s.hands[2]![0]!.id);
+    s = claimTradeOffer(s, 2, offer.id);
+    expect(s.tradeDone).toContain(2);
+    // Ein weiteres Angebot von Sitz 2 wird abgelehnt.
+    const before = s;
+    s = offerCardToPartner(s, 2, s.hands[2]![0]!.id);
+    expect(s).toBe(before);
+  });
+
+  it("replaces an unclaimed own offer when offering another card", () => {
+    let s = dealCards(createInitialState({ rng: seededRng(8) }), 5);
+    const first = s.hands[0]![0]!;
+    const second = s.hands[0]![1]!;
+    s = offerCardToPartner(s, 0, first.id);
+    s = offerCardToPartner(s, 0, second.id);
+    // Nur ein offenes Angebot, die erste Karte ist zurück auf der Hand.
+    const ownOffers = s.tradeOffers.filter((o) => o.from === 0 && !o.claimed);
+    expect(ownOffers).toHaveLength(1);
+    expect(ownOffers[0]!.card.id).toBe(second.id);
+    expect(s.hands[0]!.some((c) => c.id === first.id)).toBe(true);
+    expect(s.hands[0]!.some((c) => c.id === second.id)).toBe(false);
+  });
+
+  it("resets trade state on the next deal", () => {
+    let s = dealCards(createInitialState({ rng: seededRng(8) }), 5);
+    s = offerCardToPartner(s, 0, s.hands[0]![0]!.id);
+    s = offerCardToPartner(s, 2, s.hands[2]![0]!.id);
+    s = claimTradeOffer(s, 2, s.tradeOffers.find((o) => o.to === 2)!.id);
+    // Runde leerspielen, damit erneut gegeben werden kann.
+    s = { ...s, hands: [[], [], [], []] };
+    s = dealCards(s, 5);
+    expect(s.tradeDone).toEqual([]);
+    expect(s.tradeOffers).toEqual([]);
+  });
+
+  it("lets the sender revoke an unclaimed offer back to their hand", () => {
+    let s = dealCards(createInitialState({ rng: seededRng(8) }), 5);
+    const card = s.hands[0]![0]!;
+    s = offerCardToPartner(s, 0, card.id);
+    const offer = s.tradeOffers[0]!;
+    s = revokeTradeOffer(s, 0, offer.id);
+    // Karte ist zurück auf der Hand, Angebot entfernt.
+    expect(s.hands[0]!.some((item) => item.id === card.id)).toBe(true);
+    expect(s.tradeOffers).toEqual([]);
+  });
+
+  it("does not let a revoke happen once the partner has claimed", () => {
+    let s = dealCards(createInitialState({ rng: seededRng(8) }), 5);
+    const card = s.hands[0]![0]!;
+    s = offerCardToPartner(s, 0, card.id);
+    const offer = s.tradeOffers[0]!;
+    s = offerCardToPartner(s, 2, s.hands[2]![0]!.id);
+    s = claimTradeOffer(s, 2, offer.id);
+    const before = s;
+    s = revokeTradeOffer(s, 0, offer.id);
+    // Nichts ändert sich – die Karte liegt schon beim Partner.
+    expect(s).toBe(before);
+  });
+
+  it("only the sender can revoke their own offer", () => {
+    let s = dealCards(createInitialState({ rng: seededRng(8) }), 5);
+    const card = s.hands[0]![0]!;
+    s = offerCardToPartner(s, 0, card.id);
+    const offer = s.tradeOffers[0]!;
+    // Der Empfänger (Sitz 2) darf nicht zurückziehen.
+    const after = revokeTradeOffer(s, 2, offer.id);
+    expect(after).toBe(s);
   });
 });
 
@@ -252,11 +351,31 @@ describe("joinRoom", () => {
     expect(state.players[2]!.team).toBe("A");
   });
 
-  it("weicht auf den ersten freien Platz aus, wenn Wunsch belegt", () => {
+  it("verdrängt den bisherigen Spieler, wenn der Wunschsitz belegt ist", () => {
     let s = createInitialState();
     s = joinRoom(s, "id1", "Anna", 0).state;
-    const { seat } = joinRoom(s, "id2", "Ben", 0);
-    expect(seat).toBe(1);
+    const res = joinRoom(s, "id2", "Ben", 0);
+    // Ben bekommt seinen Wunschplatz 0, Anna wird verdrängt.
+    expect(res.seat).toBe(0);
+    expect(res.displaced).toBe(0);
+    expect(res.state.players[0]!.name).toBe("Ben");
+    // Anna ist nirgends mehr eingetragen.
+    expect(res.state.players.some((p) => p?.name === "Anna")).toBe(false);
+  });
+
+  it("meldet keine Verdrängung, wenn der Wunschsitz frei ist", () => {
+    const res = joinRoom(createInitialState(), "id1", "Anna", 2);
+    expect(res.seat).toBe(2);
+    expect(res.displaced).toBeNull();
+  });
+
+  it("auto-Join (ohne Wunschsitz) nimmt nur freie Plätze, verdrängt niemanden", () => {
+    let s = createInitialState();
+    s = joinRoom(s, "id1", "Anna").state; // → 0
+    const res = joinRoom(s, "id2", "Ben"); // → 1
+    expect(res.seat).toBe(1);
+    expect(res.displaced).toBeNull();
+    expect(res.state.players[0]!.name).toBe("Anna");
   });
 
   it("erlaubt Reconnect über gleichen Namen auf denselben Sitz", () => {
@@ -266,6 +385,15 @@ describe("joinRoom", () => {
     expect(res.seat).toBe(1);
     expect(res.state.players[1]!.id).toBe("id-neu");
     expect(res.state.players[1]!.connected).toBe(true);
+  });
+
+  it("gleicher Name auf gewünschtem eigenen Sitz gilt nicht als Verdrängung", () => {
+    let s = createInitialState();
+    s = joinRoom(s, "id1", "Anna", 1).state;
+    const res = joinRoom(s, "id-neu", "Anna", 1);
+    expect(res.seat).toBe(1);
+    expect(res.displaced).toBeNull();
+    expect(res.state.players[1]!.id).toBe("id-neu");
   });
 
   it("liefert null, wenn der Raum voll ist", () => {

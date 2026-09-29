@@ -57,6 +57,7 @@ export function createInitialState(options?: {
     discardEntries: [],
     tradeOffers: [],
     nextTradeOfferId: 1,
+    tradeDone: [],
     lastBallMove: null,
     devilRequests: [],
     nextDevilRequestId: 1,

@@ -80,6 +80,12 @@ export interface GameState {
   discardEntries: DiscardEntry[];
   tradeOffers: TradeOffer[];
   nextTradeOfferId: number;
+  /**
+   * Sitze, die ihren Partnertausch in dieser Runde ABGESCHLOSSEN haben
+   * (Partner hat die Karte genommen). Ein solcher Sitz darf in dieser Runde
+   * keine weitere Karte mehr anbieten. Wird beim Geben geleert.
+   */
+  tradeDone: Seat[];
   lastBallMove: LastBallMove | null;
   devilRequests: DevilRequest[];
   nextDevilRequestId: number;
@@ -107,6 +113,8 @@ export interface PublicGameState {
   discardPile: Card[];
   discardEntries: DiscardEntry[];
   tradeOffers: PublicTradeOffer[];
+  /** Sitze, die ihren Partnertausch in dieser Runde abgeschlossen haben. */
+  tradeDone: Seat[];
   lastBallMove: LastBallMove | null;
   devilRequests: PublicDevilRequest[];
   /** Anzahl Handkarten je Sitzplatz (nicht die Karten selbst). */

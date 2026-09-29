@@ -108,6 +108,20 @@ braucht beim nächsten Zugriff ein paar Sekunden zum Aufwachen. Der Spielzustand
 liegt nur im Speicher (Neustart/Deploy = Partie zurückgesetzt). Details:
 `docs/decisions/ADR-0002-hosting-und-sitzplatz-links.md`.
 
+### Beitritts-Links (Raum `tac`)
+
+Jeder Spieler klickt seinen Link und landet automatisch auf dem richtigen Platz.
+Sitzplatz-Nummer im Link ist 0-basiert (`seat=0` = angezeigter „Platz 1").
+
+| Spieler  | Platz (Farbe)        | Link |
+|----------|----------------------|------|
+| Thomas   | Platz 1 – Blau (Team A)  | https://tac-client.onrender.com/?room=tac&name=Thomas&seat=0 |
+| Torsten  | Platz 2 – Gelb (Team B)  | https://tac-client.onrender.com/?room=tac&name=Torsten&seat=1 |
+| Matthias | Platz 3 – Grün (Team A)  | https://tac-client.onrender.com/?room=tac&name=Matthias&seat=2 |
+| Steffen  | Platz 4 – Rot (Team B)   | https://tac-client.onrender.com/?room=tac&name=Steffen&seat=3 |
+
+Teams sitzen gegenüber: Thomas + Matthias (Team A), Torsten + Steffen (Team B).
+
 Lokal lässt sich die Server-Adresse ebenfalls über `VITE_SERVER_URL` setzen
 (z. B. in einer `.env` im Client-Paket); ohne die Variable wird
 `ws://<host>:3001` angenommen.
