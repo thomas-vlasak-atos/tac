@@ -60,6 +60,7 @@ export function App() {
   const { status, state, seat, error, send } = useTacSocket(serverUrl());
   const [joined, setJoined] = useState(false);
   const [showFieldNumbers, setShowFieldNumbers] = useState(false);
+  const [showCalibration, setShowCalibration] = useState(false);
   const [showMasterHelp, setShowMasterHelp] = useState(false);
 
   // Nach Verbindungsaufbau automatisch beitreten (einmalig).
@@ -168,6 +169,7 @@ export function App() {
                   onRequestDevil={(target) => send({ type: "RequestDevilView", target })}
                   lastBallMove={state.lastBallMove}
                   showFieldNumbers={showFieldNumbers}
+                  showCalibration={showCalibration}
                   discardEntries={state.discardEntries}
                   onMoveBall={moveBall}
                   onReturnCard={(cardId) => send({ type: "ReturnCard", cardId })}
@@ -175,6 +177,7 @@ export function App() {
                 />
               </div>
               <label style={{ display: "inline-flex", gap: 6, alignItems: "center", marginTop: 7, color: "#765234", fontFamily: "system-ui", fontSize: 13 }}><input type="checkbox" checked={showFieldNumbers} onChange={(event) => setShowFieldNumbers(event.target.checked)} /> Feldnummern anzeigen</label>
+              <label style={{ display: "inline-flex", gap: 6, alignItems: "center", marginTop: 7, marginLeft: 14, color: "#765234", fontFamily: "system-ui", fontSize: 13 }}><input type="checkbox" checked={showCalibration} onChange={(event) => setShowCalibration(event.target.checked)} /> Kalibrierung (Vorfeld-Kreis / Rahmen)</label>
 
             {/* Teufel-Anfrage: Overlay über dem Spielfeld. Das Ziel entscheidet
                 (erlauben/ablehnen); der Anfrager sieht den Wartestatus und kann
