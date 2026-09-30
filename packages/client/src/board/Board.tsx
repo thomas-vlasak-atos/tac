@@ -78,8 +78,12 @@ export interface BoardProps {
   deckCount?: number;
   /** Ob der Stapel „geben" auslösen kann (klickbar). */
   deckActive?: boolean;
+  /** Ob der (leere) Stapel gemischt werden muss/kann, bevor gegeben wird. */
+  deckShuffleable?: boolean;
   /** Klick auf den aktiven Reststapel (geben). */
   onDeal?: () => void;
+  /** Klick auf den leeren Stapel (mischen). */
+  onShuffle?: () => void;
   /** Klick auf den Kartenrücken des linken Nachbarn (Teufel-Anfrage). */
   onRequestDevil?: (target: Seat) => void;
   lastBallMove?: { ballId: string; from: BallPosition; to: BallPosition } | null;
@@ -93,7 +97,7 @@ export interface BoardProps {
 
 interface DragState { ballId: string; current: Point; moved: boolean; from: BallPosition }
 
-export function Board({ balls, players = [], handCounts = [], dealer, deckHolder = null, deckCount = 0, deckActive = false, onDeal, onRequestDevil, lastBallMove = null, showFieldNumbers = false, discardEntries = [], onMoveBall, onReturnCard, ownSeat, size = 760 }: BoardProps) {
+export function Board({ balls, players = [], handCounts = [], dealer, deckHolder = null, deckCount = 0, deckActive = false, deckShuffleable = false, onDeal, onShuffle, onRequestDevil, lastBallMove = null, showFieldNumbers = false, discardEntries = [], onMoveBall, onReturnCard, ownSeat, size = 760 }: BoardProps) {
   const geo = defaultGeometry(1024);
   const [drag, setDrag] = useState<DragState | null>(null);
   const positions = computeBallPositions(balls, geo);
@@ -165,8 +169,8 @@ export function Board({ balls, players = [], handCounts = [], dealer, deckHolder
             const len = Math.hypot(toCenter.x, toCenter.y) || 1;
             const nx = toCenter.x / len;
             const ny = toCenter.y / len;
-            const cardAt = { x: c.x + nx * geo.fieldRadius * 5.0, y: c.y + ny * geo.fieldRadius * 5.0 };
-            const cw = geo.fieldRadius * 3.4;
+            const cardAt = { x: c.x + nx * geo.fieldRadius * 5.6, y: c.y + ny * geo.fieldRadius * 5.6 };
+            const cw = geo.fieldRadius * 4.2;
             const ch = cw * 1.4;
             return (
               <g key={`vfname-${seat}`} transform={`rotate(${-rotation} ${c.x} ${c.y})`} style={{ pointerEvents: "none" }}>
@@ -188,11 +192,17 @@ export function Board({ balls, players = [], handCounts = [], dealer, deckHolder
             );
           })}
           {/* Reststapel: in der Mitte (Rundenstart) oder beim Halter, seitlich
-              neben dessen Vorfeld. Klickbar (geben), wenn aktiv und der Betrachter
-              der zuständige Geber ist. */}
+              neben dessen Vorfeld. Ist der Stapel leer (nach der letzten Runde),
+              liegt er beim nächsten Geber und zeigt „MISCHEN"; erst danach „GEBEN".
+              Nur der zuständige Geber kann mischen/geben. */}
           {(() => {
             const dealerSeat = (deckHolder ?? dealer ?? 0) as Seat;
-            const canDeal = deckActive && ownSeat != null && ownSeat === dealerSeat && !!onDeal;
+            const isDealerViewer = ownSeat != null && ownSeat === dealerSeat;
+            const canDeal = deckActive && isDealerViewer && !!onDeal;
+            const canShuffle = deckShuffleable && isDealerViewer && !!onShuffle;
+            const clickable = canDeal || canShuffle;
+            const onClick = canShuffle ? () => onShuffle?.() : canDeal ? () => onDeal?.() : undefined;
+            const actionLabel = canShuffle ? "MISCHEN" : canDeal ? "GEBEN" : null;
             let anchor: Point;
             if (deckHolder == null) {
               anchor = { x: geo.center.x, y: geo.center.y };
@@ -205,21 +215,32 @@ export function Board({ balls, players = [], handCounts = [], dealer, deckHolder
               const nx = toC.x / len;
               const ny = toC.y / len;
               // Senkrechte Richtung (nach „außen" der Ecke) und etwas zur Mitte.
-              anchor = { x: c.x + ny * geo.fieldRadius * 5.0 + nx * geo.fieldRadius * 1.5, y: c.y - nx * geo.fieldRadius * 5.0 + ny * geo.fieldRadius * 1.5 };
+              anchor = { x: c.x + ny * geo.fieldRadius * 6.2 + nx * geo.fieldRadius * 1.5, y: c.y - nx * geo.fieldRadius * 6.2 + ny * geo.fieldRadius * 1.5 };
             }
-            const dw = geo.fieldRadius * 4.6;
+            const dw = geo.fieldRadius * 5.4;
             const dh = dw * 1.4;
-            const layers = Math.min(5, Math.max(2, Math.ceil((deckCount || 0) / 24)));
+            const isEmpty = (deckCount || 0) <= 0;
+            const layers = isEmpty ? 1 : Math.min(5, Math.max(2, Math.ceil((deckCount || 0) / 24)));
+            const topX = anchor.x - dw / 2 + (layers - 1) * 2 + 3;
+            const topY = anchor.y - dh / 2 - (layers - 1) * 2 + 3;
             return (
-              <g transform={`rotate(${-rotation} ${anchor.x} ${anchor.y})`} style={{ pointerEvents: canDeal ? "auto" : "none", cursor: canDeal ? "pointer" : "default" }} onClick={canDeal ? () => onDeal?.() : undefined}>
+              <g transform={`rotate(${-rotation} ${anchor.x} ${anchor.y})`} style={{ pointerEvents: clickable ? "auto" : "none", cursor: clickable ? "pointer" : "default" }} onClick={onClick}>
                 {Array.from({ length: layers }, (_, i) => (
-                  <rect key={`deck-layer-${i}`} x={anchor.x - dw / 2 + i * 2} y={anchor.y - dh / 2 - i * 2} width={dw} height={dh} rx={8} fill="#3a2416" stroke={canDeal ? "#ffe08a" : "#e9d3ad"} strokeWidth={canDeal ? 3 : 1.5} filter={i === layers - 1 ? "url(#shadow)" : undefined} opacity={0.96} />
+                  <rect key={`deck-layer-${i}`} x={anchor.x - dw / 2 + i * 2} y={anchor.y - dh / 2 - i * 2} width={dw} height={dh} rx={8}
+                    fill={isEmpty ? "none" : "#3a2416"}
+                    stroke={clickable ? "#ffe08a" : "#e9d3ad"} strokeWidth={clickable ? 3 : 1.5}
+                    strokeDasharray={isEmpty ? "8 6" : undefined}
+                    filter={!isEmpty && i === layers - 1 ? "url(#shadow)" : undefined} opacity={isEmpty ? 0.85 : 0.96} />
                 ))}
-                <clipPath id="deckclip"><rect x={anchor.x - dw / 2 + (layers - 1) * 2 + 3} y={anchor.y - dh / 2 - (layers - 1) * 2 + 3} width={dw - 6} height={dh - 6} rx={6} /></clipPath>
-                <image href={cardBackImage} x={anchor.x - dw / 2 + (layers - 1) * 2 + 3} y={anchor.y - dh / 2 - (layers - 1) * 2 + 3} width={dw - 6} height={dh - 6} preserveAspectRatio="xMidYMid slice" clipPath="url(#deckclip)" opacity={0.92} />
-                <text x={anchor.x + (layers - 1)} y={anchor.y - (layers - 1) - dh * 0.16} textAnchor="middle" fill="#fff" stroke="#2b1a0e" strokeWidth={3} paintOrder="stroke" fontSize={dh * 0.34} fontFamily="Georgia, serif" fontWeight={700}>{deckCount}</text>
-                {canDeal && <text x={anchor.x + (layers - 1)} y={anchor.y - (layers - 1) + dh * 0.34} textAnchor="middle" fill="#ffe08a" stroke="#2b1a0e" strokeWidth={2.4} paintOrder="stroke" fontSize={dh * 0.16} fontFamily="system-ui" fontWeight={700}>GEBEN</text>}
-                <title>Reststapel: {deckCount} Karten{canDeal ? " – klicken zum Geben" : ""}</title>
+                {!isEmpty && (
+                  <>
+                    <clipPath id="deckclip"><rect x={topX} y={topY} width={dw - 6} height={dh - 6} rx={6} /></clipPath>
+                    <image href={cardBackImage} x={topX} y={topY} width={dw - 6} height={dh - 6} preserveAspectRatio="xMidYMid slice" clipPath="url(#deckclip)" opacity={0.92} />
+                    <text x={anchor.x + (layers - 1)} y={anchor.y - (layers - 1) - dh * 0.16} textAnchor="middle" fill="#fff" stroke="#2b1a0e" strokeWidth={3} paintOrder="stroke" fontSize={dh * 0.3} fontFamily="Georgia, serif" fontWeight={700}>{deckCount}</text>
+                  </>
+                )}
+                {actionLabel && <text x={anchor.x} y={anchor.y + (isEmpty ? dh * 0.06 : dh * 0.3)} textAnchor="middle" fill="#ffe08a" stroke="#2b1a0e" strokeWidth={2.6} paintOrder="stroke" fontSize={dh * 0.16} fontFamily="system-ui" fontWeight={700}>{actionLabel}</text>}
+                <title>Reststapel: {deckCount} Karten{canShuffle ? " – leer, klicken zum Mischen" : canDeal ? " – klicken zum Geben" : ""}</title>
               </g>
             );
           })()}

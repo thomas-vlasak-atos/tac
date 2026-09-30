@@ -183,6 +183,33 @@ describe("dealCards", () => {
     expect(shuffled.deck).toHaveLength(1);
     expect(shuffled.discardPile).toEqual([]);
   });
+
+  it("lässt nur den zuständigen Geber mischen", () => {
+    // Nach dem Geben liegt der Stapel beim nächsten Geber (deckHolder = 3).
+    let s = dealCards(createInitialState({ rng: seededRng(2), dealer: 0 }), 5, 0);
+    expect(s.deckHolder).toBe(3);
+    // Runde leerspielen: Reststapel leeren, Ablage aus den Handkarten füllen.
+    const discard = s.hands.flat();
+    s = { ...s, hands: [[], [], [], []], deck: [], discardPile: discard };
+    // Ein anderer Sitz als der Halter (3) darf nicht mischen.
+    expect(shuffleDiscard(s, seededRng(3), 0)).toBe(s);
+    // Der Halter darf.
+    expect(shuffleDiscard(s, seededRng(3), 3).deck.length).toBeGreaterThan(0);
+  });
+
+  it("markiert den leeren Stapel als mischbar (deckShuffleable) beim nächsten Geber", () => {
+    let s = createInitialState({ rng: seededRng(2), dealer: 0 });
+    // Alle Karten ausspielen simulieren: Deck leer, Ablage voll, keine Hände.
+    const discard = s.deck;
+    s = { ...s, deck: [], hands: [[], [], [], []], discardPile: discard, deckHolder: 3 };
+    const pub = toPublicState(s, 3);
+    expect(pub.deckShuffleable).toBe(true);
+    expect(pub.deckActive).toBe(false);
+    // Nach dem Mischen ist er aktiv (geben möglich).
+    const shuffled = shuffleDiscard(s, seededRng(3), 3);
+    expect(toPublicState(shuffled, 3).deckActive).toBe(true);
+    expect(toPublicState(shuffled, 3).deckShuffleable).toBe(false);
+  });
 });
 
 describe("playCard", () => {

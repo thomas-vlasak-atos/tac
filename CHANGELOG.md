@@ -8,6 +8,18 @@ Versionierung nach [Semantic Versioning](https://semver.org/lang/de/).
 ## [Unreleased]
 
 ### Added
+- **Leerer Reststapel: mischen am Brett (REQ-BOARD K2a):** Ist der Reststapel nach der
+  letzten Runde leer, liegt er beim nächsten Geber und zeigt **„MISCHEN"**. Ein Klick
+  mischt den Ablagestapel zurück; danach zeigt der Stapel **„GEBEN"** und ein zweiter
+  Klick teilt aus (zwei Klicks). Nur der zuständige Geber darf mischen. Neues
+  State-Feld `deckShuffleable`; der separate „Mischen"-Button entfällt.
+
+### Changed
+- **Größen angepasst:** Die je Spieler angezeigten Resthandkarten (Kartenrücken mit
+  Anzahl) und der Nachziehstapel am Brett sind größer. Die eigenen Handkarten wurden
+  wieder auf die vorherige Größe zurückgesetzt (versehentlich vergrößert).
+
+### Added
 - **Klickbarer, wandernder Reststapel am Brett (REQ-BOARD K2):** Der Reststapel wird
   als Kartenstapel am Brett gezeichnet – zu Rundenbeginn in der Mitte. Der aktuelle
   Geber klickt darauf, um zu geben; danach wandert der Stapel zum nächsten Geber und

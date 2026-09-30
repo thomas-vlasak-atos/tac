@@ -141,19 +141,16 @@ export function App() {
       {!state ? (
         <p>Lade Spielzustand…</p>
       ) : (
-        <div className="game-layout" style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) 340px", gap: 18, margin: "18px auto 0", maxWidth: 1360 }}>
+        <div className="game-layout" style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) 300px", gap: 18, margin: "18px auto 0", maxWidth: 1320 }}>
           <div className="board-column" style={{ position: "relative" }}>
             <div style={{ display: "flex", gap: 8, marginBottom: 8 }}>
-              <button type="button" disabled={state.deckCount > 0 || state.handCounts.some((count) => count > 0)} onClick={() => send({ type: "ShuffleCards" })}>
-                Mischen
-              </button>
               <button type="button" onClick={() => send({ type: "ResetGame" })}>
                 Neu
               </button>
             </div>
             <div style={{ display: "flex", gap: 16, flexWrap: "wrap", marginBottom: 10, color: "#765234", fontFamily: "system-ui", fontSize: 13 }}>
               <span><strong>Geber:</strong> {state.players[(state.deckHolder ?? state.dealer)]?.name ?? "—"}</span>
-              <span><strong>Reststapel:</strong> {state.deckCount} Karten{state.deckActive ? " (bereit zum Geben)" : ""}</span>
+              <span><strong>Reststapel:</strong> {state.deckCount} Karten{state.deckShuffleable ? " (leer – erst mischen)" : state.deckActive ? " (bereit zum Geben)" : ""}</span>
             </div>
 
               <div className="board-drop-zone">
@@ -165,7 +162,9 @@ export function App() {
                   deckHolder={state.deckHolder}
                   deckCount={state.deckCount}
                   deckActive={state.deckActive}
+                  deckShuffleable={state.deckShuffleable}
                   onDeal={() => send({ type: "DealCards" })}
+                  onShuffle={() => send({ type: "ShuffleCards" })}
                   onRequestDevil={(target) => send({ type: "RequestDevilView", target })}
                   lastBallMove={state.lastBallMove}
                   showFieldNumbers={showFieldNumbers}

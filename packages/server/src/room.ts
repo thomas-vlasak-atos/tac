@@ -192,7 +192,11 @@ export function shuffleDiscard(
   }
   if (state.discardPile.length === 0) return state;
 
-  const dealer = actor ?? state.dealer;
+  // Nur der zuständige Geber (aktueller Stapelhalter bzw. Geber) darf mischen.
+  const currentDealer = state.deckHolder ?? state.dealer;
+  if (actor != null && actor !== currentDealer) return state;
+
+  const dealer = actor ?? currentDealer;
   return pushHistory(
     {
       ...state,
@@ -671,6 +675,10 @@ export function toPublicState(
     // sind und genügend Karten im Reststapel liegen.
     deckActive:
       state.hands.every((hand) => hand.length === 0) && state.deck.length >= 20,
+    deckShuffleable:
+      state.hands.every((hand) => hand.length === 0) &&
+      state.deck.length === 0 &&
+      state.discardPile.length > 0,
     masterMode: state.masterMode,
     history: state.history,
   };

@@ -88,7 +88,14 @@
   reihum ausgeteilt werden. Danach **wandert** der Stapel zum **nächsten Geber**
   (gegen den Uhrzeigersinn) und ruht dort **deaktiviert**, bis alle Handkarten
   gespielt sind; dann kann der neue Geber ihn erneut auslösen. Nur der zuständige
-  Geber kann den Stapel bedienen. (Das Geben mischt bewusst nicht; siehe §3.)
+  Geber kann den Stapel bedienen.
+- **K2a – Leerer Stapel: erst mischen, dann geben.** Über die Runden wird das Deck
+  aufgebraucht; nach der letzten Runde ist der Reststapel **leer**. Er liegt dann
+  (leer) beim **nächsten Geber** und zeigt **„MISCHEN"**. Erst wenn dieser Geber
+  klickt, wird der **Ablagestapel zurückgemischt** (`ShuffleCards`) und der Stapel
+  ist wieder voll; danach zeigt er **„GEBEN"** und ein zweiter Klick teilt aus.
+  Es sind also **zwei Klicks** (mischen, dann geben). Nur der zuständige Geber darf
+  mischen. Das Geben selbst mischt bewusst **nicht** (§3).
 - **K3 – Eigene Hand:** Jeder sieht **nur seine eigene** Hand (verdeckt für andere).
 - **K3a – Kartenbedienung per Klick (Stand v0.6):** Eine Handkarte wird mit einem
   **einzigen Klick** bedient (kein Zwischenschritt über Aktions-Buttons mehr).

@@ -138,6 +138,12 @@ export interface PublicGameState {
    * Handkarten mehr im Spiel sind und genügend Karten im Stapel liegen.
    */
   deckActive: boolean;
+  /**
+   * Ob der (leere) Reststapel gemischt werden muss/kann, bevor gegeben werden
+   * kann. True, wenn keine Handkarten im Spiel sind, der Reststapel leer ist und
+   * Karten in der Ablage liegen.
+   */
+  deckShuffleable: boolean;
   masterMode: boolean;
   history: HistoryEntry[];
 }

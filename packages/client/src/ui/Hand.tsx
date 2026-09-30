@@ -53,9 +53,9 @@ export function Hand({ cards, compact = false, onPlayCard, actionHint, disabled 
               }
             }}
             style={{
-              width: 118,
-              minHeight: 172,
-              padding: 9,
+              width: 94,
+              minHeight: 138,
+              padding: 8,
               borderRadius: 10,
               border: `3px solid ${tone.accent}`,
               background: "linear-gradient(145deg, #fffdf7, #f2dfbd)",

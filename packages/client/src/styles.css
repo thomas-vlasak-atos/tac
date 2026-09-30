@@ -49,9 +49,9 @@
   .own-hand-panel .hand-card-compact {
     width: auto !important;
     min-width: 0;
-    min-height: 186px !important;
+    min-height: 148px !important;
     aspect-ratio: 2 / 3;
-    padding: 7px !important;
+    padding: 6px !important;
     border-width: 2px !important;
   }
 }
