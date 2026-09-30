@@ -8,6 +8,10 @@ Versionierung nach [Semantic Versioning](https://semver.org/lang/de/).
 ## [Unreleased]
 
 ### Changed
+- **Seitenleiste bleibt konstant hoch:** Der Verlauf füllt im Querformat den
+  restlichen Platz der Seitenleiste (`flex: 1`) und scrollt intern. Dadurch bleibt
+  die Seitenleiste immer gleich hoch (= Bretthöhe), unabhängig davon, wie voll der
+  Verlauf ist. Im Hochformat bleibt der Verlauf auf eine feste Maximalhöhe begrenzt.
 - **Eine einzige Header-Zeile:** „TAC ONLINE · Raum · Verbindung · Startspieler"
   linksbündig, „Neu" und „Meisterkarten erklären" rechtsbündig. Die separate
   Steuerzeile über dem Brett und die frühere Reststapel-Textzeile entfallen (die

@@ -16,21 +16,23 @@ export function HistoryPanel({ entries, limit = 20 }: HistoryPanelProps) {
   const recent = entries.slice(-limit).reverse();
   return (
     <div
+      className="history-panel"
       style={{
         border: "1px solid #e2e8f0",
         borderRadius: 8,
         padding: 8,
-        maxHeight: 320,
         overflowY: "auto",
         background: "#f8fafc",
         fontSize: 13,
+        display: "flex",
+        flexDirection: "column",
       }}
     >
-      <strong>Verlauf</strong>
+      <strong style={{ flex: "0 0 auto" }}>Verlauf</strong>
       {recent.length === 0 ? (
         <p style={{ color: "#94a3b8" }}>Noch keine Züge.</p>
       ) : (
-        <ul style={{ margin: "6px 0 0", paddingLeft: 16 }}>
+        <ul style={{ margin: "6px 0 0", paddingLeft: 16, overflowY: "auto", flex: "1 1 auto", minHeight: 0 }}>
           {recent.map((e) => (
             <li key={e.id}>{e.text}</li>
           ))}
