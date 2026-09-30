@@ -60,11 +60,19 @@
 - **B6 – Synchronisation:** Jede Kugelbewegung ist für alle Spieler sofort sichtbar.
 - **B7 – Leere Plätze sichtbar:** Vorfeld- und Hausplätze werden auch dann als
   leere Felder gezeichnet, wenn keine Kugel darauf liegt (Orientierung).
-- **B8 – Eigene Perspektive unten (geplant, noch nicht umgesetzt):** Das Brett
-  wird für jeden Spieler so gedreht, dass sein **eigener Sitzplatz immer unten**
-  erscheint (wie am echten Tisch). Rein visuell (Rotation der Darstellung um den
-  Mittelpunkt anhand des eigenen `seat`); die Spielpositionen selbst ändern sich
-  nicht. Zusätzlich der eigene Sitzplatz/Farbe deutlich markiert.
+- **B8 – Eigene Perspektive unten (per Index-Mapping):** Das Brettbild wird **nicht
+  gedreht**. Stattdessen wird jede **Daten-Position** (Sitz, Feld) auf eine feste
+  **Bild-Position** abgebildet, sodass der **eigene Sitz** immer an der festen
+  unteren Ecke erscheint. Mapping mit `off = ownSeat`:
+  - visueller Sitz = `(dataSeat − off + 4) mod 4`
+  - visuelles Feld = `(dataIndex − off·16 + 64) mod 64`
+  - Umkehrung für Drops: `dataSeat = (visSeat + off) mod 4`,
+    `dataIndex = (visIndex + off·16) mod 64`
+  Dadurch sind alle Positionen (Kugeln, Felder, Feldnummern, Namen, Karten,
+  Nachziehstapel) für jeden Betrachter **gleich** angeordnet; nur die zugeordneten
+  Daten wandern. Die angezeigten **Feldnummern** sind die echten Datennummern (also
+  aus Sicht jedes Spielers um `off·16` verschoben). Ersetzt die frühere
+  SVG-Rotation, die zu Positionsfehlern führte. Rein visuell.
 - **B9 – Spielernamen im Vorfeld:** Im **Vorfeld** jedes Spielers (hinter dessen
   Kugeln) wird sein **Name in Weiß** mittig angezeigt, darüber – falls zutreffend –
   die Kennzeichnung **„Geber"**. Die **Handkartenzahl** wird als kleine

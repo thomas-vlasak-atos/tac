@@ -7,6 +7,17 @@ Versionierung nach [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+### Changed
+- **Perspektive ohne Brettdrehung (REQ-BOARD B8, Index-Mapping):** Statt das Brett
+  per SVG zu rotieren (was zu Positionsfehlern führte, u. a. bei Namen/Karten), wird
+  das Brettbild jetzt fix gezeichnet. Jede Daten-Position (Sitz/Feld) wird per
+  `off = ownSeat` auf eine feste Bild-Position abgebildet, sodass der eigene Sitz
+  immer an der festen unteren Ecke liegt und **alle Positionen für jeden Betrachter
+  gleich** sind. Feldnummern zeigen die echten Datennummern (perspektivisch um
+  `off·16` verschoben). Handkarten-Rücken liegen einheitlich neben dem Vorfeld
+  (rechte Bildhälfte links, linke rechts), der Nachziehstapel oben darunter / unten
+  darüber – jeweils mit Abstand, ohne ins Vorfeld zu ragen.
+
 ### Fixed
 - **Geberrichtung korrigiert:** Der Reststapel wandert nach dem Geben nun im
   **Uhrzeigersinn** zum nächsten Sitz (z. B. nach Platz 3 → Platz 4/Sitz 3), statt
