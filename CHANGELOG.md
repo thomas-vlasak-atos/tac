@@ -8,10 +8,10 @@ Versionierung nach [Semantic Versioning](https://semver.org/lang/de/).
 ## [Unreleased]
 
 ### Changed
-- **Kompaktere Steuerzeile über dem Brett:** „Neu"-Button, Startspieler und
-  Verbindungsstatus stehen jetzt in einer Zeile; die separate Reststapel-Textzeile
-  entfällt (die Anzahl steht am Nachziehstapel). Der Verbindungsstatus wurde aus der
-  großen Kopfzeile entfernt.
+- **Eine einzige Header-Zeile:** „TAC ONLINE · Raum · Verbindung · Startspieler"
+  linksbündig, „Neu" und „Meisterkarten erklären" rechtsbündig. Die separate
+  Steuerzeile über dem Brett und die frühere Reststapel-Textzeile entfallen (die
+  Kartenanzahl steht am Nachziehstapel).
 - **„Neu" mit Sicherheitsabfrage:** Ein Reset des Spiels fragt nun vorher nach.
 
 ### Fixed

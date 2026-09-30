@@ -114,29 +114,27 @@ export function App() {
 
   return (
     <div className="app-shell" style={{ minHeight: "100vh", background: "#f1dfc2", color: "#4c2a1a", fontFamily: "Georgia, serif", padding: "20px clamp(12px, 3vw, 36px)" }}>
-      <header className="app-header" style={{ display: "flex", alignItems: "baseline", gap: 16 }}>
-        <h1 style={{ margin: 0, letterSpacing: 2 }}>TAC <span style={{ color: "#9b5c31" }}>ONLINE</span></h1>
+      <header className="app-header" style={{ display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap" }}>
+        <h1 style={{ margin: 0, letterSpacing: 2, fontSize: 26 }}>TAC <span style={{ color: "#9b5c31" }}>ONLINE</span></h1>
         <span style={{ color: "#765234", fontFamily: "system-ui", fontSize: 13 }}>
-          Raum <strong>{join.roomId}</strong> ·{" "}
+          Raum <strong>{join.roomId}</strong>
           {seat != null ? (
-            <>
-              du bist{" "}
-              <strong>
-                {COLOR_LABEL[(["blau", "gelb", "gruen", "rot"] as const)[seat]]}
-              </strong>{" "}
-              (Platz {seat + 1})
-            </>
+            <> · du bist <strong>{COLOR_LABEL[(["blau", "gelb", "gruen", "rot"] as const)[seat]]}</strong> (Platz {seat + 1})</>
           ) : (
-            "Sitzplatz wird zugewiesen…"
-          )}{" "}
+            <> · Sitzplatz wird zugewiesen…</>
+          )}
         </span>
-        <button
-          type="button"
-          onClick={() => setShowMasterHelp(true)}
-          style={{ marginLeft: "auto", fontFamily: "system-ui", fontSize: 13 }}
-        >
-          Meisterkarten erklären
-        </button>
+        <span style={{ color: "#765234", fontFamily: "system-ui", fontSize: 13 }}><strong>Verbindung:</strong> {status}</span>
+        {state && (
+          <span style={{ color: "#765234", fontFamily: "system-ui", fontSize: 13 }}>
+            <strong>Startspieler:</strong>{" "}
+            {state.deckHolder == null ? "wer zuerst klickt" : (state.players[state.deckHolder]?.name ?? "—")}
+          </span>
+        )}
+        <div style={{ marginLeft: "auto", display: "flex", gap: 8, fontFamily: "system-ui", fontSize: 13 }}>
+          <button type="button" onClick={handleReset}>Neu</button>
+          <button type="button" onClick={() => setShowMasterHelp(true)}>Meisterkarten erklären</button>
+        </div>
       </header>
 
       {showMasterHelp && <MasterCardsHelp onClose={() => setShowMasterHelp(false)} />}
@@ -150,14 +148,6 @@ export function App() {
       ) : (
         <div className="game-layout" style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) 300px", gap: 18, margin: "18px auto 0", maxWidth: 1320 }}>
           <div className="board-column" style={{ position: "relative" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap", marginBottom: 8, color: "#765234", fontFamily: "system-ui", fontSize: 13 }}>
-              <button type="button" onClick={handleReset}>
-                Neu
-              </button>
-              <span><strong>Startspieler:</strong> {state.deckHolder == null ? "wer zuerst klickt" : (state.players[state.deckHolder]?.name ?? "—")}</span>
-              <span><strong>Verbindung:</strong> {status}</span>
-            </div>
-
               <div className="board-drop-zone">
                 <Board
                   balls={state.balls}
