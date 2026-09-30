@@ -8,6 +8,9 @@ Versionierung nach [Semantic Versioning](https://semver.org/lang/de/).
 ## [Unreleased]
 
 ### Changed
+- **Abstände am Brett vergrößert:** Der Nachziehstapel liegt jetzt weiter vom
+  Vorfeld weg und zum Bildrand hin; die Handkarten-Rücken der Spieler haben
+  ebenfalls mehr Abstand zum Vorfeld.
 - **Perspektive ohne Brettdrehung (REQ-BOARD B8, Index-Mapping):** Statt das Brett
   per SVG zu rotieren (was zu Positionsfehlern führte, u. a. bei Namen/Karten), wird
   das Brettbild jetzt fix gezeichnet. Jede Daten-Position (Sitz/Feld) wird per

@@ -180,10 +180,10 @@ export function Board({ balls, players = [], handCounts = [], deckHolder = null,
             const isDevilTarget = ownSeat != null && ds === ((ownSeat + 1) % 4) && (count ?? 0) > 0;
             const cw = geo.fieldRadius * 4.2;
             const ch = cw * 1.4;
-            // Handkarten-Rücken NEBEN dem Vorfeld: rechte Bildhälfte → links,
-            // linke Bildhälfte → rechts. `vorfeldCenter`-Ecken sind fix.
+            // Handkarten-Rücken NEBEN dem Vorfeld, mit mehr Abstand:
+            // rechte Bildhälfte → links, linke Bildhälfte → rechts.
             const sideX = c.x > geo.center.x ? -1 : 1;
-            const cardAt = { x: c.x + sideX * geo.fieldRadius * 5.6, y: c.y };
+            const cardAt = { x: c.x + sideX * geo.fieldRadius * 6.0, y: c.y };
             return (
               <g key={`vfname-${vs}`}>
                 <text x={c.x} y={c.y + geo.fieldRadius * 0.4} textAnchor="middle" fill="#fff" stroke="#2b1a0e" strokeWidth={3.2} paintOrder="stroke" fontSize={isOwn ? 26 : 22} fontFamily="Georgia, serif" fontWeight={700} opacity={0.96} style={{ pointerEvents: "none" }}>{rawName}</text>
@@ -220,7 +220,13 @@ export function Board({ balls, players = [], handCounts = [], deckHolder = null,
             } else {
               const c = vorfeldCenter(visSeat(deckHolder), geo);
               const sideY = c.y < geo.center.y ? 1 : -1; // oben→darunter, unten→darüber
-              anchor = { x: c.x, y: c.y + sideY * geo.fieldRadius * 6.0 };
+              const outX = c.x > geo.center.x ? 1 : -1;
+              // Etwas weiter weg vom Vorfeld und zum Bildrand (nach außen), aber
+              // so, dass der große Stapel noch vollständig im Bild bleibt.
+              anchor = {
+                x: c.x + outX * geo.fieldRadius * 2.4,
+                y: c.y + sideY * geo.fieldRadius * 4.0,
+              };
             }
             const dw = geo.fieldRadius * 5.4;
             const dh = dw * 1.4;
