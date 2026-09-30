@@ -73,11 +73,19 @@
 - **K2 – Geben:** Auf Auslösung (z. B. Button "Geben") mischt die App und teilt
   je 5 Karten aus (Meisterrunde: 6). Wer gibt, wandert reihum.
 - **K3 – Eigene Hand:** Jeder sieht **nur seine eigene** Hand (verdeckt für andere).
-- **K3a – Kartenbedienung per Klick (Stand v0.5):** Eine Handkarte wird **angeklickt**
-  (ausgewählt, hervorgehoben); danach werden die möglichen Aktionen als Buttons
-  angeboten: „Ablegen (in die Mitte)" und „An Partner geben (verdeckt)". Ersetzt das
-  frühere Karten-Drag-&-Drop (auf Touch/kleinen Displays zuverlässiger). Die Kugeln
-  bleiben weiterhin per Drag & Drop bedienbar (B3a).
+- **K3a – Kartenbedienung per Klick (Stand v0.6):** Eine Handkarte wird mit einem
+  **einzigen Klick** bedient (kein Zwischenschritt über Aktions-Buttons mehr).
+  Welche Aktion der Klick auslöst, hängt von der **Phase** ab:
+  - **Tauschphase** (direkt nach dem Geben, solange noch nicht alle belegten Sitze
+    getauscht haben): Ein Klick bietet die Karte dem Partner **verdeckt** an
+    (`OfferCardToPartner`). Wer selbst schon getauscht hat, kann in dieser Phase
+    keine Karte mehr anklicken (deaktiviert).
+  - **Spielphase** (sobald **alle** belegten Sitze in `tradeDone` sind): Ein Klick
+    legt die Karte offen in die **Mitte** (`PlayCard`).
+  - Die Phase wird aus `tradeDone` abgeleitet (Tauschphase = Anzahl `tradeDone`
+    < Anzahl belegter Sitze). Ersetzt das frühere Karten-Drag-&-Drop und die
+    zwischenzeitlichen Aktions-Buttons „Ablegen"/„An Partner geben". Die Kugeln
+    bleiben weiterhin per Drag & Drop bedienbar (B3a).
 - **K4 – Karte ablegen/spielen:** Karte offen in die **Mitte** (Ablage) legen –
   wie im echten TAC. Für alle sichtbar, welche Karte gespielt wurde.
 - **K4a – Urheber sichtbar (geplant, noch nicht umgesetzt):** Zu jeder abgelegten
@@ -103,7 +111,9 @@
   - Genau **ein abgeschlossener Tausch pro Runde** (wird beim Geben zurückgesetzt).
   - Solange der Partner die angebotene Karte **noch nicht genommen** hat, kann man
     das Angebot **zurücknehmen** (Karte zurück auf die Hand) oder durch das Anbieten
-    einer **anderen** Karte ersetzen.
+    einer **anderen** Karte ersetzen. Sobald man jedoch **selbst** die Partnerkarte
+    genommen hat (`tradeDone`), ist der Tausch für einen abgeschlossen; ein eigenes
+    noch offenes Angebot kann dann **nicht mehr zurückgenommen** werden.
   - Die Partnerkarte kann man erst **nehmen**, wenn man **selbst** eine Karte
     angeboten hat (fairer Gleichzeitig-Tausch, keiner sieht die Karte vorab).
   - Nach dem Nehmen ist der Tausch für diese Runde abgeschlossen (kein Rückgängig).

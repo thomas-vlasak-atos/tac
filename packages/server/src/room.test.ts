@@ -290,6 +290,16 @@ describe("partner trade phase", () => {
     expect(s.tradeOffers).toEqual([]);
   });
 
+  it("only the sender can revoke their own offer", () => {
+    let s = dealCards(createInitialState({ rng: seededRng(8) }), 5);
+    const card = s.hands[0]![0]!;
+    s = offerCardToPartner(s, 0, card.id);
+    const offer = s.tradeOffers[0]!;
+    // Der Empfänger (Sitz 2) darf nicht zurückziehen.
+    const after = revokeTradeOffer(s, 2, offer.id);
+    expect(after).toBe(s);
+  });
+
   it("does not let a revoke happen once the partner has claimed", () => {
     let s = dealCards(createInitialState({ rng: seededRng(8) }), 5);
     const card = s.hands[0]![0]!;
@@ -303,14 +313,23 @@ describe("partner trade phase", () => {
     expect(s).toBe(before);
   });
 
-  it("only the sender can revoke their own offer", () => {
+  it("does not let a sender revoke after they have claimed themselves", () => {
+    // To-do 1 (STATUS §4): Wer selbst schon getauscht hat (tradeDone), darf
+    // sein eigenes, noch offenes Angebot nicht mehr zurückziehen.
     let s = dealCards(createInitialState({ rng: seededRng(8) }), 5);
-    const card = s.hands[0]![0]!;
-    s = offerCardToPartner(s, 0, card.id);
-    const offer = s.tradeOffers[0]!;
-    // Der Empfänger (Sitz 2) darf nicht zurückziehen.
-    const after = revokeTradeOffer(s, 2, offer.id);
-    expect(after).toBe(s);
+    // Sitz 0 bietet an, Sitz 2 bietet an; Sitz 0 nimmt die Karte von Sitz 2.
+    s = offerCardToPartner(s, 0, s.hands[0]![0]!.id);
+    s = offerCardToPartner(s, 2, s.hands[2]![0]!.id);
+    const offerForZero = s.tradeOffers.find((o) => o.to === 0)!;
+    s = claimTradeOffer(s, 0, offerForZero.id);
+    expect(s.tradeDone).toContain(0);
+    // Das eigene Angebot von Sitz 0 an Sitz 2 ist noch offen …
+    const ownOffer = s.tradeOffers.find((o) => o.from === 0 && !o.claimed)!;
+    expect(ownOffer).toBeDefined();
+    // … darf aber nach eigenem Claim nicht mehr zurückgezogen werden.
+    const before = s;
+    s = revokeTradeOffer(s, 0, ownOffer.id);
+    expect(s).toBe(before);
   });
 });
 

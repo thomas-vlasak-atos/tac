@@ -7,6 +7,19 @@ Versionierung nach [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+### Changed
+- **Kartenbedienung: ein Klick statt Zwischenschritt (REQ-BOARD K3a):** Ein Klick auf
+  eine Handkarte löst direkt die phasenabhängige Aktion aus – in der **Tauschphase**
+  wird die Karte dem Partner verdeckt angeboten (`OfferCardToPartner`), in der
+  **Spielphase** in die Mitte gelegt (`PlayCard`). Die Phase wird aus `tradeDone`
+  abgeleitet (Tauschphase, solange nicht alle belegten Sitze getauscht haben). Die
+  bisherigen Aktions-Buttons „Ablegen"/„An Partner geben" entfallen; Karten sind in
+  der Tauschphase deaktiviert, sobald man selbst getauscht hat.
+- **Partnerangebot nach eigenem Tausch nicht mehr zurücknehmbar (REQ-BOARD K5):**
+  `revokeTradeOffer` lehnt jetzt ab, wenn der Absender die Partnerkarte bereits
+  selbst genommen hat (`tradeDone`). Der „zurücknehmen"-Button wird im Client
+  entsprechend ausgeblendet. Test ergänzt.
+
 ### Added
 - **Meisterkarten-Anleitung im Client:** Button „Meisterkarten erklären" öffnet ein
   Overlay mit Kurzbeschreibung zu Engel, Teufel, Krieger und Narr (angelehnt an die

@@ -111,30 +111,18 @@ npm run typecheck  # tsc --build über alle Pakete
 
 ### Nächste Session: offene To-dos (Feedback aus dem Testen, noch NICHT umgesetzt)
 
-1. **Tausch-Zurücknehmen sperren, sobald man selbst genommen hat.**
-   Wenn ein Spieler die Partnerkarte bereits genommen hat (für diese Runde
-   `tradeDone`), darf er sein eigenes Angebot NICHT mehr zurücknehmen.
-   - Server: in `revokeTradeOffer` (`packages/server/src/room.ts`) zusätzlich
-     ablehnen, wenn `state.tradeDone.includes(seat)`.
-   - Client: „zurücknehmen"-Button in `App.tsx` entsprechend ausblenden.
-   - Test ergänzen (Revoke nach eigenem Claim wird ignoriert).
+1. **[x] Tausch-Zurücknehmen sperren, sobald man selbst genommen hat.**
+   Umgesetzt: `revokeTradeOffer` (`packages/server/src/room.ts`) lehnt ab, wenn
+   `state.tradeDone.includes(seat)`; der „zurücknehmen"-Button in `App.tsx` wird
+   ausgeblendet (`!iAmTradeDone`). Test „does not let a sender revoke after they
+   have claimed themselves" ergänzt.
 
-2. **Kartenbedienung: EIN Klick genügt (kein Zwischenschritt über Buttons).**
-   Der aktuelle Ablauf „Karte anklicken → Aktion-Button" soll ersetzt werden
-   durch einen einzigen Klick auf die Karte. Welche Aktion der Klick auslöst,
-   hängt von der **Phase** ab:
-   - **Tauschphase (direkt nach dem Geben):** Ein Klick auf eine Handkarte bietet
-     sie dem Partner an (`OfferCardToPartner`). Die Phase gilt, solange noch nicht
-     alle Spieler getauscht haben.
-   - **Spielphase (sobald ALLE Spieler getauscht haben):** Ein Klick auf eine
-     Handkarte legt sie in die Mitte (`PlayCard`).
-   - D. h. es braucht einen **Phasenbegriff** „Tauschphase vs. Spielphase". Ableitbar
-     aus `tradeDone`: Tauschphase = nicht alle 4 belegten Sitze sind in `tradeDone`.
-     (Genaue Definition beim Umsetzen festlegen; ggf. explizites Feld im GameState.)
-   - Die separaten Aktions-Buttons „Ablegen"/„An Partner geben" entfallen dann.
-     „Zurücknehmen"/„nehmen" bleiben nötig (siehe Punkt 1 und Tauschregeln K5).
-   - Betrifft: `packages/client/src/ui/Hand.tsx`, `packages/client/src/App.tsx`,
-     evtl. `state.ts`/`room.ts` für den Phasenbegriff. REQ-BOARD K3a/K5 anpassen.
+2. **[x] Kartenbedienung: EIN Klick genügt (kein Zwischenschritt über Buttons).**
+   Umgesetzt: `Hand.tsx` löst per Klick direkt `onPlayCard` aus; `App.tsx` leitet
+   die Phase aus `tradeDone` ab (`isTradePhase` = `tradeDone.length` < belegte
+   Sitze) und sendet in der Tauschphase `OfferCardToPartner`, sonst `PlayCard`.
+   In der Tauschphase sind die Karten deaktiviert, sobald man selbst getauscht hat.
+   Die separaten Aktions-Buttons entfielen. REQ-BOARD K3a/K5 angepasst.
 
 ### Sofort (offen aus dieser Session)
 - [~] **Feinschliff der Bedienung** im echten Spiel testen (zu viert):

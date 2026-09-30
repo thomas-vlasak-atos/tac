@@ -395,12 +395,17 @@ export function claimTradeOffer(
  * Zieht ein eigenes, verdecktes Partnerangebot zurück, solange der Partner es
  * noch NICHT beansprucht hat. Die Karte wandert zurück auf die Hand des
  * Absenders. Nur der Absender (`from`) darf zurückziehen.
+ *
+ * Zusätzliche Sperre: Wer in dieser Runde selbst bereits die Partnerkarte
+ * genommen hat (`tradeDone`), hat den Tausch für sich abgeschlossen und darf
+ * sein eigenes Angebot nicht mehr zurückziehen.
  */
 export function revokeTradeOffer(
   state: GameState,
   seat: Seat,
   offerId: string,
 ): GameState {
+  if (state.tradeDone.includes(seat)) return state;
   const offer = state.tradeOffers.find(
     (item) => item.id === offerId && item.from === seat && !item.claimed,
   );

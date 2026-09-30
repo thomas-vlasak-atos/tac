@@ -62,7 +62,6 @@ export function App() {
   const [joined, setJoined] = useState(false);
   const [showFieldNumbers, setShowFieldNumbers] = useState(false);
   const [showMasterHelp, setShowMasterHelp] = useState(false);
-  const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
 
   // Nach Verbindungsaufbau automatisch beitreten (einmalig).
   if (join && status === "open" && !joined) {
@@ -76,6 +75,25 @@ export function App() {
 
   const moveBall = (ballId: string, to: BallPosition) =>
     send({ type: "MoveBall", ballId, to });
+
+  // Phasenbegriff (STATUS §4, To-do 2): In der Tauschphase legt ein Klick auf
+  // eine Handkarte sie dem Partner vor; in der Spielphase legt er sie ab.
+  // Tauschphase = es sind noch nicht alle belegten Sitze in `tradeDone`.
+  const occupiedSeats = state
+    ? state.players.reduce((count, player) => (player ? count + 1 : count), 0)
+    : 0;
+  const tradeDoneCount = state?.tradeDone.length ?? 0;
+  const isTradePhase = occupiedSeats > 0 && tradeDoneCount < occupiedSeats;
+  const iAmTradeDone = seat != null && (state?.tradeDone.includes(seat) ?? false);
+
+  // Was macht ein Klick auf eine Handkarte in der aktuellen Phase?
+  const playHandCard = (cardId: string) => {
+    if (isTradePhase) {
+      send({ type: "OfferCardToPartner", cardId });
+    } else {
+      send({ type: "PlayCard", cardId });
+    }
+  };
 
   return (
     <div className="app-shell" style={{ minHeight: "100vh", background: "#f1dfc2", color: "#4c2a1a", fontFamily: "Georgia, serif", padding: "20px clamp(12px, 3vw, 36px)" }}>
@@ -167,7 +185,7 @@ export function App() {
                             nehmen
                           </button>
                         )}
-                        {isMine && <button type="button" onClick={() => send({ type: "RevokeTradeOffer", offerId: offer.id })}>zurücknehmen</button>}
+                        {isMine && !iAmTradeDone && <button type="button" onClick={() => send({ type: "RevokeTradeOffer", offerId: offer.id })}>zurücknehmen</button>}
                       </div>
                     );
                   })}
@@ -180,40 +198,21 @@ export function App() {
           <aside>
             <div className="own-hand-panel" style={{ padding: 12, borderRadius: 12, background: "#f5e5c8", color: "#6b3d22" }}>
               <h3 style={{ margin: "0 0 8px" }}>Deine Handkarten</h3>
+              <p style={{ margin: "0 0 8px", fontFamily: "system-ui", fontSize: 12, color: "#8a5a33" }}>
+                {isTradePhase
+                  ? (iAmTradeDone
+                      ? "Tauschphase – du hast bereits getauscht."
+                      : "Tauschphase: Karte anklicken = verdeckt an Partner geben.")
+                  : "Spielphase: Karte anklicken = in die Mitte ablegen."}
+              </p>
               <Hand
                 cards={state.ownHand}
                 compact
-                selectedId={selectedCardId}
-                onSelect={(cardId) => setSelectedCardId((current) => (current === cardId ? null : cardId))}
+                onPlayCard={playHandCard}
+                actionHint={isTradePhase ? "an Partner" : "ablegen"}
+                disabled={isTradePhase && iAmTradeDone}
               />
-              {selectedCardId && state.ownHand.some((card) => card.id === selectedCardId) && (
-                <div style={{ marginTop: 10, display: "grid", gap: 6, fontFamily: "system-ui", fontSize: 13 }}>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      send({ type: "PlayCard", cardId: selectedCardId });
-                      setSelectedCardId(null);
-                    }}
-                  >
-                    Ablegen (in die Mitte)
-                  </button>
-                  <button
-                    type="button"
-                    disabled={seat != null && state.tradeDone.includes(seat)}
-                    title={seat != null && state.tradeDone.includes(seat) ? "In dieser Runde bereits getauscht" : undefined}
-                    onClick={() => {
-                      send({ type: "OfferCardToPartner", cardId: selectedCardId });
-                      setSelectedCardId(null);
-                    }}
-                  >
-                    An Partner geben (verdeckt)
-                  </button>
-                  <button type="button" onClick={() => setSelectedCardId(null)}>
-                    Auswahl aufheben
-                  </button>
-                </div>
-              )}
-              {seat != null && state.tradeDone.includes(seat) && (
+              {iAmTradeDone && (
                 <p style={{ marginTop: 8, fontFamily: "system-ui", fontSize: 12, color: "#8a5a33" }}>
                   Du hast in dieser Runde bereits mit dem Partner getauscht.
                 </p>
