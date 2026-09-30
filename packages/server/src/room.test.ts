@@ -155,22 +155,27 @@ describe("dealCards", () => {
     expect(dealCards(s0, 5)).toBe(s0);
   });
 
-  it("lässt den Reststapel nach dem Geben zum nächsten Geber wandern", () => {
-    // Rundenstart: Stapel in der Mitte (deckHolder null). Geber ist Sitz 0.
+  it("macht den zuerst klickenden Spieler zum Geber, wenn der Stapel in der Mitte liegt", () => {
+    // Rundenstart: Stapel in der Mitte (deckHolder null). Wer zuerst klickt,
+    // wird Geber – hier Sitz 2.
     const s0 = createInitialState({ rng: seededRng(1), dealer: 0 });
     expect(s0.deckHolder).toBeNull();
-    const s1 = dealCards(s0, 5, 0);
-    // Nach dem Geben liegt der Stapel beim nächsten Geber (gegen Uhrzeigersinn).
-    expect(s1.dealer).toBe(0);
-    expect(s1.deckHolder).toBe(3);
+    const s1 = dealCards(s0, 5, 2);
+    expect(s1.dealer).toBe(2);
+    // Danach wandert der Stapel zum nächsten Geber (gegen Uhrzeigersinn).
+    expect(s1.deckHolder).toBe(1);
   });
 
-  it("lässt nur den zuständigen Geber den Stapel auslösen", () => {
-    const s0 = createInitialState({ rng: seededRng(1), dealer: 0 });
-    // Ein anderer Sitz als der Geber darf nicht geben.
-    expect(dealCards(s0, 5, 2)).toBe(s0);
-    // Der Geber darf.
-    expect(dealCards(s0, 5, 0).hands[0]!.length).toBe(5);
+  it("lässt nach dem Wandern nur den zuständigen Halter den Stapel auslösen", () => {
+    // Erst gibt Sitz 0 (aus der Mitte), Stapel wandert zu Sitz 3.
+    let s = dealCards(createInitialState({ rng: seededRng(1), dealer: 0 }), 5, 0);
+    expect(s.deckHolder).toBe(3);
+    // Runde leerspielen, Reststapel behalten (>= 20) für den nächsten Deal.
+    s = { ...s, hands: [[], [], [], []] };
+    // Ein anderer Sitz als der Halter (3) darf jetzt NICHT geben.
+    expect(dealCards(s, 5, 1)).toBe(s);
+    // Der Halter (3) darf.
+    expect(dealCards(s, 5, 3).hands[0]!.length).toBe(5);
   });
 
   it("mischt den Ablagestapel erst bei leerem Reststapel zurück", () => {

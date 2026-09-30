@@ -146,11 +146,16 @@ export function dealCards(
   if (state.hands.some((hand) => hand.length > 0)) return state;
   if (state.deck.length < 20) return state;
 
-  // Wer darf geben? Der aktuelle Stapelhalter (`deckHolder`), oder – solange der
-  // Stapel in der Mitte liegt (Rundenstart) – der aktuelle Geber (`dealer`).
-  const currentDealer = state.deckHolder ?? state.dealer;
-  // Nur der zuständige Geber darf den Stapel auslösen.
-  if (actor != null && actor !== currentDealer) return state;
+  // Wer darf geben?
+  // - Liegt der Stapel in der Mitte (`deckHolder === null`, Rundenstart nach
+  //   Neustart), wird DERJENIGE Geber, der zuerst klickt (jeder darf).
+  // - Ist der Stapel bereits einem Sitz zugewiesen (`deckHolder`), darf nur
+  //   dieser zuständige Geber auslösen.
+  const currentDealer: Seat =
+    state.deckHolder ?? (actor ?? state.dealer);
+  if (state.deckHolder != null && actor != null && actor !== state.deckHolder) {
+    return state;
+  }
 
   // The master deck has four regular rounds and one final six-card round.
   const cardsPerPlayer = state.masterMode && state.deck.length === 24 ? 6 : 5;

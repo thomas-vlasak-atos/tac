@@ -83,12 +83,12 @@
 - **K1 – Kartensatz:** Standard-Kartensatz; optional Meisterkarten (Engel, Teufel,
   Krieger, Narr) zuschaltbar (Meisterversion).
 - **K2 – Geben (klickbarer, wandernder Reststapel):** Der Reststapel wird als
-  Kartenstapel **am Brett** dargestellt. Zu Rundenbeginn liegt er **in der Mitte**;
-  der **aktuelle Geber** klickt darauf, woraufhin je 5 Karten (Meisterrunde: 6)
-  reihum ausgeteilt werden. Danach **wandert** der Stapel zum **nächsten Geber**
-  (gegen den Uhrzeigersinn) und ruht dort **deaktiviert**, bis alle Handkarten
-  gespielt sind; dann kann der neue Geber ihn erneut auslösen. Nur der zuständige
-  Geber kann den Stapel bedienen.
+  Kartenstapel **am Brett** dargestellt. Zu Rundenbeginn (auch nach „Neu") liegt er
+  **in der Mitte**; dann darf **jeder** klicken – **wer zuerst klickt, wird Geber**.
+  Es werden je 5 Karten (Meisterrunde: 6) reihum ausgeteilt. Danach **wandert** der
+  Stapel zum **nächsten Geber** (gegen den Uhrzeigersinn) und ruht dort
+  **deaktiviert**, bis alle Handkarten gespielt sind; dann kann **nur** dieser
+  zuständige Geber ihn erneut auslösen.
 - **K2a – Leerer Stapel: erst mischen, dann geben.** Über die Runden wird das Deck
   aufgebraucht; nach der letzten Runde ist der Reststapel **leer**. Er liegt dann
   (leer) beim **nächsten Geber** und zeigt **„MISCHEN"**. Erst wenn dieser Geber

@@ -7,6 +7,14 @@ Versionierung nach [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+### Fixed
+- **Erstes Geben nach Neustart:** Liegt der Reststapel in der Mitte (Rundenstart/nach
+  „Neu"), darf jetzt **jeder** Spieler klicken – **wer zuerst klickt, wird Geber**.
+  Zuvor konnte nur der feste Startsitz (Blau/Platz 1) geben, wodurch ein Klick anderer
+  Spieler wirkungslos war. Erst nachdem der Stapel einem Sitz zugewiesen ist, bleibt
+  das Geben/Mischen auf den zuständigen Geber beschränkt. Zusätzlich eine robuste,
+  unsichtbare Klickfläche über dem Stapel ergänzt.
+
 ### Added
 - **Leerer Reststapel: mischen am Brett (REQ-BOARD K2a):** Ist der Reststapel nach der
   letzten Runde leer, liegt er beim nächsten Geber und zeigt **„MISCHEN"**. Ein Klick

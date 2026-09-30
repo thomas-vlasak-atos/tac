@@ -97,7 +97,7 @@ export interface BoardProps {
 
 interface DragState { ballId: string; current: Point; moved: boolean; from: BallPosition }
 
-export function Board({ balls, players = [], handCounts = [], dealer, deckHolder = null, deckCount = 0, deckActive = false, deckShuffleable = false, onDeal, onShuffle, onRequestDevil, lastBallMove = null, showFieldNumbers = false, discardEntries = [], onMoveBall, onReturnCard, ownSeat, size = 760 }: BoardProps) {
+export function Board({ balls, players = [], handCounts = [], deckHolder = null, deckCount = 0, deckActive = false, deckShuffleable = false, onDeal, onShuffle, onRequestDevil, lastBallMove = null, showFieldNumbers = false, discardEntries = [], onMoveBall, onReturnCard, ownSeat, size = 760 }: BoardProps) {
   const geo = defaultGeometry(1024);
   const [drag, setDrag] = useState<DragState | null>(null);
   const positions = computeBallPositions(balls, geo);
@@ -192,14 +192,15 @@ export function Board({ balls, players = [], handCounts = [], dealer, deckHolder
             );
           })}
           {/* Reststapel: in der Mitte (Rundenstart) oder beim Halter, seitlich
-              neben dessen Vorfeld. Ist der Stapel leer (nach der letzten Runde),
-              liegt er beim nächsten Geber und zeigt „MISCHEN"; erst danach „GEBEN".
-              Nur der zuständige Geber kann mischen/geben. */}
+              neben dessen Vorfeld. Liegt er in der Mitte, darf JEDER klicken
+              (wer zuerst klickt, wird Geber). Ist er einem Sitz zugewiesen, kann
+              nur dieser mischen/geben. Leerer Stapel zeigt „MISCHEN", sonst
+              „GEBEN". */}
           {(() => {
-            const dealerSeat = (deckHolder ?? dealer ?? 0) as Seat;
-            const isDealerViewer = ownSeat != null && ownSeat === dealerSeat;
-            const canDeal = deckActive && isDealerViewer && !!onDeal;
-            const canShuffle = deckShuffleable && isDealerViewer && !!onShuffle;
+            // In der Mitte (deckHolder null) darf jeder geben; sonst nur der Halter.
+            const isDealerViewer = deckHolder == null || (ownSeat != null && ownSeat === deckHolder);
+            const canDeal = deckActive && isDealerViewer && ownSeat != null && !!onDeal;
+            const canShuffle = deckShuffleable && isDealerViewer && ownSeat != null && !!onShuffle;
             const clickable = canDeal || canShuffle;
             const onClick = canShuffle ? () => onShuffle?.() : canDeal ? () => onDeal?.() : undefined;
             const actionLabel = canShuffle ? "MISCHEN" : canDeal ? "GEBEN" : null;
@@ -224,7 +225,9 @@ export function Board({ balls, players = [], handCounts = [], dealer, deckHolder
             const topX = anchor.x - dw / 2 + (layers - 1) * 2 + 3;
             const topY = anchor.y - dh / 2 - (layers - 1) * 2 + 3;
             return (
-              <g transform={`rotate(${-rotation} ${anchor.x} ${anchor.y})`} style={{ pointerEvents: clickable ? "auto" : "none", cursor: clickable ? "pointer" : "default" }} onClick={onClick}>
+              <g transform={`rotate(${-rotation} ${anchor.x} ${anchor.y})`} style={{ pointerEvents: clickable ? "all" : "none", cursor: clickable ? "pointer" : "default" }} onClick={onClick}>
+                {/* Unsichtbare, sichere Klickfläche über dem gesamten Stapel. */}
+                {clickable && <rect x={anchor.x - dw / 2 - 4} y={anchor.y - dh / 2 - 4} width={dw + 8} height={dh + 8} rx={10} fill="#000" opacity={0} style={{ pointerEvents: "all" }} />}
                 {Array.from({ length: layers }, (_, i) => (
                   <rect key={`deck-layer-${i}`} x={anchor.x - dw / 2 + i * 2} y={anchor.y - dh / 2 - i * 2} width={dw} height={dh} rx={8}
                     fill={isEmpty ? "none" : "#3a2416"}
