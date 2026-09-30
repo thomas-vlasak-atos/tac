@@ -61,11 +61,7 @@
 
 /* --- Querformat mit genug Breite: eine Bildschirmhöhe, Brett maximal groß -- */
 @media (orientation: landscape) and (min-width: 901px) {
-  /* Verfügbare Höhe für das Brett = Viewport minus Header/Ränder.
-     --header-h wird großzügig geschätzt; das Brett bleibt dadurch garantiert
-     ohne Scrollbar und nutzt sonst die volle Höhe. */
   .app-shell {
-    --header-h: 64px;
     height: 100svh;
     overflow: hidden;
     display: flex;
@@ -75,10 +71,10 @@
   .game-layout {
     flex: 1 1 auto;
     min-height: 0;
-    align-items: center;
+    align-items: start;
     /* Board-Spalte nur so breit wie das Brett (auto), Seitenleiste 300px.
-       Zusammen zentriert (margin auto), damit die Handkarten direkt neben dem
-       Brett bleiben und links/rechts gleich viel Rand ist. */
+       Zusammen zentriert, damit die Handkarten direkt neben dem Brett bleiben
+       und links/rechts gleich viel Rand ist. */
     grid-template-columns: auto 300px;
     justify-content: center;
     width: 100%;
@@ -89,27 +85,28 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-start; /* Brett oben, nicht vertikal zentriert */
     min-height: 0;
-    /* Breite folgt dem Brett (über die verfügbare Höhe begrenzt). */
-    width: min(calc(100svh - var(--header-h) - 24px), calc(100vw - 340px));
-    max-width: 100%;
   }
 
   .board-drop-zone {
     height: 100%;
     display: flex;
-    align-items: center;
+    align-items: flex-start; /* Brett oben ausrichten */
     justify-content: center;
     min-height: 0;
-    width: 100%;
   }
 
-  /* Das Brett ist quadratisch und füllt die (bereits höhenbegrenzte) Spalte. */
+  /* Das Brett ist quadratisch und bindet an die HÖHE der Spalte (füllt sie),
+     die Breite folgt über aspect-ratio. So klebt es immer oben und es gibt
+     keinen Sprung durch eine geschätzte Header-Höhe. Bei sehr breiten, niedrigen
+     Fenstern begrenzt max-height zusätzlich, damit Brett + Seitenleiste in die
+     Breite passen. */
   .board-drop-zone .board-frame {
-    width: 100%;
-    height: auto;
-    max-height: 100%;
+    height: 100%;
+    width: auto;
+    max-width: 100%;
+    max-height: calc(100vw - 340px);
   }
 
   .side-panel {

@@ -19,13 +19,12 @@ Versionierung nach [Semantic Versioning](https://semver.org/lang/de/).
 - **„Neu" mit Sicherheitsabfrage:** Ein Reset des Spiels fragt nun vorher nach.
 
 ### Fixed
-- **Brett nutzt im Querformat die volle Höhe und Breite:** Das quadratische Brett
-  skaliert nun auf das Minimum aus verfügbarer Höhe (`100svh − Header`) und Breite
-  (`100vw − Seitenleiste`) – es wächst also mit, statt bei einer festen Größe zu
-  bleiben. Keine Scrollbar, solange es passt; nur bei sehr kleinen Fenstern wird
-  gescrollt (Brett bliebe sonst zu klein). Das Spiel ist horizontal **zentriert**;
-  die Handkarten-Seitenleiste bleibt direkt neben dem Brett (rückt nicht mehr weg).
-  Zuvor blieb das Brett bei fester Größe und der Inhalt wurde horizontal verteilt.
+- **Kein Layout-Sprung mehr bei ~1038px:** Das Brett bindet nun an die verfügbare
+  Höhe (`height: 100%`, Breite über `aspect-ratio`) und ist oben ausgerichtet statt
+  vertikal zentriert. Dadurch entfällt der abrupte Wechsel (Hintergrund füllt
+  plötzlich die Höhe, Brett springt in die Mitte, Feldnummern-Checkbox nach unten),
+  der durch die zuvor geschätzte Header-Höhe und das Umschalten breiten-/höhen-
+  limitiert entstand. `max-width`/`max-height` verhindern weiterhin Überlauf.
 
 ### Removed
 - **Kalibrier-Overlay entfernt:** Das temporäre Debug-Overlay (Vorfeld-Kreis /
