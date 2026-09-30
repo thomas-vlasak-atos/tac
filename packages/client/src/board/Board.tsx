@@ -178,12 +178,18 @@ export function Board({ balls, players = [], handCounts = [], deckHolder = null,
             const count = handCounts[ds];
             // Der linke Nachbar des eigenen Sitzes ist das Teufel-Ziel.
             const isDevilTarget = ownSeat != null && ds === ((ownSeat + 1) % 4) && (count ?? 0) > 0;
-            const cw = geo.fieldRadius * 4.2;
+            const cw = geo.fieldRadius * 3.2;
             const ch = cw * 1.4;
-            // Handkarten-Rücken NEBEN dem Vorfeld, mit mehr Abstand:
-            // rechte Bildhälfte → links, linke Bildhälfte → rechts.
-            const sideX = c.x > geo.center.x ? -1 : 1;
-            const cardAt = { x: c.x + sideX * geo.fieldRadius * 6.0, y: c.y };
+            // Handkarten-Rücken in die ECKE zum Bildrand (radial nach außen vom
+            // Vorfeld), randbündig mit festem Abstand EDGE. Bei Platz 0
+            // (unten-rechts) also unten-rechts in der Ecke.
+            const EDGE = geo.fieldRadius * 1.0; // ~13px Randabstand
+            const outXc = c.x > geo.center.x ? 1 : -1;
+            const outYc = c.y > geo.center.y ? 1 : -1;
+            const cardAt = {
+              x: outXc > 0 ? geo.size - EDGE - cw / 2 : EDGE + cw / 2,
+              y: outYc > 0 ? geo.size - EDGE - ch / 2 : EDGE + ch / 2,
+            };
             return (
               <g key={`vfname-${vs}`}>
                 <text x={c.x} y={c.y + geo.fieldRadius * 0.4} textAnchor="middle" fill="#fff" stroke="#2b1a0e" strokeWidth={3.2} paintOrder="stroke" fontSize={isOwn ? 26 : 22} fontFamily="Georgia, serif" fontWeight={700} opacity={0.96} style={{ pointerEvents: "none" }}>{rawName}</text>
@@ -221,11 +227,12 @@ export function Board({ balls, players = [], handCounts = [], deckHolder = null,
               const c = vorfeldCenter(visSeat(deckHolder), geo);
               const sideY = c.y < geo.center.y ? 1 : -1; // oben→darunter, unten→darüber
               const outX = c.x > geo.center.x ? 1 : -1;
-              // Etwas weiter weg vom Vorfeld und zum Bildrand (nach außen), aber
-              // so, dass der große Stapel noch vollständig im Bild bleibt.
+              // Klar NEBEN/über/unter dem Vorfeld (nicht überlappend) und leicht
+              // zum Bildrand. Der große Stapel (halbe Höhe ~3.8·r) braucht ~6.9·r
+              // Versatz, damit seine Kante das Vorfeld nicht berührt.
               anchor = {
-                x: c.x + outX * geo.fieldRadius * 2.4,
-                y: c.y + sideY * geo.fieldRadius * 4.0,
+                x: c.x + outX * geo.fieldRadius * 1.9,
+                y: c.y + sideY * geo.fieldRadius * 6.9,
               };
             }
             const dw = geo.fieldRadius * 5.4;
