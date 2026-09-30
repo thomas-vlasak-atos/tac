@@ -38,6 +38,17 @@ export interface BoardGeometry {
   circleRadius: number;
   /** Radius eines einzelnen Feldes (zum Zeichnen). */
   fieldRadius: number;
+  /**
+   * Radius des ÄUSSEREN Vorfeld-Rahmenkreises (die sichtbare Kreislinie um die
+   * vier Vorfeld-Kugeln herum auf dem Hintergrundbild). Reine Kalibrierung gegen
+   * vorlage/Board.png; begrenzt das Vorfeld nach außen.
+   */
+  vorfeldOuterRadius: number;
+  /**
+   * Abstand der INNEREN Rahmenlinie des quadratischen Spielfelds vom Bildrand
+   * (die umlaufende Linie kurz innerhalb der Brettkante). Reine Kalibrierung.
+   */
+  boardBorderInset: number;
 }
 
 /** Standard-Geometrie für das originale 1024x1024-Brettbild. */
@@ -60,6 +71,12 @@ export function defaultGeometry(size = 1024): BoardGeometry {
     circleRadius,
     // Feldradius so, dass sich benachbarte Kreisfelder NICHT überlappen.
     fieldRadius: size * 0.013,
+    // Äußerer Vorfeld-Rahmenkreis: gegen vorlage/Board.png kalibriert. Das
+    // 2x2-Kugelraster (spread = fieldRadius*2.9) hat eine halbe Diagonale von
+    // ~fieldRadius*2.05 + Kugelradius; der Rahmenkreis liegt etwas außerhalb.
+    vorfeldOuterRadius: size * 0.062,
+    // Innere Brett-Rahmenlinie: Abstand vom Bildrand (kalibriert).
+    boardBorderInset: size * 0.028,
   };
 }
 

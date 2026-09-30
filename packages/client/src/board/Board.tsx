@@ -19,6 +19,30 @@ import {
 
 const COLOR_BY_SEAT_LOCAL = ["blau", "gelb", "gruen", "rot"] as const;
 
+// ===========================================================================
+// KALIBRIER-KONSTANTEN für die Platzierung von Kartenanzeige und Nachziehstapel.
+// Alle Werte sind FAKTOREN, die mit `geo.size` (Bild-Kantenlänge, i. d. R. 1024)
+// multipliziert werden. Dadurch skaliert alles automatisch mit der Brettgröße.
+//
+// Grundidee (perfekte Geometrie): Die Elemente liegen im FREIEN FELD zwischen
+//   (a) dem äußeren Vorfeld-Rahmenkreis (geo.vorfeldOuterRadius) und
+//   (b) der inneren Brett-Rahmenlinie (geo.boardBorderInset vom Bildrand).
+// `GAP` ist der GLEICHE Abstand zu BEIDEN Linien (Kartenrand ↔ Linie).
+// ===========================================================================
+
+/** Gleicher Abstand zwischen Kartenrand und Vorfeld-Außenkreis bzw. Rahmenlinie. */
+const HANDCOUNT_GAP_FACTOR = 0.014;
+/** Breite des Kartenanzahl-Rückens (Höhe = Breite × Kartenseitenverhältnis 1.4). */
+const HANDCOUNT_WIDTH_FACTOR = 0.042;
+
+/** Gleicher Abstand für den Nachziehstapel (Kartenrand ↔ Vorfeld-Kreis/Rahmen). */
+const DRAWPILE_GAP_FACTOR = 0.016;
+/** Breite des Nachziehstapels (Höhe = Breite × 1.4). */
+const DRAWPILE_WIDTH_FACTOR = 0.070;
+
+/** Kartenseitenverhältnis (Höhe / Breite) für Kartenanzahl und Stapel. */
+const CARD_ASPECT = 1.4;
+
 function nearestTarget(point: Point, geo: BoardGeometry): BallPosition {
   let best: { pos: BallPosition; distance: number } | undefined;
   const consider = (pos: BallPosition, target: Point) => {
@@ -36,6 +60,59 @@ function nearestTarget(point: Point, geo: BoardGeometry): BallPosition {
   }
   return best!.pos;
 }
+
+/**
+ * Rechteck-Zentrum für ein Element (Kartenanzahl/Stapel), das SEITLICH neben
+ * einem Vorfeld liegt und mit GLEICHEM Abstand `gap` an den Vorfeld-Außenkreis
+ * (horizontal) und die Brett-Rahmenlinie (vertikal) grenzt.
+ *
+ * - horizontal: das Element liegt zur Bildmitte hin neben dem Vorfeld; sein dem
+ *   Vorfeld zugewandter Rand hat den Abstand `gap` zum Vorfeld-Außenkreis.
+ * - vertikal:   sein der nahen Brettkante zugewandter Rand hat den Abstand `gap`
+ *   zur inneren Brett-Rahmenlinie (`geo.boardBorderInset`).
+ */
+function placeBesideVorfeld(
+  vorfeld: Point,
+  geo: BoardGeometry,
+  w: number,
+  h: number,
+  gap: number,
+): Point {
+  const sx = vorfeld.x > geo.center.x ? 1 : -1; // Vorfeld rechts(+)/links(-) im Bild
+  const sy = vorfeld.y > geo.center.y ? 1 : -1; // Vorfeld unten(+)/oben(-) im Bild
+  // Horizontal: Kartenrand grenzt (mit gap) an den Vorfeld-Außenkreis; die Karte
+  // liegt auf der der Bildmitte zugewandten Seite (also entgegen sx).
+  const x = vorfeld.x - sx * (geo.vorfeldOuterRadius + gap + w / 2);
+  // Vertikal: der der nahen Brettkante zugewandte Rand grenzt (mit gap) an die
+  // innere Rahmenlinie.
+  const lineY = sy > 0 ? geo.size - geo.boardBorderInset : geo.boardBorderInset;
+  const y = lineY - sy * (gap + h / 2);
+  return { x, y };
+}
+
+/**
+ * Wie `placeBesideVorfeld`, aber das Element liegt VERTIKAL (über/unter) neben
+ * dem Vorfeld – zur Bildmitte hin. Der dem Vorfeld zugewandte Rand grenzt mit
+ * `gap` an den Vorfeld-Außenkreis; der der nahen seitlichen Brettkante zugewandte
+ * Rand grenzt mit `gap` an die innere Rahmenlinie.
+ */
+function placeAboveBelowVorfeld(
+  vorfeld: Point,
+  geo: BoardGeometry,
+  w: number,
+  h: number,
+  gap: number,
+): Point {
+  const sx = vorfeld.x > geo.center.x ? 1 : -1;
+  const sy = vorfeld.y > geo.center.y ? 1 : -1;
+  // Vertikal: zur Bildmitte hin (entgegen sy), Rand mit gap zum Vorfeld-Kreis.
+  const y = vorfeld.y - sy * (geo.vorfeldOuterRadius + gap + h / 2);
+  // Horizontal: der nahen seitlichen Rahmenlinie zugewandter Rand mit gap.
+  const lineX = sx > 0 ? geo.size - geo.boardBorderInset : geo.boardBorderInset;
+  const x = lineX - sx * (gap + w / 2);
+  return { x, y };
+}
+
 
 export interface BoardProps {
   balls: Ball[];
@@ -178,18 +255,11 @@ export function Board({ balls, players = [], handCounts = [], deckHolder = null,
             const count = handCounts[ds];
             // Der linke Nachbar des eigenen Sitzes ist das Teufel-Ziel.
             const isDevilTarget = ownSeat != null && ds === ((ownSeat + 1) % 4) && (count ?? 0) > 0;
-            const cw = geo.fieldRadius * 3.2;
-            const ch = cw * 1.4;
-            // Handkarten-Rücken in die ECKE zum Bildrand (radial nach außen vom
-            // Vorfeld), randbündig mit festem Abstand EDGE. Bei Platz 0
-            // (unten-rechts) also unten-rechts in der Ecke.
-            const EDGE = geo.fieldRadius * 1.0; // ~13px Randabstand
-            const outXc = c.x > geo.center.x ? 1 : -1;
-            const outYc = c.y > geo.center.y ? 1 : -1;
-            const cardAt = {
-              x: outXc > 0 ? geo.size - EDGE - cw / 2 : EDGE + cw / 2,
-              y: outYc > 0 ? geo.size - EDGE - ch / 2 : EDGE + ch / 2,
-            };
+            const cw = geo.size * HANDCOUNT_WIDTH_FACTOR;
+            const ch = cw * CARD_ASPECT;
+            // Kartenanzahl seitlich neben dem Vorfeld, mit gleichem Abstand
+            // (HANDCOUNT_GAP) zum Vorfeld-Außenkreis und zur Brett-Rahmenlinie.
+            const cardAt = placeBesideVorfeld(c, geo, cw, ch, geo.size * HANDCOUNT_GAP_FACTOR);
             return (
               <g key={`vfname-${vs}`}>
                 <text x={c.x} y={c.y + geo.fieldRadius * 0.4} textAnchor="middle" fill="#fff" stroke="#2b1a0e" strokeWidth={3.2} paintOrder="stroke" fontSize={isOwn ? 26 : 22} fontFamily="Georgia, serif" fontWeight={700} opacity={0.96} style={{ pointerEvents: "none" }}>{rawName}</text>
@@ -220,23 +290,17 @@ export function Board({ balls, players = [], handCounts = [], deckHolder = null,
             const clickable = canDeal || canShuffle;
             const onClick = canShuffle ? () => onShuffle?.() : canDeal ? () => onDeal?.() : undefined;
             const actionLabel = canShuffle ? "MISCHEN" : canDeal ? "GEBEN" : null;
+            const dw = geo.size * DRAWPILE_WIDTH_FACTOR;
+            const dh = dw * CARD_ASPECT;
             let anchor: Point;
             if (deckHolder == null) {
               anchor = { x: geo.center.x, y: geo.center.y };
             } else {
               const c = vorfeldCenter(visSeat(deckHolder), geo);
-              const sideY = c.y < geo.center.y ? 1 : -1; // oben→darunter, unten→darüber
-              const outX = c.x > geo.center.x ? 1 : -1;
-              // Klar NEBEN/über/unter dem Vorfeld (nicht überlappend) und leicht
-              // zum Bildrand. Der große Stapel (halbe Höhe ~3.8·r) braucht ~6.9·r
-              // Versatz, damit seine Kante das Vorfeld nicht berührt.
-              anchor = {
-                x: c.x + outX * geo.fieldRadius * 1.9,
-                y: c.y + sideY * geo.fieldRadius * 6.9,
-              };
+              // Stapel über/unter dem Vorfeld im freien Feld, gleicher Abstand
+              // (DRAWPILE_GAP) zum Vorfeld-Außenkreis und zur Brett-Rahmenlinie.
+              anchor = placeAboveBelowVorfeld(c, geo, dw, dh, geo.size * DRAWPILE_GAP_FACTOR);
             }
-            const dw = geo.fieldRadius * 5.4;
-            const dh = dw * 1.4;
             const isEmpty = (deckCount || 0) <= 0;
             const layers = isEmpty ? 1 : Math.min(5, Math.max(2, Math.ceil((deckCount || 0) / 24)));
             const topX = anchor.x - dw / 2 + (layers - 1) * 2 + 3;

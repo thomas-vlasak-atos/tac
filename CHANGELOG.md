@@ -8,6 +8,15 @@ Versionierung nach [Semantic Versioning](https://semver.org/lang/de/).
 ## [Unreleased]
 
 ### Changed
+- **Kalibrierbare Kartengeometrie am Brett:** Kartenanzahl-Anzeige und Nachziehstapel
+  werden nun exakt ins freie Feld zwischen dem **Vorfeld-Außenkreis** und der
+  **Brett-Rahmenlinie** gelegt – mit **gleichem Abstand** (`GAP`) zu beiden Linien.
+  Neue Geometrie-Werte `vorfeldOuterRadius` und `boardBorderInset` (kalibriert gegen
+  `vorlage/Board.png`) sowie zentrale Konstanten in `Board.tsx`
+  (`HANDCOUNT_GAP_FACTOR`, `HANDCOUNT_WIDTH_FACTOR`, `DRAWPILE_GAP_FACTOR`,
+  `DRAWPILE_WIDTH_FACTOR`, `CARD_ASPECT`) – alle als Faktor von `geo.size`, daher
+  skalierungssicher. Die Kartenanzahl liegt wieder **seitlich** neben dem Vorfeld;
+  der Nachziehstapel überlappt das Vorfeld nicht mehr.
 - **Abstände am Brett vergrößert:** Der Nachziehstapel liegt jetzt weiter vom
   Vorfeld weg und zum Bildrand hin; die Handkarten-Rücken der Spieler haben
   ebenfalls mehr Abstand zum Vorfeld.
