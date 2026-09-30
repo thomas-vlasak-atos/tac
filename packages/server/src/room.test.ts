@@ -20,6 +20,8 @@ import {
   revokeTradeOffer,
   requestDevilView,
   approveDevilView,
+  declineDevilView,
+  cancelDevilView,
   playForeignCard,
   passHandsRight,
   returnCard,
@@ -151,6 +153,24 @@ describe("dealCards", () => {
   it("gibt nicht erneut aus, solange Karten in einer Hand liegen", () => {
     const s0 = dealCards(createInitialState({ rng: seededRng(1) }), 5);
     expect(dealCards(s0, 5)).toBe(s0);
+  });
+
+  it("lässt den Reststapel nach dem Geben zum nächsten Geber wandern", () => {
+    // Rundenstart: Stapel in der Mitte (deckHolder null). Geber ist Sitz 0.
+    const s0 = createInitialState({ rng: seededRng(1), dealer: 0 });
+    expect(s0.deckHolder).toBeNull();
+    const s1 = dealCards(s0, 5, 0);
+    // Nach dem Geben liegt der Stapel beim nächsten Geber (gegen Uhrzeigersinn).
+    expect(s1.dealer).toBe(0);
+    expect(s1.deckHolder).toBe(3);
+  });
+
+  it("lässt nur den zuständigen Geber den Stapel auslösen", () => {
+    const s0 = createInitialState({ rng: seededRng(1), dealer: 0 });
+    // Ein anderer Sitz als der Geber darf nicht geben.
+    expect(dealCards(s0, 5, 2)).toBe(s0);
+    // Der Geber darf.
+    expect(dealCards(s0, 5, 0).hands[0]!.length).toBe(5);
   });
 
   it("mischt den Ablagestapel erst bei leerem Reststapel zurück", () => {
@@ -368,6 +388,31 @@ describe("confirmed master actions", () => {
     expect(leftNeighborSeat(0)).toBe(1);
     expect(requestDevilView(s, 0, 2)).toBe(s);
     expect(requestDevilView(s, 0, 1).devilRequests).toHaveLength(1);
+  });
+
+  it("lets the target decline the devil view and records it in the history", () => {
+    let s = dealCards(createInitialState({ rng: seededRng(13) }), 5);
+    s = requestDevilView(s, 0, 1);
+    const request = s.devilRequests[0]!;
+    s = declineDevilView(s, 1, request.id);
+    expect(s.devilRequests).toHaveLength(0);
+    expect(s.history.at(-1)!.text).toContain("lehnt die Teufel-Handeinsicht ab");
+  });
+
+  it("lets the controller cancel their own devil request", () => {
+    let s = dealCards(createInitialState({ rng: seededRng(13) }), 5);
+    s = requestDevilView(s, 0, 1);
+    const request = s.devilRequests[0]!;
+    s = cancelDevilView(s, 0, request.id);
+    expect(s.devilRequests).toHaveLength(0);
+    expect(s.history.at(-1)!.text).toContain("bricht die Teufel-Anfrage");
+  });
+
+  it("ignores a duplicate open devil request from the same controller", () => {
+    let s = dealCards(createInitialState({ rng: seededRng(13) }), 5);
+    s = requestDevilView(s, 0, 1);
+    s = requestDevilView(s, 0, 1);
+    expect(s.devilRequests).toHaveLength(1);
   });
 
   it("passes all hands to the right neighbor for the narrator action", () => {

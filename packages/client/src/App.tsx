@@ -141,12 +141,9 @@ export function App() {
       {!state ? (
         <p>Lade Spielzustand…</p>
       ) : (
-        <div className="game-layout" style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) 300px", gap: 18, margin: "18px auto 0", maxWidth: 1320 }}>
-          <div className="board-column">
+        <div className="game-layout" style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) 340px", gap: 18, margin: "18px auto 0", maxWidth: 1360 }}>
+          <div className="board-column" style={{ position: "relative" }}>
             <div style={{ display: "flex", gap: 8, marginBottom: 8 }}>
-              <button type="button" disabled={state.deckCount < 20 || state.handCounts.some((count) => count > 0)} onClick={() => send({ type: "DealCards" })}>
-                Geben
-              </button>
               <button type="button" disabled={state.deckCount > 0 || state.handCounts.some((count) => count > 0)} onClick={() => send({ type: "ShuffleCards" })}>
                 Mischen
               </button>
@@ -155,8 +152,8 @@ export function App() {
               </button>
             </div>
             <div style={{ display: "flex", gap: 16, flexWrap: "wrap", marginBottom: 10, color: "#765234", fontFamily: "system-ui", fontSize: 13 }}>
-              <span><strong>Aktueller Geber:</strong> {state.players[state.dealer]?.name ?? "noch nicht festgelegt"}</span>
-              <span><strong>Reststapel:</strong> {state.deckCount} Karten</span>
+              <span><strong>Geber:</strong> {state.players[(state.deckHolder ?? state.dealer)]?.name ?? "—"}</span>
+              <span><strong>Reststapel:</strong> {state.deckCount} Karten{state.deckActive ? " (bereit zum Geben)" : ""}</span>
             </div>
 
               <div className="board-drop-zone">
@@ -165,6 +162,11 @@ export function App() {
                   players={state.players}
                   handCounts={state.handCounts}
                   dealer={state.dealer}
+                  deckHolder={state.deckHolder}
+                  deckCount={state.deckCount}
+                  deckActive={state.deckActive}
+                  onDeal={() => send({ type: "DealCards" })}
+                  onRequestDevil={(target) => send({ type: "RequestDevilView", target })}
                   lastBallMove={state.lastBallMove}
                   showFieldNumbers={showFieldNumbers}
                   discardEntries={state.discardEntries}
@@ -174,6 +176,41 @@ export function App() {
                 />
               </div>
               <label style={{ display: "inline-flex", gap: 6, alignItems: "center", marginTop: 7, color: "#765234", fontFamily: "system-ui", fontSize: 13 }}><input type="checkbox" checked={showFieldNumbers} onChange={(event) => setShowFieldNumbers(event.target.checked)} /> Feldnummern anzeigen</label>
+
+            {/* Teufel-Anfrage: Overlay über dem Spielfeld. Das Ziel entscheidet
+                (erlauben/ablehnen); der Anfrager sieht den Wartestatus und kann
+                abbrechen. Alle Entscheidungen werden im Verlauf protokolliert. */}
+            {state.devilRequests.map((request) => {
+              const asTarget = request.target === seat && !request.approved;
+              const asController = request.controller === seat && !request.approved;
+              if (!asTarget && !asController) return null;
+              const controllerName = state.players[request.controller]?.name ?? `Platz ${request.controller + 1}`;
+              const targetName = state.players[request.target]?.name ?? `Platz ${request.target + 1}`;
+              return (
+                <div key={`overlay-${request.id}`} style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", background: "#2b1a0e88", borderRadius: 16, zIndex: 10 }}>
+                  <div style={{ background: "#fff6e6", border: "3px solid #bb7a38", borderRadius: 14, padding: 20, maxWidth: 360, textAlign: "center", fontFamily: "system-ui", color: "#4c2a1a", boxShadow: "0 12px 30px #00000055" }}>
+                    {asTarget ? (
+                      <>
+                        <p style={{ margin: "0 0 14px", fontSize: 15 }}>
+                          <strong>{controllerName}</strong> möchte als <strong>Teufel</strong> deine Handkarten ansehen. Erlauben?
+                        </p>
+                        <div style={{ display: "flex", gap: 10, justifyContent: "center" }}>
+                          <button type="button" onClick={() => send({ type: "ApproveDevilView", requestId: request.id })} style={{ padding: "8px 16px", fontWeight: 700 }}>Erlauben</button>
+                          <button type="button" onClick={() => send({ type: "DeclineDevilView", requestId: request.id })} style={{ padding: "8px 16px" }}>Ablehnen</button>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <p style={{ margin: "0 0 14px", fontSize: 15 }}>
+                          Warte auf <strong>{targetName}</strong> … (Teufel-Handeinsicht angefragt)
+                        </p>
+                        <button type="button" onClick={() => send({ type: "CancelDevilView", requestId: request.id })} style={{ padding: "8px 16px" }}>Abbrechen</button>
+                      </>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
 
           </div>
 
@@ -234,9 +271,8 @@ export function App() {
                 </div>
               </div>
             )}
-            <div style={{ marginTop: 12, padding: 12, borderRadius: 12, background: "#f5e5c8", color: "#6b3d22", fontFamily: "system-ui", fontSize: 13 }}><strong>Meisteraktionen</strong><div style={{ marginTop: 8, display: "grid", gap: 6 }}>{seat != null && state.players[(seat + 1) % 4] ? <button type="button" onClick={() => send({ type: "RequestDevilView", target: ((seat + 1) % 4) as Seat })}>Teufel: Hand von {state.players[(seat + 1) % 4]?.name} ansehen</button> : null}<button type="button" onClick={() => send({ type: "PassHandsRight" })}>Narr: alle Hände weitergeben</button></div></div>
-            {state.devilRequests.map((request) => request.target === seat && !request.approved ? <div key={request.id} style={{ marginTop: 12, padding: 12, borderRadius: 12, background: "#fff0c9", border: "2px solid #bb7a38", fontFamily: "system-ui", fontSize: 13 }}>Ein Spieler möchte deine Karten für den Teufel ansehen.<button type="button" onClick={() => send({ type: "ApproveDevilView", requestId: request.id })} style={{ display: "block", marginTop: 8 }}>Erlauben</button></div> : null)}
-            {state.devilRequests.map((request) => request.controller === seat && request.approved && request.visibleCards ? <div key={request.id} style={{ marginTop: 12, padding: 12, borderRadius: 12, background: "#ead0a8", fontFamily: "system-ui", fontSize: 13 }}><strong>Teufel-Hand</strong><div style={{ display: "flex", gap: 5, flexWrap: "wrap", marginTop: 8 }}>{request.visibleCards.map((card) => <button key={card.id} type="button" onClick={() => send({ type: "PlayForeignCard", requestId: request.id, cardId: card.id })} style={{ width: 52, padding: 2, background: "#fff8e7", border: "1px solid #a56b3d" }}><CardArtwork card={card} compact /></button>)}</div></div> : null)}
+            <div style={{ marginTop: 12, padding: 12, borderRadius: 12, background: "#f5e5c8", color: "#6b3d22", fontFamily: "system-ui", fontSize: 13 }}><strong>Meisteraktionen</strong><div style={{ marginTop: 8, display: "grid", gap: 6 }}><button type="button" onClick={() => send({ type: "PassHandsRight" })}>Narr: alle Hände weitergeben</button></div><p style={{ margin: "8px 0 0", fontSize: 12, color: "#8a5a33" }}>Teufel: auf den Kartenstapel deines linken Nachbarn am Brett klicken.</p></div>
+            {state.devilRequests.map((request) => request.controller === seat && request.approved && request.visibleCards ? <div key={request.id} style={{ marginTop: 12, padding: 12, borderRadius: 12, background: "#ead0a8", fontFamily: "system-ui", fontSize: 13 }}><strong>Teufel-Hand von {state.players[request.target]?.name}</strong><div style={{ display: "flex", gap: 5, flexWrap: "wrap", marginTop: 8 }}>{request.visibleCards.map((card) => <button key={card.id} type="button" onClick={() => send({ type: "PlayForeignCard", requestId: request.id, cardId: card.id })} style={{ width: 52, padding: 2, background: "#fff8e7", border: "1px solid #a56b3d" }}><CardArtwork card={card} compact /></button>)}</div><button type="button" onClick={() => send({ type: "CancelDevilView", requestId: request.id })} style={{ marginTop: 8 }}>Einsicht beenden</button></div> : null)}
             <HistoryPanel entries={state.history} />
           </aside>
         </div>

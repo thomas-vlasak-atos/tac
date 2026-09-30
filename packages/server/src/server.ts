@@ -29,6 +29,8 @@ import {
   revokeTradeOffer,
   requestDevilView,
   approveDevilView,
+  declineDevilView,
+  cancelDevilView,
   playForeignCard,
   passHandsRight,
   resetGame,
@@ -170,6 +172,12 @@ function handleAction(conn: Connection, action: ClientAction): void {
       break;
     case "ApproveDevilView":
       room.state = approveDevilView(room.state, seat, action.requestId);
+      break;
+    case "DeclineDevilView":
+      room.state = declineDevilView(room.state, seat, action.requestId);
+      break;
+    case "CancelDevilView":
+      room.state = cancelDevilView(room.state, seat, action.requestId);
       break;
     case "PlayForeignCard":
       room.state = playForeignCard(room.state, seat, action.requestId, action.cardId);

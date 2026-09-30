@@ -146,15 +146,24 @@ export function dealCards(
   if (state.hands.some((hand) => hand.length > 0)) return state;
   if (state.deck.length < 20) return state;
 
+  // Wer darf geben? Der aktuelle Stapelhalter (`deckHolder`), oder – solange der
+  // Stapel in der Mitte liegt (Rundenstart) – der aktuelle Geber (`dealer`).
+  const currentDealer = state.deckHolder ?? state.dealer;
+  // Nur der zuständige Geber darf den Stapel auslösen.
+  if (actor != null && actor !== currentDealer) return state;
+
   // The master deck has four regular rounds and one final six-card round.
   const cardsPerPlayer = state.masterMode && state.deck.length === 24 ? 6 : 5;
   const { hands, rest } = deal(state.deck, cardsPerPlayer, 4);
-  const dealer = actor ?? state.dealer;
+  // Nach dem Geben wandert der Stapel zum nächsten Geber (gegen den
+  // Uhrzeigersinn) und ruht dort, bis die Runde ausgespielt ist.
+  const nextDealer = ((currentDealer + 3) % 4) as Seat;
   const withState: GameState = {
     ...state,
     hands,
     deck: rest,
-    dealer,
+    dealer: currentDealer,
+    deckHolder: nextDealer,
     // The visible middle is the current round's discard area. The complete
     // discardPile remains the separate archive.
     discardEntries: [],
@@ -164,8 +173,8 @@ export function dealCards(
   };
   return pushHistory(
     withState,
-    dealer,
-    `Geber ${seatLabel(state, dealer)}: ${cardsPerPlayer} Karten ausgeteilt; nächste Runde ist ${seatLabel(state, ((dealer + 3) % 4) as Seat)} an der Reihe`,
+    currentDealer,
+    `Geber ${seatLabel(state, currentDealer)}: ${cardsPerPlayer} Karten ausgeteilt; nächste Runde gibt ${seatLabel(state, nextDealer)}`,
   );
 }
 
@@ -431,6 +440,10 @@ export function revokeTradeOffer(
 /** Fragt den Zielspieler um Erlaubnis, seine Hand für den Teufel zu sehen. */
 export function requestDevilView(state: GameState, controller: Seat, target: Seat): GameState {
   if (target !== leftNeighborSeat(controller)) return state;
+  // Keine doppelte offene Anfrage desselben Controllers an dasselbe Ziel.
+  if (state.devilRequests.some((item) => item.controller === controller && item.target === target)) {
+    return state;
+  }
   const request = {
     id: `devil-${state.nextDevilRequestId}`,
     controller,
@@ -455,6 +468,36 @@ export function approveDevilView(state: GameState, target: Seat, requestId: stri
   if (!request) return state;
   const devilRequests = state.devilRequests.map((item) => item.id === requestId ? { ...item, approved: true } : item);
   return pushHistory({ ...state, devilRequests }, target, `${seatLabel(state, target)} erlaubt die Teufel-Handeinsicht`);
+}
+
+/**
+ * Der Zielspieler LEHNT die Teufel-Handeinsicht ab. Die Anfrage wird entfernt
+ * und im Verlauf protokolliert (Transparenz gegen Schummeln).
+ */
+export function declineDevilView(state: GameState, target: Seat, requestId: string): GameState {
+  const request = state.devilRequests.find((item) => item.id === requestId && item.target === target && !item.approved);
+  if (!request) return state;
+  const devilRequests = state.devilRequests.filter((item) => item.id !== requestId);
+  return pushHistory(
+    { ...state, devilRequests },
+    target,
+    `${seatLabel(state, target)} lehnt die Teufel-Handeinsicht ab`,
+  );
+}
+
+/**
+ * Der anfragende Spieler (Controller) BRICHT seine eigene Teufel-Anfrage ab –
+ * egal ob noch offen oder bereits bestätigt. Wird im Verlauf protokolliert.
+ */
+export function cancelDevilView(state: GameState, controller: Seat, requestId: string): GameState {
+  const request = state.devilRequests.find((item) => item.id === requestId && item.controller === controller);
+  if (!request) return state;
+  const devilRequests = state.devilRequests.filter((item) => item.id !== requestId);
+  return pushHistory(
+    { ...state, devilRequests },
+    controller,
+    `${seatLabel(state, controller)} bricht die Teufel-Anfrage an ${seatLabel(state, request.target)} ab`,
+  );
 }
 
 /** Spielt genau eine Karte aus der bestätigten fremden Hand offen aus. */
@@ -623,6 +666,11 @@ export function toPublicState(
     ownHand: viewer != null ? (state.hands[viewer] ?? []) : [],
     deckCount: state.deck.length,
     dealer: state.dealer,
+    deckHolder: state.deckHolder,
+    // Klickbar/„geben" ist der Stapel nur, wenn keine Handkarten mehr im Spiel
+    // sind und genügend Karten im Reststapel liegen.
+    deckActive:
+      state.hands.every((hand) => hand.length === 0) && state.deck.length >= 20,
     masterMode: state.masterMode,
     history: state.history,
   };

@@ -27,6 +27,8 @@ export type ClientAction =
   | { type: "RevokeTradeOffer"; offerId: string }
   | { type: "RequestDevilView"; target: Seat }
   | { type: "ApproveDevilView"; requestId: string }
+  | { type: "DeclineDevilView"; requestId: string }
+  | { type: "CancelDevilView"; requestId: string }
   | { type: "PlayForeignCard"; requestId: string; cardId: string }
   | { type: "PassHandsRight" }
   | { type: "Announce"; canOpen: boolean }

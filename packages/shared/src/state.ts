@@ -93,6 +93,13 @@ export interface GameState {
   hands: Card[][];
   /** Sitzplatz des zuletzt bestätigten Gebers. */
   dealer: Seat;
+  /**
+   * Sitz, bei dem der Reststapel gerade liegt, oder `null` = in der Brettmitte.
+   * Ablauf: Bei Rundenstart liegt der Stapel in der Mitte (`null`); der aktuelle
+   * Geber gibt und der Stapel wandert zum nächsten Geber (`deckHolder`), wo er
+   * ruht, bis alle Handkarten gespielt sind und erneut gegeben werden kann.
+   */
+  deckHolder: Seat | null;
   /** Meisterversion ist für TAC Online fest aktiviert. */
   masterMode: boolean;
   /** Zugverlauf (jüngste Einträge am Ende). */
@@ -124,6 +131,13 @@ export interface PublicGameState {
   /** Verbleibende Anzahl Karten im Reststapel. */
   deckCount: number;
   dealer: Seat;
+  /** Sitz, bei dem der Reststapel liegt, oder `null` = in der Brettmitte. */
+  deckHolder: Seat | null;
+  /**
+   * Ob der Reststapel gerade „geben" auslösen kann (klickbar). True, wenn keine
+   * Handkarten mehr im Spiel sind und genügend Karten im Stapel liegen.
+   */
+  deckActive: boolean;
   masterMode: boolean;
   history: HistoryEntry[];
 }

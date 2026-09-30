@@ -71,15 +71,24 @@
   **Kartenrückseite** mit der Zahl in der Mitte **neben** dem Vorfeld Richtung
   Brettmitte gezeichnet. Kugeln/Karten liegen vor dem Namen (teilweise Überdeckung
   erlaubt). Alle Texte/Marker werden gegen die Brettdrehung ausgerichtet, sodass
-  sie **immer waagerecht lesbar** bleiben; der eigene Name ist größer. Ersetzt das
-  separate „Sitzplätze"-Panel in der Seitenleiste. Rein visuell.
+  sie **immer waagerecht lesbar** bleiben; der eigene Name ist größer. Der
+  **Handkarten-Stapel** wird als **Kartenrückseite mit der Anzahl** neben dem
+  Vorfeld Richtung Brettmitte gezeichnet; der Stapel des **linken Nachbarn** ist
+  anklickbar (löst die Teufel-Anfrage aus, siehe K7). Der **Geber** wird nicht
+  hier, sondern über dem Brett angezeigt. Ersetzt das separate „Sitzplätze"-Panel
+  in der Seitenleiste. Rein visuell.
 
 ## 4. Karten (digital verwaltet)
 
 - **K1 – Kartensatz:** Standard-Kartensatz; optional Meisterkarten (Engel, Teufel,
   Krieger, Narr) zuschaltbar (Meisterversion).
-- **K2 – Geben:** Auf Auslösung (z. B. Button "Geben") mischt die App und teilt
-  je 5 Karten aus (Meisterrunde: 6). Wer gibt, wandert reihum.
+- **K2 – Geben (klickbarer, wandernder Reststapel):** Der Reststapel wird als
+  Kartenstapel **am Brett** dargestellt. Zu Rundenbeginn liegt er **in der Mitte**;
+  der **aktuelle Geber** klickt darauf, woraufhin je 5 Karten (Meisterrunde: 6)
+  reihum ausgeteilt werden. Danach **wandert** der Stapel zum **nächsten Geber**
+  (gegen den Uhrzeigersinn) und ruht dort **deaktiviert**, bis alle Handkarten
+  gespielt sind; dann kann der neue Geber ihn erneut auslösen. Nur der zuständige
+  Geber kann den Stapel bedienen. (Das Geben mischt bewusst nicht; siehe §3.)
 - **K3 – Eigene Hand:** Jeder sieht **nur seine eigene** Hand (verdeckt für andere).
 - **K3a – Kartenbedienung per Klick (Stand v0.6):** Eine Handkarte wird mit einem
   **einzigen Klick** bedient (kein Zwischenschritt über Aktions-Buttons mehr).
@@ -131,10 +140,15 @@
   - Nach dem Nehmen ist der Tausch für diese Runde abgeschlossen (kein Rückgängig).
 - **K6 – Melden (optional):** Einfaches "kann / kann nicht"-Signal (Handzeichen-
   Ersatz). Rein informativ, keine Prüfung.
-- **K7 – Kartensichtbarkeit-Sonderfälle (Teufel):** Werden Meisterkarten genutzt,
-  bei denen ein Spieler die Hand eines anderen einsieht, geschieht das über eine
-  bewusste Aktion; keine automatische Regeldurchsetzung. *Kann in Stufe 1 auch
-  einfach "auf Zuruf/echt" gehandhabt werden.*
+- **K7 – Teufel-Handeinsicht (bestätigt, protokolliert):** Statt eines Buttons
+  klickt der Teufel-Spieler auf den **Kartenrücken-Stapel seines linken Nachbarn**
+  am Brett. Der Zielspieler erhält ein **Overlay über dem Spielfeld** und
+  entscheidet: **Erlauben** oder **Ablehnen**. Der Anfrager kann seine Anfrage
+  jederzeit **Abbrechen**. Alle drei Ereignisse (Anfrage, Erlauben/Ablehnen,
+  Abbruch) werden im **Verlauf protokolliert** (Transparenz gegen Schummeln). Nach
+  Erlauben sieht nur der Anfrager die Zielhand und kann genau eine Karte offen
+  ausspielen; danach/oder per „Einsicht beenden" endet die Einsicht. Keine
+  automatische Regeldurchsetzung.
 
 ## 5. Verlauf (Historie)
 

@@ -63,6 +63,8 @@ export function createInitialState(options?: {
     nextDevilRequestId: 1,
     hands: [[], [], [], []],
     dealer: options?.dealer ?? 0,
+    // Rundenstart: Stapel liegt in der Mitte (kein Halter), der Geber gibt.
+    deckHolder: null,
     masterMode,
     history: [],
     nextHistoryId: 1,

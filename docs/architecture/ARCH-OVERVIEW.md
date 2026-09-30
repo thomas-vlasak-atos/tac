@@ -54,7 +54,7 @@ Serialisierbar (JSON), bewusst einfach:
 - `deck`: verbleibende Karten (serverseitig, verdeckt)
 - `discardPile`: offen abgelegte Karten (für alle sichtbar)
 - `hands[playerId]`: Karten – **nur** an den jeweiligen Spieler ausgeliefert
-- `dealer`, `masterMode`
+- `dealer`, `deckHolder` (Sitz, bei dem der Reststapel liegt, oder null = Mitte), `masterMode`
 - `history[]`: Liste von Verlaufseinträgen (`{ actor, text, timestamp }`)
 
 Es gibt **keine** `phase`/`currentPlayer`-Erzwingung. Optionaler, rein

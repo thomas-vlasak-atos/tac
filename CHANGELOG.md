@@ -8,6 +8,24 @@ Versionierung nach [Semantic Versioning](https://semver.org/lang/de/).
 ## [Unreleased]
 
 ### Added
+- **Klickbarer, wandernder Reststapel am Brett (REQ-BOARD K2):** Der Reststapel wird
+  als Kartenstapel am Brett gezeichnet – zu Rundenbeginn in der Mitte. Der aktuelle
+  Geber klickt darauf, um zu geben; danach wandert der Stapel zum nächsten Geber und
+  ruht dort deaktiviert, bis alle Handkarten gespielt sind. Neue State-Felder
+  `deckHolder`/`deckActive`; nur der zuständige Geber kann den Stapel auslösen. Der
+  separate „Geben"-Button entfällt.
+- **Teufel-Handeinsicht per Klick + Overlay (REQ-BOARD K7):** Statt eines Buttons
+  klickt der Teufel auf den Kartenrücken-Stapel seines linken Nachbarn am Brett. Das
+  Ziel erhält ein Overlay über dem Spielfeld (Erlauben/Ablehnen); der Anfrager kann
+  abbrechen. Anfrage, Erlauben, Ablehnen und Abbruch werden im Verlauf protokolliert
+  (Anti-Schummel). Neue Aktionen `DeclineDevilView`/`CancelDevilView`.
+
+### Changed
+- **Handkarten-Kartenrücken (Anzahl) und eigene Handkarten vergrößert.** Der Geber-
+  Text im Vorfeld entfällt (steht über dem Brett). Der Narr bleibt als separater
+  Button in den Meisteraktionen.
+
+### Added
 - **Spielernamen im Vorfeld (REQ-BOARD B9):** Der Name jedes Spielers steht mittig
   in Weiß (mit dunklem Kontursaum) in seinem Vorfeld hinter den Kugeln; darüber –
   falls zutreffend – „Geber". Die Handkartenzahl wird als kleine **Kartenrückseite**

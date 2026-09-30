@@ -72,6 +72,16 @@ export interface BoardProps {
   players?: (Player | null)[];
   handCounts?: number[];
   dealer?: Seat;
+  /** Sitz, bei dem der Reststapel liegt, oder null = Brettmitte. */
+  deckHolder?: Seat | null;
+  /** Anzahl Karten im Reststapel (für die Stapelhöhe). */
+  deckCount?: number;
+  /** Ob der Stapel „geben" auslösen kann (klickbar). */
+  deckActive?: boolean;
+  /** Klick auf den aktiven Reststapel (geben). */
+  onDeal?: () => void;
+  /** Klick auf den Kartenrücken des linken Nachbarn (Teufel-Anfrage). */
+  onRequestDevil?: (target: Seat) => void;
   lastBallMove?: { ballId: string; from: BallPosition; to: BallPosition } | null;
   showFieldNumbers?: boolean;
   discardEntries?: DiscardEntry[];
@@ -83,7 +93,7 @@ export interface BoardProps {
 
 interface DragState { ballId: string; current: Point; moved: boolean; from: BallPosition }
 
-export function Board({ balls, players = [], handCounts = [], dealer, lastBallMove = null, showFieldNumbers = false, discardEntries = [], onMoveBall, onReturnCard, ownSeat, size = 760 }: BoardProps) {
+export function Board({ balls, players = [], handCounts = [], dealer, deckHolder = null, deckCount = 0, deckActive = false, onDeal, onRequestDevil, lastBallMove = null, showFieldNumbers = false, discardEntries = [], onMoveBall, onReturnCard, ownSeat, size = 760 }: BoardProps) {
   const geo = defaultGeometry(1024);
   const [drag, setDrag] = useState<DragState | null>(null);
   const positions = computeBallPositions(balls, geo);
@@ -135,42 +145,84 @@ export function Board({ balls, players = [], handCounts = [], dealer, lastBallMo
           {Array.from({ length: CIRCLE_FIELD_COUNT }, (_, index) => { const point = circleFieldPosition(index, geo); const source = drag?.from.kind === "FELD" && drag.from.index === index; const lastFrom = lastBallMove?.from.kind === "FELD" && lastBallMove.from.index === index; const lastTo = lastBallMove?.to.kind === "FELD" && lastBallMove.to.index === index; return <g key={`field-${index}`}><circle cx={point.x} cy={point.y} r={geo.fieldRadius * (lastFrom || lastTo ? 1.9 : 1.45)} fill={lastFrom ? "#e7a928" : lastTo ? "#f7e28b" : "transparent"} opacity=".72" /><circle cx={point.x} cy={point.y} r={geo.fieldRadius + (source ? 5 : 0)} fill={source ? "#fff1a8" : "transparent"} stroke={lastFrom || lastTo ? "#fff2b0" : "transparent"} strokeWidth={source ? 5 : lastFrom || lastTo ? 4 : 2} />{showFieldNumbers && <text x={point.x} y={point.y + 4} textAnchor="middle" fill="#4b3a2b" fontSize="9" fontFamily="system-ui" fontWeight="700">{index}</text>}</g>; })}
           {SEATS.map((seat) => <g key={`house-${seat}`}>{housePositions(seat, geo).map((point, slot) => { const source = drag?.from.kind === "HAUS" && drag.from.owner === seat && drag.from.slot === slot; const lastFrom = lastBallMove?.from.kind === "HAUS" && lastBallMove.from.owner === seat && lastBallMove.from.slot === slot; const lastTo = lastBallMove?.to.kind === "HAUS" && lastBallMove.to.owner === seat && lastBallMove.to.slot === slot; return <circle key={`house-${seat}-${slot}`} cx={point.x} cy={point.y} r={geo.fieldRadius + (source ? 5 : lastFrom || lastTo ? 3 : 0)} fill={source ? "#fff1a8" : lastFrom ? "#e7a928" : lastTo ? "#f7e28b" : "transparent"} stroke={lastFrom || lastTo ? "#fff2b0" : "transparent"} strokeWidth={source ? 5 : lastFrom || lastTo ? 4 : 2.5} />; })}</g>)}
            {SEATS.map((seat) => <g key={`vorfeld-${seat}`}>{Array.from({ length: BALLS_PER_PLAYER }, (_, slot) => { const point = vorfeldBallPosition(seat, slot, geo); const ballId = `${COLOR_BY_SEAT_LOCAL[seat]}-${slot}`; const source = drag?.ballId === ballId && drag.from.kind === "VORFELD"; const lastFrom = lastBallMove?.ballId === ballId && lastBallMove.from.kind === "VORFELD"; const lastTo = lastBallMove?.ballId === ballId && lastBallMove.to.kind === "VORFELD"; return <circle key={`vorfeld-${seat}-${slot}`} cx={point.x} cy={point.y} r={geo.fieldRadius + (source ? 5 : lastFrom || lastTo ? 3 : 0)} fill={source ? "#fff1a8" : lastFrom ? "#e7a928" : lastTo ? "#f7e28b" : "transparent"} stroke={lastFrom || lastTo ? "#fff2b0" : BALL_STROKE[COLOR_BY_SEAT_LOCAL[seat]]} strokeDasharray={lastFrom || lastTo ? undefined : "5 4"} strokeWidth={source ? 5 : lastFrom || lastTo ? 4 : 2.5} />; })}</g>)}
-          {/* Spielernamen mittig INS Vorfeld (hinter Kugeln/Karten). Darüber der
-              Geber-Hinweis. Der Handkarten-Zähler wird als kleine Kartenrückseite
-              neben dem Vorfeld Richtung Brettmitte gezeichnet. Alle Texte/Karten
-              werden lokal gegen die Brettdrehung gedreht, damit sie waagerecht
-              lesbar bleiben. */}
+          {/* Spielernamen mittig INS Vorfeld (hinter Kugeln/Karten). Der
+              Handkarten-Zähler wird als Kartenrückseite neben dem Vorfeld Richtung
+              Brettmitte gezeichnet – für den linken Nachbarn klickbar (Teufel).
+              Alle Texte/Karten werden lokal gegen die Brettdrehung gedreht, damit
+              sie waagerecht lesbar bleiben. Der Geber steht über dem Brett, nicht
+              hier. */}
           {SEATS.map((seat) => {
             const player = players[seat];
             if (!player) return null;
             const c = vorfeldCenter(seat, geo);
             const isOwn = seat === ownSeat;
-            const isDealer = dealer === seat;
             const rawName = player.name.length > 12 ? `${player.name.slice(0, 11)}…` : player.name;
             const count = handCounts[seat];
+            // Der linke Nachbar des eigenen Sitzes ist das Teufel-Ziel.
+            const isDevilTarget = ownSeat != null && seat === ((ownSeat + 1) % 4) && (count ?? 0) > 0;
             // Richtung zur Brettmitte (für die Platzierung des Kartenrückens).
             const toCenter = { x: geo.center.x - c.x, y: geo.center.y - c.y };
             const len = Math.hypot(toCenter.x, toCenter.y) || 1;
             const nx = toCenter.x / len;
             const ny = toCenter.y / len;
-            const cardAt = { x: c.x + nx * geo.fieldRadius * 4.6, y: c.y + ny * geo.fieldRadius * 4.6 };
-            const cw = geo.fieldRadius * 2.6;
+            const cardAt = { x: c.x + nx * geo.fieldRadius * 5.0, y: c.y + ny * geo.fieldRadius * 5.0 };
+            const cw = geo.fieldRadius * 3.4;
             const ch = cw * 1.4;
             return (
               <g key={`vfname-${seat}`} transform={`rotate(${-rotation} ${c.x} ${c.y})`} style={{ pointerEvents: "none" }}>
-                {isDealer && <text x={c.x} y={c.y - geo.fieldRadius * 1.5} textAnchor="middle" fill="#ffe9a8" stroke="#2b1a0e" strokeWidth={2.4} paintOrder="stroke" fontSize={15} fontFamily="system-ui" fontWeight={700}>Geber</text>}
                 <text x={c.x} y={c.y + geo.fieldRadius * 0.4} textAnchor="middle" fill="#fff" stroke="#2b1a0e" strokeWidth={3.2} paintOrder="stroke" fontSize={isOwn ? 26 : 22} fontFamily="Georgia, serif" fontWeight={700} opacity={0.96}>{rawName}</text>
                 {count != null && count > 0 && (
-                  <g transform={`translate(${cardAt.x} ${cardAt.y})`}>
-                    <rect x={-cw / 2} y={-ch / 2} width={cw} height={ch} rx={6} fill="#3a2416" stroke="#fff8e7" strokeWidth={2} filter="url(#shadow)" />
+                  <g
+                    transform={`translate(${cardAt.x} ${cardAt.y})`}
+                    style={{ pointerEvents: isDevilTarget ? "auto" : "none", cursor: isDevilTarget ? "pointer" : "default" }}
+                    onClick={isDevilTarget ? () => onRequestDevil?.(seat) : undefined}
+                  >
+                    <rect x={-cw / 2} y={-ch / 2} width={cw} height={ch} rx={6} fill="#3a2416" stroke={isDevilTarget ? "#c96" : "#fff8e7"} strokeWidth={isDevilTarget ? 3 : 2} filter="url(#shadow)" />
                     <clipPath id={`cardclip-${seat}`}><rect x={-cw / 2 + 2} y={-ch / 2 + 2} width={cw - 4} height={ch - 4} rx={5} /></clipPath>
                     <image href={cardBackImage} x={-cw / 2 + 2} y={-ch / 2 + 2} width={cw - 4} height={ch - 4} preserveAspectRatio="xMidYMid slice" clipPath={`url(#cardclip-${seat})`} opacity={0.9} />
                     <text x={0} y={ch * 0.15} textAnchor="middle" fill="#fff" stroke="#2b1a0e" strokeWidth={3} paintOrder="stroke" fontSize={ch * 0.5} fontFamily="Georgia, serif" fontWeight={700}>{count}</text>
+                    {isDevilTarget && <title>Teufel: {player.name} um Handeinsicht bitten</title>}
                   </g>
                 )}
               </g>
             );
           })}
+          {/* Reststapel: in der Mitte (Rundenstart) oder beim Halter, seitlich
+              neben dessen Vorfeld. Klickbar (geben), wenn aktiv und der Betrachter
+              der zuständige Geber ist. */}
+          {(() => {
+            const dealerSeat = (deckHolder ?? dealer ?? 0) as Seat;
+            const canDeal = deckActive && ownSeat != null && ownSeat === dealerSeat && !!onDeal;
+            let anchor: Point;
+            if (deckHolder == null) {
+              anchor = { x: geo.center.x, y: geo.center.y };
+            } else {
+              // Beim Halter: neben das Vorfeld, seitlich versetzt (senkrecht zur
+              // Richtung Brettmitte), damit er nicht den Handkarten-Rücken überdeckt.
+              const c = vorfeldCenter(deckHolder, geo);
+              const toC = { x: geo.center.x - c.x, y: geo.center.y - c.y };
+              const len = Math.hypot(toC.x, toC.y) || 1;
+              const nx = toC.x / len;
+              const ny = toC.y / len;
+              // Senkrechte Richtung (nach „außen" der Ecke) und etwas zur Mitte.
+              anchor = { x: c.x + ny * geo.fieldRadius * 5.0 + nx * geo.fieldRadius * 1.5, y: c.y - nx * geo.fieldRadius * 5.0 + ny * geo.fieldRadius * 1.5 };
+            }
+            const dw = geo.fieldRadius * 4.6;
+            const dh = dw * 1.4;
+            const layers = Math.min(5, Math.max(2, Math.ceil((deckCount || 0) / 24)));
+            return (
+              <g transform={`rotate(${-rotation} ${anchor.x} ${anchor.y})`} style={{ pointerEvents: canDeal ? "auto" : "none", cursor: canDeal ? "pointer" : "default" }} onClick={canDeal ? () => onDeal?.() : undefined}>
+                {Array.from({ length: layers }, (_, i) => (
+                  <rect key={`deck-layer-${i}`} x={anchor.x - dw / 2 + i * 2} y={anchor.y - dh / 2 - i * 2} width={dw} height={dh} rx={8} fill="#3a2416" stroke={canDeal ? "#ffe08a" : "#e9d3ad"} strokeWidth={canDeal ? 3 : 1.5} filter={i === layers - 1 ? "url(#shadow)" : undefined} opacity={0.96} />
+                ))}
+                <clipPath id="deckclip"><rect x={anchor.x - dw / 2 + (layers - 1) * 2 + 3} y={anchor.y - dh / 2 - (layers - 1) * 2 + 3} width={dw - 6} height={dh - 6} rx={6} /></clipPath>
+                <image href={cardBackImage} x={anchor.x - dw / 2 + (layers - 1) * 2 + 3} y={anchor.y - dh / 2 - (layers - 1) * 2 + 3} width={dw - 6} height={dh - 6} preserveAspectRatio="xMidYMid slice" clipPath="url(#deckclip)" opacity={0.92} />
+                <text x={anchor.x + (layers - 1)} y={anchor.y - (layers - 1) - dh * 0.16} textAnchor="middle" fill="#fff" stroke="#2b1a0e" strokeWidth={3} paintOrder="stroke" fontSize={dh * 0.34} fontFamily="Georgia, serif" fontWeight={700}>{deckCount}</text>
+                {canDeal && <text x={anchor.x + (layers - 1)} y={anchor.y - (layers - 1) + dh * 0.34} textAnchor="middle" fill="#ffe08a" stroke="#2b1a0e" strokeWidth={2.4} paintOrder="stroke" fontSize={dh * 0.16} fontFamily="system-ui" fontWeight={700}>GEBEN</text>}
+                <title>Reststapel: {deckCount} Karten{canDeal ? " – klicken zum Geben" : ""}</title>
+              </g>
+            );
+          })()}
           {topCards.map((entry) => <g key={entry.card.id} transform={`translate(${geo.center.x + entry.offset * 5} ${geo.center.y + entry.offset * 4}) rotate(${entry.rotation} 0 0)`}><rect x={-35} y={-48} width={70} height={96} rx={8} fill="#fffaf0" stroke={BALL_STROKE[COLOR_BY_SEAT_LOCAL[entry.actor]]} strokeWidth="4" filter="url(#shadow)" /><foreignObject x={-31} y={-43} width={62} height={72}><CardArtwork card={entry.card} compact /></foreignObject><text x="0" y="38" textAnchor="middle" fill={BALL_STROKE[COLOR_BY_SEAT_LOCAL[entry.actor]]} fontSize="9">{COLOR_LABEL[COLOR_BY_SEAT_LOCAL[entry.actor]]}</text><title>{cardLabel(entry.card)} von {COLOR_LABEL[COLOR_BY_SEAT_LOCAL[entry.actor]]}. Zum Zurücknehmen unten nutzen.</title></g>)}
           {balls.map((ball) => { const isDragged = drag?.ballId === ball.id; const point = isDragged && drag.moved ? drag.current : positions.get(ball.id) ?? geo.center; return <g key={ball.id} onPointerDown={(event) => handleDown(event, ball)} style={{ cursor: "grab" }}><circle cx={point.x} cy={point.y} r={geo.fieldRadius * 1.03} fill={`url(#marble-${ball.owner})`} stroke={isDragged ? "#fff7cf" : BALL_STROKE[ball.color]} strokeWidth={isDragged ? 5 : 2.5} filter="url(#shadow)" /><circle cx={point.x - 5} cy={point.y - 6} r={geo.fieldRadius * .2} fill="#fff" opacity=".7" /></g>; })}
         </g>
