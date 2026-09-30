@@ -15,11 +15,13 @@ Versionierung nach [Semantic Versioning](https://semver.org/lang/de/).
 - **„Neu" mit Sicherheitsabfrage:** Ein Reset des Spiels fragt nun vorher nach.
 
 ### Fixed
-- **Kein vertikales Scrollen im Querformat:** Die App füllt jetzt exakt eine
-  Bildschirmhöhe (`100svh`, `overflow: hidden`); das quadratische Brett skaliert an
-  die verbleibende Höhe (SVG `max-height: 100%`), und die Seitenleiste scrollt bei
-  Bedarf selbst. Zuvor erzeugten `min-height: 100vh` plus Padding immer eine
-  Scrollbar.
+- **Brett nutzt im Querformat die volle Höhe und Breite:** Das quadratische Brett
+  skaliert nun auf das Minimum aus verfügbarer Höhe (`100svh − Header`) und Breite
+  (`100vw − Seitenleiste`) – es wächst also mit, statt bei einer festen Größe zu
+  bleiben. Keine Scrollbar, solange es passt; nur bei sehr kleinen Fenstern wird
+  gescrollt (Brett bliebe sonst zu klein). Das Spiel ist horizontal **zentriert**;
+  die Handkarten-Seitenleiste bleibt direkt neben dem Brett (rückt nicht mehr weg).
+  Zuvor blieb das Brett bei fester Größe und der Inhalt wurde horizontal verteilt.
 
 ### Removed
 - **Kalibrier-Overlay entfernt:** Das temporäre Debug-Overlay (Vorfeld-Kreis /

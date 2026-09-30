@@ -1,27 +1,41 @@
-/* Responsive table layout: the board must never create horizontal overflow. */
+/* ===========================================================================
+   Layout-Modell
+   - Standard (schmal/Hochformat): normaler Fluss, darf vertikal scrollen.
+   - Querformat mit genug Breite: die App füllt genau eine Bildschirmhöhe
+     (100svh) OHNE Scrollbar; das quadratische Brett nutzt den maximal
+     verfügbaren Platz (min aus verfügbarer Breite und Höhe).
+   =========================================================================== */
+
 .app-shell {
   overflow-x: hidden;
   box-sizing: border-box;
 }
 
-.game-layout,
-.board-column,
-.board-drop-zone {
+.game-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 300px;
+  gap: 18px;
+  margin: 12px auto 0;
+  max-width: 1320px;
   min-width: 0;
 }
 
-.board-drop-zone {
-  width: 100%;
-}
-
+.board-column,
+.board-drop-zone,
 .own-hand-panel {
   min-width: 0;
+}
+
+/* Der braune Brettrahmen ist quadratisch und skaliert mit dem Container. */
+.board-frame {
+  aspect-ratio: 1 / 1;
 }
 
 .app-header {
   flex-wrap: wrap;
 }
 
+/* --- Schmal / einspaltig ------------------------------------------------- */
 @media (max-width: 900px) {
   .game-layout {
     grid-template-columns: minmax(0, 1fr) !important;
@@ -39,40 +53,61 @@
   }
 }
 
+/* --- Querformat mit genug Breite: eine Bildschirmhöhe, Brett maximal groß -- */
 @media (orientation: landscape) and (min-width: 901px) {
-  /* Auf genau eine Bildschirmhöhe begrenzen: keine Scrollbar. Die App füllt die
-     Viewport-Höhe, der Inhalt darf nicht überlaufen. */
+  /* Verfügbare Höhe für das Brett = Viewport minus Header/Ränder.
+     --header-h wird großzügig geschätzt; das Brett bleibt dadurch garantiert
+     ohne Scrollbar und nutzt sonst die volle Höhe. */
   .app-shell {
+    --header-h: 64px;
     height: 100svh;
     overflow: hidden;
+    display: flex;
+    flex-direction: column;
   }
 
-  /* Die Grid-Fläche unter dem Header bekommt die Resthöhe; das quadratische
-     Brett skaliert an diese Höhe (SVG hat max-height:100%). */
   .game-layout {
-    height: calc(100svh - 64px);
-    align-items: start;
+    flex: 1 1 auto;
+    min-height: 0;
+    align-items: center;
+    /* Board-Spalte nur so breit wie das Brett (auto), Seitenleiste 300px.
+       Zusammen zentriert (margin auto), damit die Handkarten direkt neben dem
+       Brett bleiben und links/rechts gleich viel Rand ist. */
+    grid-template-columns: auto 300px;
+    justify-content: center;
+    width: 100%;
   }
 
   .board-column {
     height: 100%;
     display: flex;
     flex-direction: column;
+    align-items: center;
+    justify-content: center;
     min-height: 0;
+    /* Breite folgt dem Brett (über die verfügbare Höhe begrenzt). */
+    width: min(calc(100svh - var(--header-h) - 24px), calc(100vw - 340px));
+    max-width: 100%;
   }
 
   .board-drop-zone {
-    min-height: 0;
-    flex: 1 1 auto;
+    height: 100%;
     display: flex;
+    align-items: center;
     justify-content: center;
-    align-items: flex-start;
+    min-height: 0;
+    width: 100%;
   }
 
-  /* Die Seitenleiste (Verlauf u. a.) scrollt bei Bedarf selbst, statt die
-     ganze Seite zu verlängern. */
+  /* Das Brett ist quadratisch und füllt die (bereits höhenbegrenzte) Spalte. */
+  .board-drop-zone .board-frame {
+    width: 100%;
+    height: auto;
+    max-height: 100%;
+  }
+
   .side-panel {
-    height: 100%;
+    max-height: 100%;
     min-height: 0;
     overflow-y: auto;
   }
@@ -94,6 +129,7 @@
   }
 }
 
+/* --- Sehr schmal / mobil ------------------------------------------------- */
 @media (max-width: 560px) {
   .app-shell {
     padding-top: 12px !important;

@@ -146,7 +146,7 @@ export function App() {
       {!state ? (
         <p>Lade Spielzustand…</p>
       ) : (
-        <div className="game-layout" style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) 300px", gap: 18, margin: "18px auto 0", maxWidth: 1320 }}>
+        <div className="game-layout">
           <div className="board-column" style={{ position: "relative" }}>
               <div className="board-drop-zone">
                 <Board

@@ -139,12 +139,11 @@ export interface BoardProps {
   onMoveBall: (ballId: string, to: BallPosition) => void;
   onReturnCard?: (cardId: string) => void;
   ownSeat: Seat | null;
-  size?: number;
 }
 
 interface DragState { ballId: string; current: Point; moved: boolean; from: BallPosition }
 
-export function Board({ balls, players = [], handCounts = [], deckHolder = null, deckCount = 0, deckActive = false, deckShuffleable = false, onDeal, onShuffle, onRequestDevil, lastBallMove = null, showFieldNumbers = false, discardEntries = [], onMoveBall, onReturnCard, ownSeat, size = 760 }: BoardProps) {
+export function Board({ balls, players = [], handCounts = [], deckHolder = null, deckCount = 0, deckActive = false, deckShuffleable = false, onDeal, onShuffle, onRequestDevil, lastBallMove = null, showFieldNumbers = false, discardEntries = [], onMoveBall, onReturnCard, ownSeat }: BoardProps) {
   const geo = defaultGeometry(1024);
   const [drag, setDrag] = useState<DragState | null>(null);
 
@@ -226,8 +225,8 @@ export function Board({ balls, players = [], handCounts = [], deckHolder = null,
   const topCards = discardEntries.slice(-7);
 
   return (
-    <div style={{ background: "#5b321e", borderRadius: 24, padding: 12, boxShadow: "0 16px 35px #2d170d55", border: "8px solid #8c5831", boxSizing: "border-box", maxHeight: "100%", maxWidth: "100%" }}>
-      <svg viewBox={`0 0 ${geo.size} ${geo.size}`} width={size} height={size} style={{ display: "block", width: "100%", maxWidth: "100%", height: "auto", maxHeight: "100%", userSelect: "none", touchAction: "none", borderRadius: 16 }} onPointerMove={handleMove} onPointerUp={handleUp}>
+    <div className="board-frame" style={{ background: "#5b321e", borderRadius: 24, padding: 12, boxShadow: "0 16px 35px #2d170d55", border: "8px solid #8c5831", boxSizing: "border-box", maxHeight: "100%", maxWidth: "100%" }}>
+      <svg viewBox={`0 0 ${geo.size} ${geo.size}`} preserveAspectRatio="xMidYMid meet" style={{ display: "block", width: "100%", height: "100%", userSelect: "none", touchAction: "none", borderRadius: 16 }} onPointerMove={handleMove} onPointerUp={handleUp}>
         <defs>
           <radialGradient id="well" cx="35%" cy="30%"><stop offset="0" stopColor="#382b24" /><stop offset=".65" stopColor="#0d0d0d" /><stop offset="1" stopColor="#020202" /></radialGradient>
           <radialGradient id="hole" cx="30%" cy="25%"><stop offset="0" stopColor="#ead19a" /><stop offset=".45" stopColor="#9a642d" /><stop offset="1" stopColor="#3f2414" /></radialGradient>
