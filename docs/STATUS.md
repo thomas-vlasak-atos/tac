@@ -1,8 +1,62 @@
 # Projektstatus & Handover für die nächste Session
 
 **Kennung:** `STATUS`
-**Stand:** 2026-09-29
+**Stand:** 2026-09-30
 **Zweck:** Schneller Wiedereinstieg – was ist da, was ist offen, wie startet man.
+
+---
+
+## 0. Update 2026-09-30 (jüngste Session)
+
+Seit dem letzten Stand umgesetzt (alle in `main`, gepusht):
+
+- **Kartenbedienung mit einem Klick, phasenabhängig** (Tauschphase → Partner
+  anbieten, Spielphase → ablegen); Partnerangebot nach eigenem Tausch bzw. nachdem
+  der Partner genommen hat gesperrt. Partnertausch-Panel unter den eigenen Karten,
+  nach dem Tausch ausgeblendet.
+- **Spielernamen im Vorfeld** (weiß), **Handkartenzahl** als Kartenrücken **neben**
+  dem Vorfeld, **Nachziehstapel** über/unter dem Vorfeld. Positionen sauber über
+  Kalibrier-Werte (`vorfeldOuterRadius`, `boardBorderInset`) und Faktor-Konstanten
+  in `Board.tsx` (`HANDCOUNT_*`, `DRAWPILE_*`, `CARD_ASPECT`).
+- **Perspektive OHNE Brettdrehung (Index-Mapping, REQ-BOARD B8):** `off = ownSeat`
+  bildet Daten-Sitz/-Feld auf feste Bild-Positionen ab; Feldnummern zeigen die
+  echten Datennummern. Ersetzt die fehleranfällige SVG-Rotation. Siehe
+  `packages/client/src/board/Board.tsx` (`visSeat/dataSeat/visIndex/dataIndex`,
+  `dataPosToPoint/pointToDataPos`).
+- **Wandernder, klickbarer Reststapel (REQ-BOARD K2/K2a):** Rundenstart in der
+  Mitte – wer zuerst klickt wird Geber; danach wandert der Stapel **im
+  Uhrzeigersinn** (`+1`) zum nächsten Sitz. Leerer Stapel zeigt „MISCHEN", dann
+  „GEBEN" (zwei Klicks). Neue Felder `deckHolder`, `deckActive`, `deckShuffleable`.
+- **Teufel per Klick + Overlay (REQ-BOARD K7):** Klick auf den Kartenrücken des
+  linken Nachbarn → Overlay beim Ziel (erlauben/ablehnen), Anfrager kann abbrechen;
+  alles im Verlauf protokolliert. Aktionen `DeclineDevilView`, `CancelDevilView`.
+- **UI aufgeräumt:** eine Header-Zeile (links Info, rechts „Neu"/„Meisterkarten"),
+  „Neu" mit Sicherheitsabfrage, Kalibrier-Overlay wieder entfernt, Verlauf füllt die
+  Seitenleiste (`flex:1`).
+- **Layout neu aufgezogen (Flexbox):** App = `100svh`, Brett quadratisch
+  `min(100svh − chrome, 100vw − Seitenleiste)`, oben-links verankert, Seitenleiste
+  fix 320px. Kollidierende Inline-Styles entfernt (u. a. Header `flex-wrap`).
+
+### Offene Punkte / bewusst für die nächste Session vertagt
+
+1. **Kartenvorderseiten-Rendering überarbeiten (Priorität lt. User).** Die aktuelle
+   Darstellung gefällt noch nicht. Betroffen: `packages/client/src/ui/cardArtwork.tsx`.
+   - Vorhandene Assets in `cards/`: `1-13.png` (Sprite: links=1, rechts=13),
+     `4.png`, `tactac.png`, `engel.png`, `krieger.png`, `narr.png`, `background.png`
+     (Rücken; wird aktuell auch als Teufel-Platzhalter genutzt).
+   - Für alle **übrigen** Zahlenkarten (2,3,5,6,7,8,9,10,12) sowie Trickser gibt es
+     KEIN Bild → Text-Fallback (`CardArtwork`, `artwork == null`). Ziel: einheitliche,
+     schön gestaltete Vorderseiten (entweder echte Bilder liefern/erzeugen oder ein
+     konsistentes gezeichnetes Design statt reinem Text-Fallback).
+   - `CardArtwork` nutzt für 1/13 ein 200%-Sprite mit `translateX(-50%)`.
+2. **Kleine Layout-Restpunkte (niedrige Prio, „später"):**
+   - In einer **Zwischengröße** bleibt noch eine **vertikale Scrollbar** (soweit ok,
+     aber nicht ideal) – Chrome-Abzug `100svh − 110px` in `styles.css` ggf. justieren.
+   - Evtl. ein kleiner **Rand** ums Brett in einer bestimmten Zwischengröße.
+   - Der **„Meisterkarten"-Button** wird in einem bestimmten Breitenbereich
+     abgeschnitten (Header `overflow:hidden` + `nowrap`). Fix: Header umbrechen
+     lassen ODER Buttons/Info bei Platzmangel kürzen/umbrechen, ohne die Brett-Höhen-
+     rechnung springen zu lassen (ggf. Chrome-Höhe dynamisch statt fixem Abzug).
 
 ---
 

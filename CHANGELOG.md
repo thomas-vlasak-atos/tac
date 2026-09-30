@@ -7,6 +7,13 @@ Versionierung nach [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+> **Offen für die nächste Session** (Details in `docs/STATUS.md` §0):
+> - **Kartenvorderseiten-Rendering** überarbeiten (`ui/cardArtwork.tsx`) – gefällt
+>   noch nicht; für 2,3,5,6,7,8,9,10,12 und Trickser fehlen Bilder (Text-Fallback).
+> - Kleine Layout-Reste: vertikale Scrollbar in einer Zwischengröße, evtl. Rand ums
+>   Brett, „Meisterkarten"-Button wird in einem Breitenbereich abgeschnitten
+>   (Header `nowrap`/`overflow:hidden`).
+
 ### Changed
 - **Seitenleiste bleibt konstant hoch:** Der Verlauf füllt im Querformat den
   restlichen Platz der Seitenleiste (`flex: 1`) und scrollt intern. Dadurch bleibt
