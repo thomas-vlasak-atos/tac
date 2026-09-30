@@ -19,12 +19,14 @@ Versionierung nach [Semantic Versioning](https://semver.org/lang/de/).
 - **„Neu" mit Sicherheitsabfrage:** Ein Reset des Spiels fragt nun vorher nach.
 
 ### Fixed
-- **Kein Layout-Sprung mehr (auch bei ~1122px) / Brett nie zu groß:** Die Brettgröße
-  wird jetzt DIREKT als `min(verfügbare Höhe, verfügbare Breite)` bemessen (quadratisch
-  über `aspect-ratio`), statt über eine `height:100%`-Kette, die bei bestimmten Breiten
-  versagte und das Brett überdimensionierte (Seitenleiste halb abgeschnitten). Der
-  Header wird im Querformat einzeilig gehalten, damit die abgezogene Chrome-Höhe
-  konstant bleibt und nichts springt. Brett oben ausgerichtet.
+- **Layout sauber neu aufgezogen (keine Sprünge, keine Scrollbar, Seitenleiste
+  immer sichtbar):** Kollidierende Inline-Styles (u. a. `flex-wrap` am Header)
+  entfernt und das gesamte Layout ins CSS verlagert. Desktop/Querformat nutzt ein
+  einziges Flex-Modell: App = 100svh ohne Scroll, Header (einzeilig, feste Höhe),
+  darunter Brett (oben-links verankert) + Seitenleiste (feste 320px). Die Brettgröße
+  ist `min(100svh − Chrome, 100vw − Seitenleiste)`, quadratisch. Dadurch entfallen
+  die Sprünge bei ~1022/1038/1122px, die Feldnummern-Checkbox bleibt linksbündig,
+  und die zweite Spalte wird nie mehr verdeckt.
 
 ### Removed
 - **Kalibrier-Overlay entfernt:** Das temporäre Debug-Overlay (Vorfeld-Kreis /

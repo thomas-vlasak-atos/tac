@@ -1,124 +1,117 @@
 /* ===========================================================================
-   Layout-Modell
-   - Standard (schmal/Hochformat): normaler Fluss, darf vertikal scrollen.
-   - Querformat mit genug Breite: die App füllt genau eine Bildschirmhöhe
-     (100svh) OHNE Scrollbar; das quadratische Brett nutzt den maximal
-     verfügbaren Platz (min aus verfügbarer Breite und Höhe).
+   Layout-Modell (bewusst einfach, ohne springende Umschaltpunkte)
+
+   Grundprinzip für Desktop/Querformat (>= 901px):
+   - Die App füllt genau eine Bildschirmhöhe (100svh) und scrollt NICHT.
+   - Aufbau vertikal: Header (feste Höhe) + Spielbereich (Rest).
+   - Der Spielbereich ist eine Flex-Zeile: Brett (links) + Seitenleiste (rechts).
+   - Das Brett ist quadratisch und so groß wie der KLEINERE Wert aus verfügbarer
+     Höhe und einem Anteil der Breite. Es ist oben-links verankert (kein Springen
+     zwischen „oben" und „zentriert").
+   - Die Seitenleiste hat feste Breite und füllt die Höhe; der Verlauf wächst.
+
+   Schmal/mobil (<= 900px):
+   - Einspaltig, normaler Fluss, darf vertikal scrollen.
    =========================================================================== */
 
 .app-shell {
-  overflow-x: hidden;
+  box-sizing: border-box;
+  background: #f1dfc2;
+  color: #4c2a1a;
+  font-family: Georgia, serif;
+}
+
+*,
+*::before,
+*::after {
   box-sizing: border-box;
 }
 
-.game-layout {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 300px;
-  gap: 18px;
-  margin: 12px auto 0;
-  max-width: 1320px;
-  min-width: 0;
+.app-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
 }
 
-.board-column,
-.board-drop-zone,
-.own-hand-panel {
-  min-width: 0;
+.app-title {
+  margin: 0;
+  letter-spacing: 2px;
+  font-size: 26px;
+  flex: 0 0 auto;
 }
 
-/* Standard (schmal/Hochformat): der Verlauf ist auf eine sinnvolle Höhe
-   begrenzt. Im Querformat wird das überschrieben (füllt die Seitenleiste). */
 .history-panel {
   max-height: 320px;
 }
 
-/* Der braune Brettrahmen ist quadratisch und skaliert mit dem Container. */
 .board-frame {
   aspect-ratio: 1 / 1;
 }
 
-.app-header {
-  flex-wrap: wrap;
-}
-
-/* --- Schmal / einspaltig ------------------------------------------------- */
-@media (max-width: 900px) {
-  .game-layout {
-    grid-template-columns: minmax(0, 1fr) !important;
-  }
-
-  .own-hand-panel {
-    margin-top: 12px;
-  }
-}
-
-@media (orientation: portrait) and (max-width: 900px) {
-  .board-drop-zone {
-    width: min(100%, calc(100svh - 350px));
-    margin-inline: auto;
-  }
-}
-
-/* --- Querformat mit genug Breite: eine Bildschirmhöhe, Brett maximal groß -- */
-@media (orientation: landscape) and (min-width: 901px) {
+/* --- Desktop / Querformat: eine Bildschirmhöhe, kein Scrollen -------------- */
+@media (min-width: 901px) {
   .app-shell {
-    /* Konstante Header-Höhe (einzeilig, siehe .app-header unten), damit die
-       Board-Höhe (100svh − header) NICHT springt. */
-    --chrome-h: 76px;
     height: 100svh;
     overflow: hidden;
     display: flex;
     flex-direction: column;
+    padding: 10px clamp(12px, 3vw, 36px);
   }
 
-  /* Header einzeilig halten, damit die Chrome-Höhe konstant bleibt. */
+  /* Header einzeilig, damit seine Höhe konstant bleibt. */
   .app-header {
+    flex: 0 0 auto;
     flex-wrap: nowrap;
     white-space: nowrap;
     overflow: hidden;
   }
 
+  /* Spielbereich: füllt die Resthöhe, Brett + Seitenleiste nebeneinander,
+     als Ganzes horizontal zentriert. */
   .game-layout {
     flex: 1 1 auto;
     min-height: 0;
-    align-items: start;
-    grid-template-columns: auto 300px;
+    display: flex;
+    flex-direction: row;
     justify-content: center;
-    width: 100%;
+    align-items: flex-start;
+    gap: 18px;
+    margin-top: 12px;
   }
 
+  /* Brett-Spalte: so breit wie das Brett. */
   .board-column {
+    flex: 0 0 auto;
     display: flex;
     flex-direction: column;
-    align-items: center;
-    justify-content: flex-start;
+    align-items: flex-start; /* Checkbox unter dem Brett bleibt linksbündig */
     min-height: 0;
+    height: 100%;
   }
 
+  /* Das Brett direkt bemessen: quadratisch, kleinerer Wert aus verfügbarer Höhe
+     (100svh − Chrome) und einem Anteil der Breite. Chrome = Header + Ränder +
+     Checkbox-Zeile. Ein einziger, konstanter Abzug → kein Sprung. */
   .board-drop-zone {
-    display: flex;
-    align-items: flex-start;
-    justify-content: center;
-    min-height: 0;
+    flex: 0 0 auto;
   }
 
-  /* Brett-Größe DIREKT bemessen: quadratisch, so groß wie der kleinere Wert aus
-     verfügbarer Höhe (100svh − Chrome) und verfügbarer Breite (100vw − Seiten-
-     leiste). Keine height:100%-Kette → kein Sprung, kein Überlauf. */
   .board-drop-zone .board-frame {
-    width: min(calc(100svh - var(--chrome-h)), calc(100vw - 340px));
+    width: min(calc(100svh - 110px), calc(100vw - 360px));
     height: auto;
   }
 
+  /* Seitenleiste: feste Breite, füllt die Höhe. */
   .side-panel {
-    max-height: calc(100svh - var(--chrome-h));
+    flex: 0 0 320px;
+    width: 320px;
+    height: 100%;
     min-height: 0;
     display: flex;
     flex-direction: column;
   }
 
-  /* Der Verlauf füllt den Rest der Seitenleiste und scrollt intern, damit die
-     Seitenleiste immer gleich hoch (= Bretthöhe) bleibt. */
+  /* Der Verlauf füllt den Rest der Seitenleiste und scrollt intern. */
   .side-panel .history-panel {
     flex: 1 1 auto;
     min-height: 0;
@@ -142,19 +135,49 @@
   }
 }
 
+/* --- Schmal / einspaltig (<= 900px): normaler Fluss mit Scroll ------------- */
+@media (max-width: 900px) {
+  .app-shell {
+    min-height: 100svh;
+    padding: 10px clamp(12px, 3vw, 36px);
+  }
+
+  .app-header {
+    flex-wrap: wrap;
+  }
+
+  .game-layout {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 12px;
+  }
+
+  .board-column {
+    position: relative;
+    width: 100%;
+  }
+
+  .board-drop-zone {
+    width: 100%;
+  }
+
+  .side-panel {
+    width: 100%;
+  }
+}
+
+@media (orientation: portrait) and (max-width: 900px) {
+  .board-drop-zone {
+    width: min(100%, calc(100svh - 350px));
+    margin-inline: auto;
+  }
+}
+
 /* --- Sehr schmal / mobil ------------------------------------------------- */
 @media (max-width: 560px) {
-  .app-shell {
-    padding-top: 12px !important;
-    padding-bottom: 16px !important;
-  }
-
   .app-header h1 {
     font-size: 26px;
-  }
-
-  .app-header span {
-    width: 100%;
   }
 
   .hand-cards {

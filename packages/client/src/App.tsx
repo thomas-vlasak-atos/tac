@@ -113,9 +113,9 @@ export function App() {
   };
 
   return (
-    <div className="app-shell" style={{ background: "#f1dfc2", color: "#4c2a1a", fontFamily: "Georgia, serif", padding: "10px clamp(12px, 3vw, 36px)" }}>
-      <header className="app-header" style={{ display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap" }}>
-        <h1 style={{ margin: 0, letterSpacing: 2, fontSize: 26 }}>TAC <span style={{ color: "#9b5c31" }}>ONLINE</span></h1>
+    <div className="app-shell">
+      <header className="app-header">
+        <h1 className="app-title">TAC <span style={{ color: "#9b5c31" }}>ONLINE</span></h1>
         <span style={{ color: "#765234", fontFamily: "system-ui", fontSize: 13 }}>
           Raum <strong>{join.roomId}</strong>
           {seat != null ? (
