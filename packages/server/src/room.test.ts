@@ -267,6 +267,22 @@ describe("partner trade phase", () => {
     expect(s.hands[0]!.some((c) => c.id === second.id)).toBe(false);
   });
 
+  it("does not let a player offer a new card after the partner claimed theirs", () => {
+    // Sitz 0 bietet an, der Partner (Sitz 2) nimmt die Karte. Danach darf Sitz 0
+    // in dieser Runde kein neues Angebot mehr machen.
+    let s = dealCards(createInitialState({ rng: seededRng(8) }), 5);
+    s = offerCardToPartner(s, 0, s.hands[0]![0]!.id);
+    // Der Partner muss selbst angeboten haben, um nehmen zu dürfen.
+    s = offerCardToPartner(s, 2, s.hands[2]![0]!.id);
+    const offerFromZero = s.tradeOffers.find((o) => o.from === 0)!;
+    s = claimTradeOffer(s, 2, offerFromZero.id);
+    expect(s.tradeOffers.find((o) => o.from === 0)!.claimed).toBe(true);
+    // Neues Angebot von Sitz 0 wird ignoriert (Zustand unverändert).
+    const before = s;
+    s = offerCardToPartner(s, 0, s.hands[0]![0]!.id);
+    expect(s).toBe(before);
+  });
+
   it("resets trade state on the next deal", () => {
     let s = dealCards(createInitialState({ rng: seededRng(8) }), 5);
     s = offerCardToPartner(s, 0, s.hands[0]![0]!.id);

@@ -307,6 +307,8 @@ export function swapWithPartner(
  * Regeln (freiwilliger Partnertausch, genau 1× pro Runde):
  * - Wer in dieser Runde bereits fertig getauscht hat (`tradeDone`), darf kein
  *   neues Angebot mehr machen.
+ * - Hat der Partner die eigene Karte bereits genommen (eigenes Angebot mit
+ *   `claimed`), ist der Tausch von dieser Seite abgeschlossen: kein neues Angebot.
  * - Solange der Partner das eigene Angebot NOCH NICHT genommen hat, ersetzt ein
  *   neues Angebot das alte: die zuvor angebotene Karte kommt zurück auf die
  *   Hand, die neue Karte liegt bereit. So kann man vor dem Zugriff des Partners
@@ -318,6 +320,11 @@ export function offerCardToPartner(
   cardId: string,
 ): GameState {
   if (state.tradeDone.includes(seat)) return state;
+  // Hat der Partner die eigene, zuvor angebotene Karte bereits genommen, ist der
+  // Tausch von dieser Seite abgeschlossen: kein weiteres Angebot in dieser Runde.
+  if (state.tradeOffers.some((item) => item.from === seat && item.claimed)) {
+    return state;
+  }
   const partner = partnerSeat(seat);
   const card = state.hands[seat]?.find((item) => item.id === cardId);
   if (!card) return state;

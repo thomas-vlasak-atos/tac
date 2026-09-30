@@ -8,6 +8,12 @@ Versionierung nach [Semantic Versioning](https://semver.org/lang/de/).
 ## [Unreleased]
 
 ### Changed
+- **Kein neues Partnerangebot mehr, sobald der Partner die Karte genommen hat
+  (REQ-BOARD K3a/K5):** Hat der Partner die eigene angebotene Karte bereits
+  genommen (`offer.claimed`), ist der Tausch von dieser Seite abgeschlossen.
+  `offerCardToPartner` lehnt weitere Angebote in dieser Runde ab; im Client sind
+  die Handkarten in der Tauschphase dann deaktiviert (kein Klick mehr möglich),
+  mit erklärendem Hinweistext. Test ergänzt.
 - **Kartenbedienung: ein Klick statt Zwischenschritt (REQ-BOARD K3a):** Ein Klick auf
   eine Handkarte löst direkt die phasenabhängige Aktion aus – in der **Tauschphase**
   wird die Karte dem Partner verdeckt angeboten (`OfferCardToPartner`), in der

@@ -85,6 +85,16 @@ export function App() {
   const tradeDoneCount = state?.tradeDone.length ?? 0;
   const isTradePhase = occupiedSeats > 0 && tradeDoneCount < occupiedSeats;
   const iAmTradeDone = seat != null && (state?.tradeDone.includes(seat) ?? false);
+  // Der Partner hat meine angebotene Karte bereits genommen: dann darf ich in
+  // dieser Runde keine neue Karte mehr anbieten (Tausch ist von meiner Seite
+  // abgeschlossen). Der Server lehnt ein weiteres Angebot ohnehin ab.
+  const myOfferClaimed =
+    seat != null &&
+    (state?.tradeOffers.some((offer) => offer.from === seat && offer.claimed) ??
+      false);
+  // In der Tauschphase ist das Anbieten gesperrt, sobald man selbst getauscht
+  // hat ODER der Partner die eigene Karte bereits genommen hat.
+  const tradeOfferBlocked = iAmTradeDone || myOfferClaimed;
 
   // Was macht ein Klick auf eine Handkarte in der aktuellen Phase?
   const playHandCard = (cardId: string) => {
@@ -200,8 +210,10 @@ export function App() {
               <h3 style={{ margin: "0 0 8px" }}>Deine Handkarten</h3>
               <p style={{ margin: "0 0 8px", fontFamily: "system-ui", fontSize: 12, color: "#8a5a33" }}>
                 {isTradePhase
-                  ? (iAmTradeDone
-                      ? "Tauschphase – du hast bereits getauscht."
+                  ? (tradeOfferBlocked
+                      ? (iAmTradeDone
+                          ? "Tauschphase – du hast bereits getauscht."
+                          : "Tauschphase – dein Partner hat deine Karte genommen.")
                       : "Tauschphase: Karte anklicken = verdeckt an Partner geben.")
                   : "Spielphase: Karte anklicken = in die Mitte ablegen."}
               </p>
@@ -210,7 +222,7 @@ export function App() {
                 compact
                 onPlayCard={playHandCard}
                 actionHint={isTradePhase ? "an Partner" : "ablegen"}
-                disabled={isTradePhase && iAmTradeDone}
+                disabled={isTradePhase && tradeOfferBlocked}
               />
               {iAmTradeDone && (
                 <p style={{ marginTop: 8, fontFamily: "system-ui", fontSize: 12, color: "#8a5a33" }}>

@@ -78,8 +78,9 @@
   Welche Aktion der Klick auslöst, hängt von der **Phase** ab:
   - **Tauschphase** (direkt nach dem Geben, solange noch nicht alle belegten Sitze
     getauscht haben): Ein Klick bietet die Karte dem Partner **verdeckt** an
-    (`OfferCardToPartner`). Wer selbst schon getauscht hat, kann in dieser Phase
-    keine Karte mehr anklicken (deaktiviert).
+    (`OfferCardToPartner`). Das Anklicken ist gesperrt, sobald man selbst getauscht
+    hat **oder** der Partner die zuvor angebotene eigene Karte bereits genommen hat
+    (der Tausch ist von dieser Seite abgeschlossen).
   - **Spielphase** (sobald **alle** belegten Sitze in `tradeDone` sind): Ein Klick
     legt die Karte offen in die **Mitte** (`PlayCard`).
   - Die Phase wird aus `tradeDone` abgeleitet (Tauschphase = Anzahl `tradeDone`
@@ -109,6 +110,9 @@
   den Partner; Ansicht der erhaltenen Karte erst nach eigener Abgabe. Umsetzung
   (Stand v0.5, „jeder nimmt selbst"):
   - Genau **ein abgeschlossener Tausch pro Runde** (wird beim Geben zurückgesetzt).
+    Hat der Partner die eigene angebotene Karte **genommen**, ist der Tausch von
+    dieser Seite abgeschlossen: es kann **kein neues Angebot** mehr gemacht werden
+    (server- und clientseitig gesperrt).
   - Solange der Partner die angebotene Karte **noch nicht genommen** hat, kann man
     das Angebot **zurücknehmen** (Karte zurück auf die Hand) oder durch das Anbieten
     einer **anderen** Karte ersetzen. Sobald man jedoch **selbst** die Partnerkarte
