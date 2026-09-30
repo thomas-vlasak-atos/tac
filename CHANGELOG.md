@@ -8,10 +8,11 @@ Versionierung nach [Semantic Versioning](https://semver.org/lang/de/).
 ## [Unreleased]
 
 ### Added
-- **Spielernamen am Brett (REQ-BOARD B9):** An der Ecke jedes Spielers (bei dessen
-  Vorfeld) erscheint ein Namensschild in der Spielerfarbe. Die Schilder sind gegen
-  die Brettdrehung ausgerichtet und daher immer waagerecht lesbar; das eigene
-  Schild ist hervorgehoben (heller Rand, fetter Text). Rein visuell.
+- **Spielernamen im Vorfeld (REQ-BOARD B9):** Der Name jedes Spielers steht in Weiß
+  (mit dunklem Kontursaum) in seinem Vorfeld hinter den Kugeln; darunter klein die
+  Handkartenzahl und – falls zutreffend – „Geber". Die Texte sind gegen die
+  Brettdrehung ausgerichtet und daher immer waagerecht lesbar; der eigene Name ist
+  größer. Das separate „Sitzplätze"-Panel in der Seitenleiste entfällt dadurch.
 
 ### Changed
 - **Partnertausch-Bereich verschoben und nach eigenem Tausch ausgeblendet:** Der

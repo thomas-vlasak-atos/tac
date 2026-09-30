@@ -65,11 +65,13 @@
   erscheint (wie am echten Tisch). Rein visuell (Rotation der Darstellung um den
   Mittelpunkt anhand des eigenen `seat`); die Spielpositionen selbst ändern sich
   nicht. Zusätzlich der eigene Sitzplatz/Farbe deutlich markiert.
-- **B9 – Spielernamen am Brett:** An der Ecke jedes Spielers (bei dessen Vorfeld)
-  wird ein **Namensschild** in seiner Spielerfarbe gezeichnet. Die Schilder werden
-  entgegen der Brettdrehung ausgerichtet, sodass alle vier Namen **immer waagerecht
-  lesbar** bleiben. Das Schild des eigenen Sitzes ist zusätzlich hervorgehoben
-  (heller Rand, fetter Text). Rein visuell.
+- **B9 – Spielernamen im Vorfeld:** Im **Vorfeld** jedes Spielers (hinter dessen
+  Kugeln) wird sein **Name in Weiß** mit dunklem Kontursaum angezeigt, darunter
+  klein **Handkartenzahl** und – falls zutreffend – die Kennzeichnung **„Geber"**.
+  Kugeln/Karten liegen davor (der Name darf teilweise verdeckt sein, bleibt aber
+  lesbar). Der Text wird gegen die Brettdrehung ausgerichtet, sodass alle Namen
+  **immer waagerecht lesbar** bleiben. Der eigene Name ist größer dargestellt.
+  Ersetzt das separate „Sitzplätze"-Panel in der Seitenleiste. Rein visuell.
 
 ## 4. Karten (digital verwaltet)
 

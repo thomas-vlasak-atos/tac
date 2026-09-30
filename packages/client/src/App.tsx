@@ -11,7 +11,6 @@ import { COLOR_LABEL } from "./board/colors.js";
 import { useTacSocket } from "./net/useTacSocket.js";
 import { Hand } from "./ui/Hand.js";
 import { HistoryPanel } from "./ui/HistoryPanel.js";
-import { CardBack } from "./ui/CardBack.js";
 import { CardArtwork } from "./ui/cardArtwork.js";
 import { type JoinInfo, JoinScreen } from "./ui/JoinScreen.js";
 import { MasterCardsHelp } from "./ui/MasterCardsHelp.js";
@@ -164,6 +163,8 @@ export function App() {
                 <Board
                   balls={state.balls}
                   players={state.players}
+                  handCounts={state.handCounts}
+                  dealer={state.dealer}
                   lastBallMove={state.lastBallMove}
                   showFieldNumbers={showFieldNumbers}
                   discardEntries={state.discardEntries}
@@ -233,7 +234,6 @@ export function App() {
                 </div>
               </div>
             )}
-            <div style={{ padding: 12, borderRadius: 12, background: "#ead0a8", color: "#6b3d22", fontFamily: "system-ui", fontSize: 13 }}><strong>Sitzplätze</strong>{state.players.map((player, index) => <div key={index} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8, marginTop: 8 }}><span>Platz {index + 1}: {player ? `${player.name} (${COLOR_LABEL[player.color]})` : "frei"}{player && !player.connected ? " – getrennt" : ""}</span>{player && index !== seat && <CardBack count={state.handCounts[index] ?? 0} />}</div>)}</div>
             <div style={{ marginTop: 12, padding: 12, borderRadius: 12, background: "#f5e5c8", color: "#6b3d22", fontFamily: "system-ui", fontSize: 13 }}><strong>Meisteraktionen</strong><div style={{ marginTop: 8, display: "grid", gap: 6 }}>{seat != null && state.players[(seat + 1) % 4] ? <button type="button" onClick={() => send({ type: "RequestDevilView", target: ((seat + 1) % 4) as Seat })}>Teufel: Hand von {state.players[(seat + 1) % 4]?.name} ansehen</button> : null}<button type="button" onClick={() => send({ type: "PassHandsRight" })}>Narr: alle Hände weitergeben</button></div></div>
             {state.devilRequests.map((request) => request.target === seat && !request.approved ? <div key={request.id} style={{ marginTop: 12, padding: 12, borderRadius: 12, background: "#fff0c9", border: "2px solid #bb7a38", fontFamily: "system-ui", fontSize: 13 }}>Ein Spieler möchte deine Karten für den Teufel ansehen.<button type="button" onClick={() => send({ type: "ApproveDevilView", requestId: request.id })} style={{ display: "block", marginTop: 8 }}>Erlauben</button></div> : null)}
             {state.devilRequests.map((request) => request.controller === seat && request.approved && request.visibleCards ? <div key={request.id} style={{ marginTop: 12, padding: 12, borderRadius: 12, background: "#ead0a8", fontFamily: "system-ui", fontSize: 13 }}><strong>Teufel-Hand</strong><div style={{ display: "flex", gap: 5, flexWrap: "wrap", marginTop: 8 }}>{request.visibleCards.map((card) => <button key={card.id} type="button" onClick={() => send({ type: "PlayForeignCard", requestId: request.id, cardId: card.id })} style={{ width: 52, padding: 2, background: "#fff8e7", border: "1px solid #a56b3d" }}><CardArtwork card={card} compact /></button>)}</div></div> : null)}

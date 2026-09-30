@@ -69,6 +69,8 @@ function nearestTarget(point: Point, geo: BoardGeometry): BallPosition {
 export interface BoardProps {
   balls: Ball[];
   players?: (Player | null)[];
+  handCounts?: number[];
+  dealer?: Seat;
   lastBallMove?: { ballId: string; from: BallPosition; to: BallPosition } | null;
   showFieldNumbers?: boolean;
   discardEntries?: DiscardEntry[];
@@ -80,7 +82,7 @@ export interface BoardProps {
 
 interface DragState { ballId: string; current: Point; moved: boolean; from: BallPosition }
 
-export function Board({ balls, players = [], lastBallMove = null, showFieldNumbers = false, discardEntries = [], onMoveBall, onReturnCard, ownSeat, size = 760 }: BoardProps) {
+export function Board({ balls, players = [], handCounts = [], dealer, lastBallMove = null, showFieldNumbers = false, discardEntries = [], onMoveBall, onReturnCard, ownSeat, size = 760 }: BoardProps) {
   const geo = defaultGeometry(1024);
   const [drag, setDrag] = useState<DragState | null>(null);
   const positions = computeBallPositions(balls, geo);
@@ -132,34 +134,36 @@ export function Board({ balls, players = [], lastBallMove = null, showFieldNumbe
           {Array.from({ length: CIRCLE_FIELD_COUNT }, (_, index) => { const point = circleFieldPosition(index, geo); const source = drag?.from.kind === "FELD" && drag.from.index === index; const lastFrom = lastBallMove?.from.kind === "FELD" && lastBallMove.from.index === index; const lastTo = lastBallMove?.to.kind === "FELD" && lastBallMove.to.index === index; return <g key={`field-${index}`}><circle cx={point.x} cy={point.y} r={geo.fieldRadius * (lastFrom || lastTo ? 1.9 : 1.45)} fill={lastFrom ? "#e7a928" : lastTo ? "#f7e28b" : "transparent"} opacity=".72" /><circle cx={point.x} cy={point.y} r={geo.fieldRadius + (source ? 5 : 0)} fill={source ? "#fff1a8" : "transparent"} stroke={lastFrom || lastTo ? "#fff2b0" : "transparent"} strokeWidth={source ? 5 : lastFrom || lastTo ? 4 : 2} />{showFieldNumbers && <text x={point.x} y={point.y + 4} textAnchor="middle" fill="#4b3a2b" fontSize="9" fontFamily="system-ui" fontWeight="700">{index}</text>}</g>; })}
           {SEATS.map((seat) => <g key={`house-${seat}`}>{housePositions(seat, geo).map((point, slot) => { const source = drag?.from.kind === "HAUS" && drag.from.owner === seat && drag.from.slot === slot; const lastFrom = lastBallMove?.from.kind === "HAUS" && lastBallMove.from.owner === seat && lastBallMove.from.slot === slot; const lastTo = lastBallMove?.to.kind === "HAUS" && lastBallMove.to.owner === seat && lastBallMove.to.slot === slot; return <circle key={`house-${seat}-${slot}`} cx={point.x} cy={point.y} r={geo.fieldRadius + (source ? 5 : lastFrom || lastTo ? 3 : 0)} fill={source ? "#fff1a8" : lastFrom ? "#e7a928" : lastTo ? "#f7e28b" : "transparent"} stroke={lastFrom || lastTo ? "#fff2b0" : "transparent"} strokeWidth={source ? 5 : lastFrom || lastTo ? 4 : 2.5} />; })}</g>)}
            {SEATS.map((seat) => <g key={`vorfeld-${seat}`}>{Array.from({ length: BALLS_PER_PLAYER }, (_, slot) => { const point = vorfeldBallPosition(seat, slot, geo); const ballId = `${COLOR_BY_SEAT_LOCAL[seat]}-${slot}`; const source = drag?.ballId === ballId && drag.from.kind === "VORFELD"; const lastFrom = lastBallMove?.ballId === ballId && lastBallMove.from.kind === "VORFELD"; const lastTo = lastBallMove?.ballId === ballId && lastBallMove.to.kind === "VORFELD"; return <circle key={`vorfeld-${seat}-${slot}`} cx={point.x} cy={point.y} r={geo.fieldRadius + (source ? 5 : lastFrom || lastTo ? 3 : 0)} fill={source ? "#fff1a8" : lastFrom ? "#e7a928" : lastTo ? "#f7e28b" : "transparent"} stroke={lastFrom || lastTo ? "#fff2b0" : BALL_STROKE[COLOR_BY_SEAT_LOCAL[seat]]} strokeDasharray={lastFrom || lastTo ? undefined : "5 4"} strokeWidth={source ? 5 : lastFrom || lastTo ? 4 : 2.5} />; })}</g>)}
+          {/* Spielernamen INS Vorfeld, hinter Kugeln/Karten. Der Text wird lokal
+              gegen die Brettdrehung gedreht, damit alle Namen waagerecht lesbar
+              bleiben (auch bei Gegnern). Weiß, mit dunklem Kontursaum. */}
+          {SEATS.map((seat) => {
+            const player = players[seat];
+            if (!player) return null;
+            const c = vorfeldCenter(seat, geo);
+            const isOwn = seat === ownSeat;
+            const isDealer = dealer === seat;
+            const rawName = player.name.length > 12 ? `${player.name.slice(0, 11)}…` : player.name;
+            const count = handCounts[seat];
+            const meta = [count != null ? `${count} Karten` : null, isDealer ? "Geber" : null].filter(Boolean).join(" · ");
+            // Text vom Vorfeld-Zentrum in Richtung Brettmitte versetzen, damit er
+            // über den Kugeln „ins Feld" ragt statt aus dem Bild zu laufen.
+            const toCenter = { x: geo.center.x - c.x, y: geo.center.y - c.y };
+            const len = Math.hypot(toCenter.x, toCenter.y) || 1;
+            const nx = toCenter.x / len;
+            const ny = toCenter.y / len;
+            const nameAt = { x: c.x + nx * geo.fieldRadius * 3.1, y: c.y + ny * geo.fieldRadius * 3.1 };
+            const metaAt = { x: c.x + nx * geo.fieldRadius * 1.4, y: c.y + ny * geo.fieldRadius * 1.4 };
+            return (
+              <g key={`vfname-${seat}`} transform={`rotate(${-rotation} ${c.x} ${c.y})`} style={{ pointerEvents: "none" }}>
+                <text x={nameAt.x} y={nameAt.y} textAnchor="middle" fill="#fff" stroke="#2b1a0e" strokeWidth={3.2} paintOrder="stroke" fontSize={isOwn ? 26 : 22} fontFamily="Georgia, serif" fontWeight={700} opacity={0.96}>{rawName}</text>
+                {meta && <text x={metaAt.x} y={metaAt.y} textAnchor="middle" fill="#fff" stroke="#2b1a0e" strokeWidth={2.4} paintOrder="stroke" fontSize={14} fontFamily="system-ui" fontWeight={700} opacity={0.95}>{meta}</text>}
+              </g>
+            );
+          })}
           {topCards.map((entry) => <g key={entry.card.id} transform={`translate(${geo.center.x + entry.offset * 5} ${geo.center.y + entry.offset * 4}) rotate(${entry.rotation} 0 0)`}><rect x={-35} y={-48} width={70} height={96} rx={8} fill="#fffaf0" stroke={BALL_STROKE[COLOR_BY_SEAT_LOCAL[entry.actor]]} strokeWidth="4" filter="url(#shadow)" /><foreignObject x={-31} y={-43} width={62} height={72}><CardArtwork card={entry.card} compact /></foreignObject><text x="0" y="38" textAnchor="middle" fill={BALL_STROKE[COLOR_BY_SEAT_LOCAL[entry.actor]]} fontSize="9">{COLOR_LABEL[COLOR_BY_SEAT_LOCAL[entry.actor]]}</text><title>{cardLabel(entry.card)} von {COLOR_LABEL[COLOR_BY_SEAT_LOCAL[entry.actor]]}. Zum Zurücknehmen unten nutzen.</title></g>)}
           {balls.map((ball) => { const isDragged = drag?.ballId === ball.id; const point = isDragged && drag.moved ? drag.current : positions.get(ball.id) ?? geo.center; return <g key={ball.id} onPointerDown={(event) => handleDown(event, ball)} style={{ cursor: "grab" }}><circle cx={point.x} cy={point.y} r={geo.fieldRadius * 1.03} fill={`url(#marble-${ball.owner})`} stroke={isDragged ? "#fff7cf" : BALL_STROKE[ball.color]} strokeWidth={isDragged ? 5 : 2.5} filter="url(#shadow)" /><circle cx={point.x - 5} cy={point.y - 6} r={geo.fieldRadius * .2} fill="#fff" opacity=".7" /></g>; })}
         </g>
-        {/* Spieler-Namensschilder an den Vorfeld-Ecken. Sie liegen AUSSERHALB der
-            gedrehten Gruppe, damit die Namen immer waagerecht lesbar bleiben; die
-            Position wird jedoch in den gedrehten Bildschirmraum überführt, sodass
-            das Schild bei der eigenen Perspektive unten bei der eigenen Ecke sitzt. */}
-        {SEATS.map((seat) => {
-          const player = players[seat];
-          if (!player) return null;
-          const anchor = rotatePoint(vorfeldCenter(seat, geo), rotation);
-          const color = COLOR_BY_SEAT_LOCAL[seat];
-          const isOwn = seat === ownSeat;
-          // Schild leicht nach außen (zum Bildrand) versetzen, weg von den Kugeln.
-          const pushX = anchor.x < geo.center.x ? -geo.fieldRadius * 2.2 : geo.fieldRadius * 2.2;
-          const labelX = anchor.x + pushX;
-          const labelY = anchor.y < geo.center.y ? anchor.y - geo.fieldRadius * 3.4 : anchor.y + geo.fieldRadius * 3.4;
-          const name = player.name.length > 14 ? `${player.name.slice(0, 13)}…` : player.name;
-          const width = Math.max(70, name.length * 12 + 28);
-          return (
-            <g key={`nameplate-${seat}`} transform={`translate(${labelX} ${labelY})`}>
-              <rect x={-width / 2} y={-16} width={width} height={32} rx={16}
-                fill={BALL_FILL[color]} stroke={isOwn ? "#fff7cf" : BALL_STROKE[color]} strokeWidth={isOwn ? 3.5 : 2} filter="url(#shadow)" opacity={0.96} />
-              <text x={0} y={5} textAnchor="middle" fill="#1c1208" fontSize="15" fontFamily="Georgia, serif" fontWeight={isOwn ? 700 : 600}>{name}</text>
-              <title>{player.name} ({COLOR_LABEL[color]}){isOwn ? " – das bist du" : ""}</title>
-            </g>
-          );
-        })}
       </svg>
       {topCards.length > 0 && onReturnCard && <div style={{ display: "flex", justifyContent: "center", gap: 6, flexWrap: "wrap", marginTop: 8 }}><span style={{ color: "#f5d3a0", fontSize: 12 }}>Ablage:</span>{topCards.map((entry) => <button key={`return-${entry.card.id}`} type="button" onClick={() => onReturnCard(entry.card.id)} style={{ background: "#f8e5c4", border: 0, borderRadius: 5, color: "#5b321e", padding: "3px 7px", cursor: "pointer" }}>↩ {cardLabel(entry.card)}</button>)}</div>}
     </div>
