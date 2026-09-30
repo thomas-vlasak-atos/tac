@@ -39,6 +39,14 @@
 }
 
 @media (orientation: landscape) and (min-width: 901px) {
+  /* Das Brett ist quadratisch; im Querformat die Breite an die verfügbare Höhe
+     koppeln, damit es NICHT höher als der Viewport wird (keine vertikale
+     Scrollbar). Der Abzug deckt Kopfzeile, Steuerzeile und Ränder ab. */
+  .board-drop-zone {
+    width: min(100%, calc(100svh - 140px));
+    margin-inline: auto;
+  }
+
   .own-hand-panel .hand-cards-compact {
     display: grid !important;
     grid-template-columns: repeat(2, minmax(0, 1fr));

@@ -8,6 +8,23 @@ Versionierung nach [Semantic Versioning](https://semver.org/lang/de/).
 ## [Unreleased]
 
 ### Changed
+- **Kompaktere Steuerzeile über dem Brett:** „Neu"-Button, Startspieler und
+  Verbindungsstatus stehen jetzt in einer Zeile; die separate Reststapel-Textzeile
+  entfällt (die Anzahl steht am Nachziehstapel). Der Verbindungsstatus wurde aus der
+  großen Kopfzeile entfernt.
+- **„Neu" mit Sicherheitsabfrage:** Ein Reset des Spiels fragt nun vorher nach.
+
+### Fixed
+- **Keine Scrollbar mehr im Querformat:** Das quadratische Brett wird im Querformat
+  an die verfügbare Viewport-Höhe gekoppelt, sodass keine vertikale Scrollbar mehr
+  entsteht.
+
+### Removed
+- **Kalibrier-Overlay entfernt:** Das temporäre Debug-Overlay (Vorfeld-Kreis /
+  Brett-Rahmen) und seine Checkbox wurden nach abgeschlossener Kalibrierung
+  entfernt.
+
+### Changed
 - **Kalibrierbare Kartengeometrie am Brett:** Kartenanzahl-Anzeige und Nachziehstapel
   werden nun exakt ins freie Feld zwischen dem **Vorfeld-Außenkreis** und der
   **Brett-Rahmenlinie** gelegt – mit **gleichem Abstand** (`GAP`) zu beiden Linien.

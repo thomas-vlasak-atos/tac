@@ -60,7 +60,6 @@ export function App() {
   const { status, state, seat, error, send } = useTacSocket(serverUrl());
   const [joined, setJoined] = useState(false);
   const [showFieldNumbers, setShowFieldNumbers] = useState(false);
-  const [showCalibration, setShowCalibration] = useState(false);
   const [showMasterHelp, setShowMasterHelp] = useState(false);
 
   // Nach Verbindungsaufbau automatisch beitreten (einmalig).
@@ -75,6 +74,14 @@ export function App() {
 
   const moveBall = (ballId: string, to: BallPosition) =>
     send({ type: "MoveBall", ballId, to });
+
+  // „Neu" setzt das ganze Spiel zurück – mit Sicherheitsabfrage, damit niemand
+  // versehentlich die laufende Partie löscht.
+  const handleReset = () => {
+    if (window.confirm("Neues Spiel starten? Der aktuelle Spielstand geht verloren.")) {
+      send({ type: "ResetGame" });
+    }
+  };
 
   // Phasenbegriff (STATUS §4, To-do 2): In der Tauschphase legt ein Klick auf
   // eine Handkarte sie dem Partner vor; in der Spielphase legt er sie ab.
@@ -122,7 +129,6 @@ export function App() {
           ) : (
             "Sitzplatz wird zugewiesen…"
           )}{" "}
-          · Verbindung: {status}
         </span>
         <button
           type="button"
@@ -144,14 +150,12 @@ export function App() {
       ) : (
         <div className="game-layout" style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) 300px", gap: 18, margin: "18px auto 0", maxWidth: 1320 }}>
           <div className="board-column" style={{ position: "relative" }}>
-            <div style={{ display: "flex", gap: 8, marginBottom: 8 }}>
-              <button type="button" onClick={() => send({ type: "ResetGame" })}>
+            <div style={{ display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap", marginBottom: 8, color: "#765234", fontFamily: "system-ui", fontSize: 13 }}>
+              <button type="button" onClick={handleReset}>
                 Neu
               </button>
-            </div>
-            <div style={{ display: "flex", gap: 16, flexWrap: "wrap", marginBottom: 10, color: "#765234", fontFamily: "system-ui", fontSize: 13 }}>
-              <span><strong>Startspieler:</strong> {state.deckHolder == null ? "wer zuerst auf den Stapel klickt" : (state.players[state.deckHolder]?.name ?? "—")}</span>
-              <span><strong>Reststapel:</strong> {state.deckCount} Karten{state.deckShuffleable ? " (leer – erst mischen)" : state.deckActive ? " (bereit zum Geben)" : ""}</span>
+              <span><strong>Startspieler:</strong> {state.deckHolder == null ? "wer zuerst klickt" : (state.players[state.deckHolder]?.name ?? "—")}</span>
+              <span><strong>Verbindung:</strong> {status}</span>
             </div>
 
               <div className="board-drop-zone">
@@ -169,7 +173,6 @@ export function App() {
                   onRequestDevil={(target) => send({ type: "RequestDevilView", target })}
                   lastBallMove={state.lastBallMove}
                   showFieldNumbers={showFieldNumbers}
-                  showCalibration={showCalibration}
                   discardEntries={state.discardEntries}
                   onMoveBall={moveBall}
                   onReturnCard={(cardId) => send({ type: "ReturnCard", cardId })}
@@ -177,7 +180,6 @@ export function App() {
                 />
               </div>
               <label style={{ display: "inline-flex", gap: 6, alignItems: "center", marginTop: 7, color: "#765234", fontFamily: "system-ui", fontSize: 13 }}><input type="checkbox" checked={showFieldNumbers} onChange={(event) => setShowFieldNumbers(event.target.checked)} /> Feldnummern anzeigen</label>
-              <label style={{ display: "inline-flex", gap: 6, alignItems: "center", marginTop: 7, marginLeft: 14, color: "#765234", fontFamily: "system-ui", fontSize: 13 }}><input type="checkbox" checked={showCalibration} onChange={(event) => setShowCalibration(event.target.checked)} /> Kalibrierung (Vorfeld-Kreis / Rahmen)</label>
 
             {/* Teufel-Anfrage: Overlay über dem Spielfeld. Das Ziel entscheidet
                 (erlauben/ablehnen); der Anfrager sieht den Wartestatus und kann

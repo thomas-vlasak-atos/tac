@@ -135,8 +135,6 @@ export interface BoardProps {
   onRequestDevil?: (target: Seat) => void;
   lastBallMove?: { ballId: string; from: BallPosition; to: BallPosition } | null;
   showFieldNumbers?: boolean;
-  /** Debug: zeichnet Vorfeld-Außenkreise und Brett-Rahmenquadrat (Kalibrierung). */
-  showCalibration?: boolean;
   discardEntries?: DiscardEntry[];
   onMoveBall: (ballId: string, to: BallPosition) => void;
   onReturnCard?: (cardId: string) => void;
@@ -146,7 +144,7 @@ export interface BoardProps {
 
 interface DragState { ballId: string; current: Point; moved: boolean; from: BallPosition }
 
-export function Board({ balls, players = [], handCounts = [], deckHolder = null, deckCount = 0, deckActive = false, deckShuffleable = false, onDeal, onShuffle, onRequestDevil, lastBallMove = null, showFieldNumbers = false, showCalibration = false, discardEntries = [], onMoveBall, onReturnCard, ownSeat, size = 760 }: BoardProps) {
+export function Board({ balls, players = [], handCounts = [], deckHolder = null, deckCount = 0, deckActive = false, deckShuffleable = false, onDeal, onShuffle, onRequestDevil, lastBallMove = null, showFieldNumbers = false, discardEntries = [], onMoveBall, onReturnCard, ownSeat, size = 760 }: BoardProps) {
   const geo = defaultGeometry(1024);
   const [drag, setDrag] = useState<DragState | null>(null);
 
@@ -238,27 +236,7 @@ export function Board({ balls, players = [], handCounts = [], deckHolder = null,
         </defs>
         <g>
           <image href={boardImage} x="0" y="0" width={geo.size} height={geo.size} preserveAspectRatio="none" />
-          {/* Kalibrier-Overlay: Vorfeld-Außenkreise (magenta) und das
-              Brett-Rahmenquadrat (cyan). Nur zum Prüfen der Geometrie-Werte
-              `vorfeldOuterRadius` und `boardBorderInset`. */}
-          {showCalibration && (
-            <g style={{ pointerEvents: "none" }}>
-              <rect
-                x={geo.boardBorderInset}
-                y={geo.boardBorderInset}
-                width={geo.size - 2 * geo.boardBorderInset}
-                height={geo.size - 2 * geo.boardBorderInset}
-                rx={geo.size * 0.04}
-                fill="none"
-                stroke="#00e5ff"
-                strokeWidth={2}
-              />
-              {SEATS.map((vs) => {
-                const cc = vorfeldCenter(vs, geo);
-                return <circle key={`cal-${vs}`} cx={cc.x} cy={cc.y} r={geo.vorfeldOuterRadius} fill="none" stroke="#ff00d0" strokeWidth={2} />;
-              })}
-            </g>
-          )}          {/* Laufbahn-Felder: an BILD-Feld `vi` liegt DATEN-Feld `di`. */}
+          {/* Laufbahn-Felder: an BILD-Feld `vi` liegt DATEN-Feld `di`. */}
           {Array.from({ length: CIRCLE_FIELD_COUNT }, (_, vi) => { const di = dataIndex(vi); const point = circleFieldPosition(vi, geo); const source = drag?.from.kind === "FELD" && drag.from.index === di; const lastFrom = lastBallMove?.from.kind === "FELD" && lastBallMove.from.index === di; const lastTo = lastBallMove?.to.kind === "FELD" && lastBallMove.to.index === di; return <g key={`field-${vi}`}><circle cx={point.x} cy={point.y} r={geo.fieldRadius * (lastFrom || lastTo ? 1.9 : 1.45)} fill={lastFrom ? "#e7a928" : lastTo ? "#f7e28b" : "transparent"} opacity=".72" /><circle cx={point.x} cy={point.y} r={geo.fieldRadius + (source ? 5 : 0)} fill={source ? "#fff1a8" : "transparent"} stroke={lastFrom || lastTo ? "#fff2b0" : "transparent"} strokeWidth={source ? 5 : lastFrom || lastTo ? 4 : 2} />{showFieldNumbers && <text x={point.x} y={point.y + 4} textAnchor="middle" fill="#4b3a2b" fontSize="9" fontFamily="system-ui" fontWeight="700">{di}</text>}</g>; })}
           {/* Häuser: an BILD-Sitz `vs` liegt DATEN-Sitz `ds`. */}
           {SEATS.map((vs) => { const ds = dataSeat(vs); return <g key={`house-${vs}`}>{housePositions(vs, geo).map((point, slot) => { const source = drag?.from.kind === "HAUS" && drag.from.owner === ds && drag.from.slot === slot; const lastFrom = lastBallMove?.from.kind === "HAUS" && lastBallMove.from.owner === ds && lastBallMove.from.slot === slot; const lastTo = lastBallMove?.to.kind === "HAUS" && lastBallMove.to.owner === ds && lastBallMove.to.slot === slot; return <circle key={`house-${vs}-${slot}`} cx={point.x} cy={point.y} r={geo.fieldRadius + (source ? 5 : lastFrom || lastTo ? 3 : 0)} fill={source ? "#fff1a8" : lastFrom ? "#e7a928" : lastTo ? "#f7e28b" : "transparent"} stroke={lastFrom || lastTo ? "#fff2b0" : "transparent"} strokeWidth={source ? 5 : lastFrom || lastTo ? 4 : 2.5} />; })}</g>; })}
