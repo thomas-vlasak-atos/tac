@@ -163,6 +163,7 @@ export function App() {
               <div className="board-drop-zone">
                 <Board
                   balls={state.balls}
+                  players={state.players}
                   lastBallMove={state.lastBallMove}
                   showFieldNumbers={showFieldNumbers}
                   discardEntries={state.discardEntries}

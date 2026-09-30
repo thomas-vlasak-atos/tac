@@ -65,6 +65,11 @@
   erscheint (wie am echten Tisch). Rein visuell (Rotation der Darstellung um den
   Mittelpunkt anhand des eigenen `seat`); die Spielpositionen selbst ändern sich
   nicht. Zusätzlich der eigene Sitzplatz/Farbe deutlich markiert.
+- **B9 – Spielernamen am Brett:** An der Ecke jedes Spielers (bei dessen Vorfeld)
+  wird ein **Namensschild** in seiner Spielerfarbe gezeichnet. Die Schilder werden
+  entgegen der Brettdrehung ausgerichtet, sodass alle vier Namen **immer waagerecht
+  lesbar** bleiben. Das Schild des eigenen Sitzes ist zusätzlich hervorgehoben
+  (heller Rand, fetter Text). Rein visuell.
 
 ## 4. Karten (digital verwaltet)
 

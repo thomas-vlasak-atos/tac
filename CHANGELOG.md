@@ -7,6 +7,12 @@ Versionierung nach [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+### Added
+- **Spielernamen am Brett (REQ-BOARD B9):** An der Ecke jedes Spielers (bei dessen
+  Vorfeld) erscheint ein Namensschild in der Spielerfarbe. Die Schilder sind gegen
+  die Brettdrehung ausgerichtet und daher immer waagerecht lesbar; das eigene
+  Schild ist hervorgehoben (heller Rand, fetter Text). Rein visuell.
+
 ### Changed
 - **Partnertausch-Bereich verschoben und nach eigenem Tausch ausgeblendet:** Der
   Partnertausch-Block steht jetzt **unterhalb der eigenen Handkarten** (in der
