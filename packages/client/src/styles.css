@@ -62,55 +62,56 @@
 /* --- Querformat mit genug Breite: eine Bildschirmhöhe, Brett maximal groß -- */
 @media (orientation: landscape) and (min-width: 901px) {
   .app-shell {
+    /* Konstante Header-Höhe (einzeilig, siehe .app-header unten), damit die
+       Board-Höhe (100svh − header) NICHT springt. */
+    --chrome-h: 76px;
     height: 100svh;
     overflow: hidden;
     display: flex;
     flex-direction: column;
   }
 
+  /* Header einzeilig halten, damit die Chrome-Höhe konstant bleibt. */
+  .app-header {
+    flex-wrap: nowrap;
+    white-space: nowrap;
+    overflow: hidden;
+  }
+
   .game-layout {
     flex: 1 1 auto;
     min-height: 0;
     align-items: start;
-    /* Board-Spalte nur so breit wie das Brett (auto), Seitenleiste 300px.
-       Zusammen zentriert, damit die Handkarten direkt neben dem Brett bleiben
-       und links/rechts gleich viel Rand ist. */
     grid-template-columns: auto 300px;
     justify-content: center;
     width: 100%;
   }
 
   .board-column {
-    height: 100%;
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: flex-start; /* Brett oben, nicht vertikal zentriert */
+    justify-content: flex-start;
     min-height: 0;
   }
 
   .board-drop-zone {
-    height: 100%;
     display: flex;
-    align-items: flex-start; /* Brett oben ausrichten */
+    align-items: flex-start;
     justify-content: center;
     min-height: 0;
   }
 
-  /* Das Brett ist quadratisch und bindet an die HÖHE der Spalte (füllt sie),
-     die Breite folgt über aspect-ratio. So klebt es immer oben und es gibt
-     keinen Sprung durch eine geschätzte Header-Höhe. Bei sehr breiten, niedrigen
-     Fenstern begrenzt max-height zusätzlich, damit Brett + Seitenleiste in die
-     Breite passen. */
+  /* Brett-Größe DIREKT bemessen: quadratisch, so groß wie der kleinere Wert aus
+     verfügbarer Höhe (100svh − Chrome) und verfügbarer Breite (100vw − Seiten-
+     leiste). Keine height:100%-Kette → kein Sprung, kein Überlauf. */
   .board-drop-zone .board-frame {
-    height: 100%;
-    width: auto;
-    max-width: 100%;
-    max-height: calc(100vw - 340px);
+    width: min(calc(100svh - var(--chrome-h)), calc(100vw - 340px));
+    height: auto;
   }
 
   .side-panel {
-    max-height: 100%;
+    max-height: calc(100svh - var(--chrome-h));
     min-height: 0;
     display: flex;
     flex-direction: column;

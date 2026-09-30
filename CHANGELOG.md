@@ -19,12 +19,12 @@ Versionierung nach [Semantic Versioning](https://semver.org/lang/de/).
 - **„Neu" mit Sicherheitsabfrage:** Ein Reset des Spiels fragt nun vorher nach.
 
 ### Fixed
-- **Kein Layout-Sprung mehr bei ~1038px:** Das Brett bindet nun an die verfügbare
-  Höhe (`height: 100%`, Breite über `aspect-ratio`) und ist oben ausgerichtet statt
-  vertikal zentriert. Dadurch entfällt der abrupte Wechsel (Hintergrund füllt
-  plötzlich die Höhe, Brett springt in die Mitte, Feldnummern-Checkbox nach unten),
-  der durch die zuvor geschätzte Header-Höhe und das Umschalten breiten-/höhen-
-  limitiert entstand. `max-width`/`max-height` verhindern weiterhin Überlauf.
+- **Kein Layout-Sprung mehr (auch bei ~1122px) / Brett nie zu groß:** Die Brettgröße
+  wird jetzt DIREKT als `min(verfügbare Höhe, verfügbare Breite)` bemessen (quadratisch
+  über `aspect-ratio`), statt über eine `height:100%`-Kette, die bei bestimmten Breiten
+  versagte und das Brett überdimensionierte (Seitenleiste halb abgeschnitten). Der
+  Header wird im Querformat einzeilig gehalten, damit die abgezogene Chrome-Höhe
+  konstant bleibt und nichts springt. Brett oben ausgerichtet.
 
 ### Removed
 - **Kalibrier-Overlay entfernt:** Das temporäre Debug-Overlay (Vorfeld-Kreis /
