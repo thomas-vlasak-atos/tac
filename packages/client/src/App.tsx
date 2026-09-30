@@ -173,7 +173,37 @@ export function App() {
               </div>
               <label style={{ display: "inline-flex", gap: 6, alignItems: "center", marginTop: 7, color: "#765234", fontFamily: "system-ui", fontSize: 13 }}><input type="checkbox" checked={showFieldNumbers} onChange={(event) => setShowFieldNumbers(event.target.checked)} /> Feldnummern anzeigen</label>
 
-            {(state.tradeOffers.length > 0) && (
+          </div>
+
+          <aside>
+            <div className="own-hand-panel" style={{ padding: 12, borderRadius: 12, background: "#f5e5c8", color: "#6b3d22" }}>
+              <h3 style={{ margin: "0 0 8px" }}>Deine Handkarten</h3>
+              <p style={{ margin: "0 0 8px", fontFamily: "system-ui", fontSize: 12, color: "#8a5a33" }}>
+                {isTradePhase
+                  ? (tradeOfferBlocked
+                      ? (iAmTradeDone
+                          ? "Tauschphase – du hast bereits getauscht."
+                          : "Tauschphase – dein Partner hat deine Karte genommen.")
+                      : "Tauschphase: Karte anklicken = verdeckt an Partner geben.")
+                  : "Spielphase: Karte anklicken = in die Mitte ablegen."}
+              </p>
+              <Hand
+                cards={state.ownHand}
+                compact
+                onPlayCard={playHandCard}
+                actionHint={isTradePhase ? "an Partner" : "ablegen"}
+                disabled={isTradePhase && tradeOfferBlocked}
+              />
+              {iAmTradeDone && (
+                <p style={{ marginTop: 8, fontFamily: "system-ui", fontSize: 12, color: "#8a5a33" }}>
+                  Du hast in dieser Runde bereits mit dem Partner getauscht.
+                </p>
+              )}
+            </div>
+            {/* Partnertausch: unterhalb der eigenen Karten. Nach dem eigenen Tausch
+                ausgeblendet – erst nach dem nächsten Geben wieder sichtbar (dann ist
+                `tradeDone`/`tradeOffers` zurückgesetzt). */}
+            {!iAmTradeDone && state.tradeOffers.length > 0 && (
               <div style={{ marginTop: 12, padding: 12, borderRadius: 12, background: "#f5e5c8", border: "1px solid #c8955c" }}>
                 <strong>Partnertausch</strong>
                 <div style={{ display: "grid", gap: 6, marginTop: 8 }}>
@@ -202,34 +232,6 @@ export function App() {
                 </div>
               </div>
             )}
-
-          </div>
-
-          <aside>
-            <div className="own-hand-panel" style={{ padding: 12, borderRadius: 12, background: "#f5e5c8", color: "#6b3d22" }}>
-              <h3 style={{ margin: "0 0 8px" }}>Deine Handkarten</h3>
-              <p style={{ margin: "0 0 8px", fontFamily: "system-ui", fontSize: 12, color: "#8a5a33" }}>
-                {isTradePhase
-                  ? (tradeOfferBlocked
-                      ? (iAmTradeDone
-                          ? "Tauschphase – du hast bereits getauscht."
-                          : "Tauschphase – dein Partner hat deine Karte genommen.")
-                      : "Tauschphase: Karte anklicken = verdeckt an Partner geben.")
-                  : "Spielphase: Karte anklicken = in die Mitte ablegen."}
-              </p>
-              <Hand
-                cards={state.ownHand}
-                compact
-                onPlayCard={playHandCard}
-                actionHint={isTradePhase ? "an Partner" : "ablegen"}
-                disabled={isTradePhase && tradeOfferBlocked}
-              />
-              {iAmTradeDone && (
-                <p style={{ marginTop: 8, fontFamily: "system-ui", fontSize: 12, color: "#8a5a33" }}>
-                  Du hast in dieser Runde bereits mit dem Partner getauscht.
-                </p>
-              )}
-            </div>
             <div style={{ padding: 12, borderRadius: 12, background: "#ead0a8", color: "#6b3d22", fontFamily: "system-ui", fontSize: 13 }}><strong>Sitzplätze</strong>{state.players.map((player, index) => <div key={index} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8, marginTop: 8 }}><span>Platz {index + 1}: {player ? `${player.name} (${COLOR_LABEL[player.color]})` : "frei"}{player && !player.connected ? " – getrennt" : ""}</span>{player && index !== seat && <CardBack count={state.handCounts[index] ?? 0} />}</div>)}</div>
             <div style={{ marginTop: 12, padding: 12, borderRadius: 12, background: "#f5e5c8", color: "#6b3d22", fontFamily: "system-ui", fontSize: 13 }}><strong>Meisteraktionen</strong><div style={{ marginTop: 8, display: "grid", gap: 6 }}>{seat != null && state.players[(seat + 1) % 4] ? <button type="button" onClick={() => send({ type: "RequestDevilView", target: ((seat + 1) % 4) as Seat })}>Teufel: Hand von {state.players[(seat + 1) % 4]?.name} ansehen</button> : null}<button type="button" onClick={() => send({ type: "PassHandsRight" })}>Narr: alle Hände weitergeben</button></div></div>
             {state.devilRequests.map((request) => request.target === seat && !request.approved ? <div key={request.id} style={{ marginTop: 12, padding: 12, borderRadius: 12, background: "#fff0c9", border: "2px solid #bb7a38", fontFamily: "system-ui", fontSize: 13 }}>Ein Spieler möchte deine Karten für den Teufel ansehen.<button type="button" onClick={() => send({ type: "ApproveDevilView", requestId: request.id })} style={{ display: "block", marginTop: 8 }}>Erlauben</button></div> : null)}

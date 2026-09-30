@@ -8,6 +8,11 @@ Versionierung nach [Semantic Versioning](https://semver.org/lang/de/).
 ## [Unreleased]
 
 ### Changed
+- **Partnertausch-Bereich verschoben und nach eigenem Tausch ausgeblendet:** Der
+  Partnertausch-Block steht jetzt **unterhalb der eigenen Handkarten** (in der
+  Seitenleiste) statt unter dem Brett. Nach erfolgtem eigenem Tausch
+  (`tradeDone`) wird er ausgeblendet und erscheint erst nach dem **nächsten Geben**
+  wieder (dann sind `tradeDone`/`tradeOffers` zurückgesetzt).
 - **Kein neues Partnerangebot mehr, sobald der Partner die Karte genommen hat
   (REQ-BOARD K3a/K5):** Hat der Partner die eigene angebotene Karte bereits
   genommen (`offer.claimed`), ist der Tausch von dieser Seite abgeschlossen.
