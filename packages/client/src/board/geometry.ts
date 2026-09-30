@@ -74,9 +74,9 @@ export function defaultGeometry(size = 1024): BoardGeometry {
     // Äußerer Vorfeld-Rahmenkreis: gegen vorlage/Board.png kalibriert. Das
     // 2x2-Kugelraster (spread = fieldRadius*2.9) hat eine halbe Diagonale von
     // ~fieldRadius*2.05 + Kugelradius; der Rahmenkreis liegt etwas außerhalb.
-    vorfeldOuterRadius: size * 0.062,
+    vorfeldOuterRadius: size * 0.057,
     // Innere Brett-Rahmenlinie: Abstand vom Bildrand (kalibriert).
-    boardBorderInset: size * 0.028,
+    boardBorderInset: size * 0.014,
   };
 }
 
