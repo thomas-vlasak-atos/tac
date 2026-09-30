@@ -8,6 +8,10 @@ Versionierung nach [Semantic Versioning](https://semver.org/lang/de/).
 ## [Unreleased]
 
 ### Fixed
+- **Geber-Anzeige über dem Brett:** Solange der Reststapel in der Mitte liegt (noch
+  niemand hat gegeben), zeigt die Kopfzeile „wer zuerst auf den Stapel klickt" statt
+  fälschlich Platz 1/Blau. Sobald der Stapel einem Sitz zugewiesen ist, wird dessen
+  Name angezeigt.
 - **Erstes Geben nach Neustart:** Liegt der Reststapel in der Mitte (Rundenstart/nach
   „Neu"), darf jetzt **jeder** Spieler klicken – **wer zuerst klickt, wird Geber**.
   Zuvor konnte nur der feste Startsitz (Blau/Platz 1) geben, wodurch ein Klick anderer

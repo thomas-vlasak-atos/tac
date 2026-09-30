@@ -149,7 +149,7 @@ export function App() {
               </button>
             </div>
             <div style={{ display: "flex", gap: 16, flexWrap: "wrap", marginBottom: 10, color: "#765234", fontFamily: "system-ui", fontSize: 13 }}>
-              <span><strong>Geber:</strong> {state.players[(state.deckHolder ?? state.dealer)]?.name ?? "—"}</span>
+              <span><strong>Geber:</strong> {state.deckHolder == null ? "wer zuerst auf den Stapel klickt" : (state.players[state.deckHolder]?.name ?? "—")}</span>
               <span><strong>Reststapel:</strong> {state.deckCount} Karten{state.deckShuffleable ? " (leer – erst mischen)" : state.deckActive ? " (bereit zum Geben)" : ""}</span>
             </div>
 
