@@ -31,12 +31,12 @@ const COLOR_BY_SEAT_LOCAL = ["blau", "gelb", "gruen", "rot"] as const;
 // ===========================================================================
 
 /** Gleicher Abstand zwischen Kartenrand und Vorfeld-Außenkreis bzw. Rahmenlinie. */
-const HANDCOUNT_GAP_FACTOR = 0.014;
+const HANDCOUNT_GAP_FACTOR = 0.010;
 /** Breite des Kartenanzahl-Rückens (Höhe = Breite × Kartenseitenverhältnis 1.4). */
-const HANDCOUNT_WIDTH_FACTOR = 0.042;
+const HANDCOUNT_WIDTH_FACTOR = 0.062;
 
 /** Gleicher Abstand für den Nachziehstapel (Kartenrand ↔ Vorfeld-Kreis/Rahmen). */
-const DRAWPILE_GAP_FACTOR = 0.016;
+const DRAWPILE_GAP_FACTOR = 0.002;
 /** Breite des Nachziehstapels (Höhe = Breite × 1.4). */
 const DRAWPILE_WIDTH_FACTOR = 0.070;
 
