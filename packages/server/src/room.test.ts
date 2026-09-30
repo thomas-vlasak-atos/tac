@@ -162,20 +162,20 @@ describe("dealCards", () => {
     expect(s0.deckHolder).toBeNull();
     const s1 = dealCards(s0, 5, 2);
     expect(s1.dealer).toBe(2);
-    // Danach wandert der Stapel zum nächsten Geber (gegen Uhrzeigersinn).
-    expect(s1.deckHolder).toBe(1);
+    // Danach wandert der Stapel im Uhrzeigersinn zum nächsten Sitz (2 → 3).
+    expect(s1.deckHolder).toBe(3);
   });
 
   it("lässt nach dem Wandern nur den zuständigen Halter den Stapel auslösen", () => {
-    // Erst gibt Sitz 0 (aus der Mitte), Stapel wandert zu Sitz 3.
+    // Erst gibt Sitz 0 (aus der Mitte), Stapel wandert zu Sitz 1.
     let s = dealCards(createInitialState({ rng: seededRng(1), dealer: 0 }), 5, 0);
-    expect(s.deckHolder).toBe(3);
+    expect(s.deckHolder).toBe(1);
     // Runde leerspielen, Reststapel behalten (>= 20) für den nächsten Deal.
     s = { ...s, hands: [[], [], [], []] };
-    // Ein anderer Sitz als der Halter (3) darf jetzt NICHT geben.
-    expect(dealCards(s, 5, 1)).toBe(s);
-    // Der Halter (3) darf.
-    expect(dealCards(s, 5, 3).hands[0]!.length).toBe(5);
+    // Ein anderer Sitz als der Halter (1) darf jetzt NICHT geben.
+    expect(dealCards(s, 5, 2)).toBe(s);
+    // Der Halter (1) darf.
+    expect(dealCards(s, 5, 1).hands[0]!.length).toBe(5);
   });
 
   it("mischt den Ablagestapel erst bei leerem Reststapel zurück", () => {
@@ -190,30 +190,30 @@ describe("dealCards", () => {
   });
 
   it("lässt nur den zuständigen Geber mischen", () => {
-    // Nach dem Geben liegt der Stapel beim nächsten Geber (deckHolder = 3).
+    // Nach dem Geben liegt der Stapel beim nächsten Geber (deckHolder = 1).
     let s = dealCards(createInitialState({ rng: seededRng(2), dealer: 0 }), 5, 0);
-    expect(s.deckHolder).toBe(3);
+    expect(s.deckHolder).toBe(1);
     // Runde leerspielen: Reststapel leeren, Ablage aus den Handkarten füllen.
     const discard = s.hands.flat();
     s = { ...s, hands: [[], [], [], []], deck: [], discardPile: discard };
-    // Ein anderer Sitz als der Halter (3) darf nicht mischen.
-    expect(shuffleDiscard(s, seededRng(3), 0)).toBe(s);
+    // Ein anderer Sitz als der Halter (1) darf nicht mischen.
+    expect(shuffleDiscard(s, seededRng(3), 2)).toBe(s);
     // Der Halter darf.
-    expect(shuffleDiscard(s, seededRng(3), 3).deck.length).toBeGreaterThan(0);
+    expect(shuffleDiscard(s, seededRng(3), 1).deck.length).toBeGreaterThan(0);
   });
 
   it("markiert den leeren Stapel als mischbar (deckShuffleable) beim nächsten Geber", () => {
     let s = createInitialState({ rng: seededRng(2), dealer: 0 });
     // Alle Karten ausspielen simulieren: Deck leer, Ablage voll, keine Hände.
     const discard = s.deck;
-    s = { ...s, deck: [], hands: [[], [], [], []], discardPile: discard, deckHolder: 3 };
-    const pub = toPublicState(s, 3);
+    s = { ...s, deck: [], hands: [[], [], [], []], discardPile: discard, deckHolder: 1 };
+    const pub = toPublicState(s, 1);
     expect(pub.deckShuffleable).toBe(true);
     expect(pub.deckActive).toBe(false);
     // Nach dem Mischen ist er aktiv (geben möglich).
-    const shuffled = shuffleDiscard(s, seededRng(3), 3);
-    expect(toPublicState(shuffled, 3).deckActive).toBe(true);
-    expect(toPublicState(shuffled, 3).deckShuffleable).toBe(false);
+    const shuffled = shuffleDiscard(s, seededRng(3), 1);
+    expect(toPublicState(shuffled, 1).deckActive).toBe(true);
+    expect(toPublicState(shuffled, 1).deckShuffleable).toBe(false);
   });
 });
 

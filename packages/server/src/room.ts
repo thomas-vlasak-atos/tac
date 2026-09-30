@@ -160,9 +160,9 @@ export function dealCards(
   // The master deck has four regular rounds and one final six-card round.
   const cardsPerPlayer = state.masterMode && state.deck.length === 24 ? 6 : 5;
   const { hands, rest } = deal(state.deck, cardsPerPlayer, 4);
-  // Nach dem Geben wandert der Stapel zum nächsten Geber (gegen den
-  // Uhrzeigersinn) und ruht dort, bis die Runde ausgespielt ist.
-  const nextDealer = ((currentDealer + 3) % 4) as Seat;
+  // Nach dem Geben wandert der Stapel zum nächsten Spieler im Uhrzeigersinn
+  // (Sitzreihenfolge +1) und ruht dort, bis die Runde ausgespielt ist.
+  const nextDealer = ((currentDealer + 1) % 4) as Seat;
   const withState: GameState = {
     ...state,
     hands,

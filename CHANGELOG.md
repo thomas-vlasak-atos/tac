@@ -8,6 +8,19 @@ Versionierung nach [Semantic Versioning](https://semver.org/lang/de/).
 ## [Unreleased]
 
 ### Fixed
+- **Geberrichtung korrigiert:** Der Reststapel wandert nach dem Geben nun im
+  **Uhrzeigersinn** zum nächsten Sitz (z. B. nach Platz 3 → Platz 4/Sitz 3), statt
+  fälschlich gegen den Uhrzeigersinn.
+
+### Changed
+- **Kopfzeilen-Label „Geber" → „Startspieler"** über dem Brett.
+- **Einheitliche Kartenpositionen am Brett (REQ-BOARD B9):** Bezogen auf das
+  gedrehte Bild jedes Betrachters liegt der Handkarten-Rücken jedes Spielers immer
+  mit Abstand **neben** dem Vorfeld – rechte Bildhälfte links, linke Bildhälfte
+  rechts. Der Nachziehstapel liegt beim Geber bei oberen Spielern darunter, bei
+  unteren darüber. Karten ragen nicht mehr ins Vorfeld.
+
+### Fixed
 - **Geber-Anzeige über dem Brett:** Solange der Reststapel in der Mitte liegt (noch
   niemand hat gegeben), zeigt die Kopfzeile „wer zuerst auf den Stapel klickt" statt
   fälschlich Platz 1/Blau. Sobald der Stapel einem Sitz zugewiesen ist, wird dessen

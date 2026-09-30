@@ -115,6 +115,19 @@ export function Board({ balls, players = [], handCounts = [], deckHolder = null,
   };
   const toBoardPoint = (event: React.PointerEvent, svg: SVGSVGElement): Point =>
     rotatePoint(toSvg(event, svg), -rotation);
+  // Rotiert einen reinen Richtungsvektor (ohne Bezug zum Zentrum).
+  const rotateVec = (v: Point, degrees: number): Point => {
+    const a = (degrees * Math.PI) / 180;
+    return { x: v.x * Math.cos(a) - v.y * Math.sin(a), y: v.x * Math.sin(a) + v.y * Math.cos(a) };
+  };
+  // Legt einen Board-Punkt fest, der – NACH der Brettdrehung – im Bild an einer
+  // gewünschten Seite eines Ankerpunkts liegt. `imgOffset` ist der gewünschte
+  // Versatz im fertigen (gedrehten) Bild; er wird in Board-Koordinaten
+  // zurückgedreht, damit die Rotation der äußeren Gruppe ihn wieder aufhebt.
+  const placeInImage = (anchorBoard: Point, imgOffset: Point): Point => {
+    const boardOffset = rotateVec(imgOffset, -rotation);
+    return { x: anchorBoard.x + boardOffset.x, y: anchorBoard.y + boardOffset.y };
+  };
   const toSvg = (event: React.PointerEvent, svg: SVGSVGElement): Point => {
     const rect = svg.getBoundingClientRect();
     return { x: ((event.clientX - rect.left) / rect.width) * geo.size, y: ((event.clientY - rect.top) / rect.height) * geo.size };
@@ -164,14 +177,14 @@ export function Board({ balls, players = [], handCounts = [], deckHolder = null,
             const count = handCounts[seat];
             // Der linke Nachbar des eigenen Sitzes ist das Teufel-Ziel.
             const isDevilTarget = ownSeat != null && seat === ((ownSeat + 1) % 4) && (count ?? 0) > 0;
-            // Richtung zur Brettmitte (für die Platzierung des Kartenrückens).
-            const toCenter = { x: geo.center.x - c.x, y: geo.center.y - c.y };
-            const len = Math.hypot(toCenter.x, toCenter.y) || 1;
-            const nx = toCenter.x / len;
-            const ny = toCenter.y / len;
-            const cardAt = { x: c.x + nx * geo.fieldRadius * 5.6, y: c.y + ny * geo.fieldRadius * 5.6 };
             const cw = geo.fieldRadius * 4.2;
             const ch = cw * 1.4;
+            // Handkarten-Rücken IM GEDREHTEN BILD einheitlich platzieren, immer mit
+            // Abstand NEBEN dem Vorfeld (nie hineinragend):
+            //   rechte Bildhälfte → links vom Vorfeld, linke Bildhälfte → rechts.
+            const pc = rotatePoint(c, rotation); // Bildposition des Vorfelds
+            const sideX = pc.x > geo.center.x ? -1 : 1; // rechts→links, links→rechts
+            const cardAt = placeInImage(c, { x: sideX * geo.fieldRadius * 5.6, y: 0 });
             return (
               <g key={`vfname-${seat}`} transform={`rotate(${-rotation} ${c.x} ${c.y})`} style={{ pointerEvents: "none" }}>
                 <text x={c.x} y={c.y + geo.fieldRadius * 0.4} textAnchor="middle" fill="#fff" stroke="#2b1a0e" strokeWidth={3.2} paintOrder="stroke" fontSize={isOwn ? 26 : 22} fontFamily="Georgia, serif" fontWeight={700} opacity={0.96}>{rawName}</text>
@@ -208,15 +221,12 @@ export function Board({ balls, players = [], handCounts = [], deckHolder = null,
             if (deckHolder == null) {
               anchor = { x: geo.center.x, y: geo.center.y };
             } else {
-              // Beim Halter: neben das Vorfeld, seitlich versetzt (senkrecht zur
-              // Richtung Brettmitte), damit er nicht den Handkarten-Rücken überdeckt.
+              // Nachziehstapel IM GEDREHTEN BILD einheitlich beim Halter:
+              //   obere Bildhälfte → darunter, untere Bildhälfte → darüber.
               const c = vorfeldCenter(deckHolder, geo);
-              const toC = { x: geo.center.x - c.x, y: geo.center.y - c.y };
-              const len = Math.hypot(toC.x, toC.y) || 1;
-              const nx = toC.x / len;
-              const ny = toC.y / len;
-              // Senkrechte Richtung (nach „außen" der Ecke) und etwas zur Mitte.
-              anchor = { x: c.x + ny * geo.fieldRadius * 6.2 + nx * geo.fieldRadius * 1.5, y: c.y - nx * geo.fieldRadius * 6.2 + ny * geo.fieldRadius * 1.5 };
+              const pc = rotatePoint(c, rotation);
+              const sideY = pc.y < geo.center.y ? 1 : -1; // oben→darunter, unten→darüber
+              anchor = placeInImage(c, { x: 0, y: sideY * geo.fieldRadius * 6.0 });
             }
             const dw = geo.fieldRadius * 5.4;
             const dh = dw * 1.4;

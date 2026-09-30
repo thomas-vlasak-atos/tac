@@ -72,11 +72,14 @@
   Brettmitte gezeichnet. Kugeln/Karten liegen vor dem Namen (teilweise Überdeckung
   erlaubt). Alle Texte/Marker werden gegen die Brettdrehung ausgerichtet, sodass
   sie **immer waagerecht lesbar** bleiben; der eigene Name ist größer. Der
-  **Handkarten-Stapel** wird als **Kartenrückseite mit der Anzahl** neben dem
-  Vorfeld Richtung Brettmitte gezeichnet; der Stapel des **linken Nachbarn** ist
-  anklickbar (löst die Teufel-Anfrage aus, siehe K7). Der **Geber** wird nicht
-  hier, sondern über dem Brett angezeigt. Ersetzt das separate „Sitzplätze"-Panel
-  in der Seitenleiste. Rein visuell.
+  **Handkarten-Stapel** wird als **Kartenrückseite mit der Anzahl** einheitlich
+  **neben** dem Vorfeld gezeichnet – bezogen auf das gedrehte Bild jedes Betrachters:
+  Spieler auf der **rechten** Bildhälfte bekommen ihn **links** vom Vorfeld, Spieler
+  auf der **linken** Bildhälfte **rechts**. Der **Nachziehstapel** liegt beim
+  jeweiligen Geber ebenfalls einheitlich neben dem Vorfeld: bei **oberen** Spielern
+  **darunter**, bei **unteren darüber**. Beides mit Abstand, ohne ins Vorfeld zu
+  ragen. Der **Startspieler/Geber** wird über dem Brett angezeigt. Ersetzt das
+  separate „Sitzplätze"-Panel in der Seitenleiste. Rein visuell.
 
 ## 4. Karten (digital verwaltet)
 
@@ -86,8 +89,8 @@
   Kartenstapel **am Brett** dargestellt. Zu Rundenbeginn (auch nach „Neu") liegt er
   **in der Mitte**; dann darf **jeder** klicken – **wer zuerst klickt, wird Geber**.
   Es werden je 5 Karten (Meisterrunde: 6) reihum ausgeteilt. Danach **wandert** der
-  Stapel zum **nächsten Geber** (gegen den Uhrzeigersinn) und ruht dort
-  **deaktiviert**, bis alle Handkarten gespielt sind; dann kann **nur** dieser
+  Stapel zum **nächsten Spieler im Uhrzeigersinn** (Sitzreihenfolge +1) und ruht
+  dort **deaktiviert**, bis alle Handkarten gespielt sind; dann kann **nur** dieser
   zuständige Geber ihn erneut auslösen.
 - **K2a – Leerer Stapel: erst mischen, dann geben.** Über die Runden wird das Deck
   aufgebraucht; nach der letzten Runde ist der Reststapel **leer**. Er liegt dann
