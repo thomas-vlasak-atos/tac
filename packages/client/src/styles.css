@@ -1,6 +1,7 @@
 /* Responsive table layout: the board must never create horizontal overflow. */
 .app-shell {
   overflow-x: hidden;
+  box-sizing: border-box;
 }
 
 .game-layout,
@@ -39,12 +40,41 @@
 }
 
 @media (orientation: landscape) and (min-width: 901px) {
-  /* Das Brett ist quadratisch; im Querformat die Breite an die verfügbare Höhe
-     koppeln, damit es NICHT höher als der Viewport wird (keine vertikale
-     Scrollbar). Der Abzug deckt Kopfzeile, Steuerzeile und Ränder ab. */
+  /* Auf genau eine Bildschirmhöhe begrenzen: keine Scrollbar. Die App füllt die
+     Viewport-Höhe, der Inhalt darf nicht überlaufen. */
+  .app-shell {
+    height: 100svh;
+    overflow: hidden;
+  }
+
+  /* Die Grid-Fläche unter dem Header bekommt die Resthöhe; das quadratische
+     Brett skaliert an diese Höhe (SVG hat max-height:100%). */
+  .game-layout {
+    height: calc(100svh - 64px);
+    align-items: start;
+  }
+
+  .board-column {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+
   .board-drop-zone {
-    width: min(100%, calc(100svh - 140px));
-    margin-inline: auto;
+    min-height: 0;
+    flex: 1 1 auto;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+  }
+
+  /* Die Seitenleiste (Verlauf u. a.) scrollt bei Bedarf selbst, statt die
+     ganze Seite zu verlängern. */
+  .side-panel {
+    height: 100%;
+    min-height: 0;
+    overflow-y: auto;
   }
 
   .own-hand-panel .hand-cards-compact {

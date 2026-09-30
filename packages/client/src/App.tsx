@@ -113,7 +113,7 @@ export function App() {
   };
 
   return (
-    <div className="app-shell" style={{ minHeight: "100vh", background: "#f1dfc2", color: "#4c2a1a", fontFamily: "Georgia, serif", padding: "20px clamp(12px, 3vw, 36px)" }}>
+    <div className="app-shell" style={{ background: "#f1dfc2", color: "#4c2a1a", fontFamily: "Georgia, serif", padding: "10px clamp(12px, 3vw, 36px)" }}>
       <header className="app-header" style={{ display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap" }}>
         <h1 style={{ margin: 0, letterSpacing: 2, fontSize: 26 }}>TAC <span style={{ color: "#9b5c31" }}>ONLINE</span></h1>
         <span style={{ color: "#765234", fontFamily: "system-ui", fontSize: 13 }}>
@@ -208,7 +208,7 @@ export function App() {
 
           </div>
 
-          <aside>
+          <aside className="side-panel">
             <div className="own-hand-panel" style={{ padding: 12, borderRadius: 12, background: "#f5e5c8", color: "#6b3d22" }}>
               <h3 style={{ margin: "0 0 8px" }}>Deine Handkarten</h3>
               <p style={{ margin: "0 0 8px", fontFamily: "system-ui", fontSize: 12, color: "#8a5a33" }}>
