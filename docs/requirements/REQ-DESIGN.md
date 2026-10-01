@@ -46,8 +46,27 @@ verändern.
 Die unter `cards/` abgelegten Entwürfe werden direkt als PNG-Assets verwendet,
 ohne sie in SVG nachzuzeichnen. Aktuell sind Designs für 1/13, 4, TAC, Engel,
 Krieger und Narr vorhanden. Für noch fehlende Kartentypen bleibt zunächst ein
-lesbarer Text-Fallback aktiv; neue PNGs können später ohne Änderung am
+lesbarer Text-Fallback im gleichen Kartenformat (3:5) aktiv; neue PNGs können später ohne Änderung am
 Datenmodell ergänzt werden.
+
+`D11`: Karten mit vorhandenem Bild werden vollständig (Seitenverhältnis 3:5, nichts
+abgeschnitten) und ohne zusätzlichen Rahmen dargestellt – das Bild ist die Karte.
+Handkarten heben sich beim Überfahren leicht an.
+
+`D12`: Darstellungspriorität je Karte: **SVG-Nachbau** (`ui/cardFaces.tsx`) vor
+**PNG-Vorlage** (`cards/`) vor **Text-Fallback**. Als SVG vorhanden: alle
+Zahlenkarten (1–10, 12, 13), der Trickser, TAC und alle vier Meisterkarten
+(Engel, Teufel, Krieger, Narr) sowie der Kartenrücken (`CardBackFace`/`CardBackSvg`,
+verwendet bei Gegnerhänden, Ziehstapel und verdeckten Karten auf dem Brett). Die
+PNGs in `cards/` dienen nur noch als Vorlage bzw. Fallback. Alle SVGs nutzen das Koordinatensystem 600 x 1000 der PNGs.
+
+Vorlage für die SVG-Nachbauten: `cards/tac-sonst01-1.jpg` (Foto des Kartensatzes).
+Daraus abgeleitet: Zahlen 1, 4, 7, 13 rot (mit Dreiecken bzw. Punkten), die übrigen
+Zahlen schwarz mit sechszähliger Farbblume im Zentrum; Trickser mit zwei roten
+Rauten und Schriftzug.
+
+**Bestätigt:** Für 3, 5, 8, 9, 10 und 12 liegt keine Vorlage vor. Sie sind wie 2 und 6
+als schwarze Zahl mit Blume umgesetzt (vom Projektinhaber bestätigt).
 
 ## Bedienmodell
 

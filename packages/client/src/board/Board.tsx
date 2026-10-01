@@ -6,7 +6,7 @@ import { useState } from "react";
 import { BALL_FILL, BALL_STROKE, COLOR_LABEL } from "./colors.js";
 import { CardArtwork } from "../ui/cardArtwork.js";
 import boardImage from "../../../../vorlage/Board.png";
-import cardBackImage from "../../../../cards/background.png";
+import { CardBackFace } from "../ui/cardFaces.js";
 import {
   type BoardGeometry,
   circleFieldPosition,
@@ -41,7 +41,11 @@ const DRAWPILE_GAP_FACTOR = 0.002;
 const DRAWPILE_WIDTH_FACTOR = 0.070;
 
 /** Kartenseitenverhältnis (Höhe / Breite) für Kartenanzahl und Stapel. */
-const CARD_ASPECT = 1.4;
+const CARD_ASPECT = 5 / 3;
+/** Sichtbarer Kartenbereich innerhalb des 600x1000-SVGs (Ränder der Kartenvorlage). */
+const CARD_INSET_X = 0.03;
+const CARD_INSET_Y = 0.032;
+const CARD_RADIUS_FACTOR = 0.092;
 
 function nearestTarget(point: Point, geo: BoardGeometry): BallPosition {
   let best: { pos: BallPosition; distance: number } | undefined;
@@ -268,9 +272,9 @@ export function Board({ balls, players = [], handCounts = [], deckHolder = null,
                     style={{ pointerEvents: isDevilTarget ? "auto" : "none", cursor: isDevilTarget ? "pointer" : "default" }}
                     onClick={isDevilTarget ? () => onRequestDevil?.(ds) : undefined}
                   >
-                    <rect x={-cw / 2} y={-ch / 2} width={cw} height={ch} rx={6} fill="#3a2416" stroke={isDevilTarget ? "#c96" : "#fff8e7"} strokeWidth={isDevilTarget ? 3 : 2} filter="url(#shadow)" />
-                    <clipPath id={`cardclip-${vs}`}><rect x={-cw / 2 + 2} y={-ch / 2 + 2} width={cw - 4} height={ch - 4} rx={5} /></clipPath>
-                    <image href={cardBackImage} x={-cw / 2 + 2} y={-ch / 2 + 2} width={cw - 4} height={ch - 4} preserveAspectRatio="xMidYMid slice" clipPath={`url(#cardclip-${vs})`} opacity={0.9} />
+                    <rect x={-cw / 2 + cw * CARD_INSET_X} y={-ch / 2 + ch * CARD_INSET_Y} width={cw * (1 - 2 * CARD_INSET_X)} height={ch * (1 - 2 * CARD_INSET_Y)} rx={cw * CARD_RADIUS_FACTOR} fill="#fff" filter="url(#shadow)" />
+                    <svg x={-cw / 2} y={-ch / 2} width={cw} height={ch} viewBox="0 0 600 1000"><CardBackFace /></svg>
+                    {isDevilTarget && <rect x={-cw / 2 + cw * CARD_INSET_X} y={-ch / 2 + ch * CARD_INSET_Y} width={cw * (1 - 2 * CARD_INSET_X)} height={ch * (1 - 2 * CARD_INSET_Y)} rx={cw * CARD_RADIUS_FACTOR} fill="none" stroke="#c96" strokeWidth={3} />}
                     <text x={0} y={ch * 0.15} textAnchor="middle" fill="#fff" stroke="#2b1a0e" strokeWidth={3} paintOrder="stroke" fontSize={ch * 0.5} fontFamily="Georgia, serif" fontWeight={700}>{count}</text>
                     {isDevilTarget && <title>Teufel: {player.name} um Handeinsicht bitten</title>}
                   </g>
@@ -302,22 +306,22 @@ export function Board({ balls, players = [], handCounts = [], deckHolder = null,
             }
             const isEmpty = (deckCount || 0) <= 0;
             const layers = isEmpty ? 1 : Math.min(5, Math.max(2, Math.ceil((deckCount || 0) / 24)));
-            const topX = anchor.x - dw / 2 + (layers - 1) * 2 + 3;
-            const topY = anchor.y - dh / 2 - (layers - 1) * 2 + 3;
+            const topX = anchor.x - dw / 2 + (layers - 1) * 2;
+            const topY = anchor.y - dh / 2 - (layers - 1) * 2;
             return (
               <g style={{ pointerEvents: clickable ? "all" : "none", cursor: clickable ? "pointer" : "default" }} onClick={onClick}>
                 {clickable && <rect x={anchor.x - dw / 2 - 4} y={anchor.y - dh / 2 - 4} width={dw + 8} height={dh + 8} rx={10} fill="#000" opacity={0} style={{ pointerEvents: "all" }} />}
                 {Array.from({ length: layers }, (_, i) => (
-                  <rect key={`deck-layer-${i}`} x={anchor.x - dw / 2 + i * 2} y={anchor.y - dh / 2 - i * 2} width={dw} height={dh} rx={8}
-                    fill={isEmpty ? "none" : "#3a2416"}
-                    stroke={clickable ? "#ffe08a" : "#e9d3ad"} strokeWidth={clickable ? 3 : 1.5}
+                  <rect key={`deck-layer-${i}`} x={anchor.x - dw / 2 + i * 2 + dw * CARD_INSET_X} y={anchor.y - dh / 2 - i * 2 + dh * CARD_INSET_Y}
+                    width={dw * (1 - 2 * CARD_INSET_X)} height={dh * (1 - 2 * CARD_INSET_Y)} rx={dw * CARD_RADIUS_FACTOR}
+                    fill={isEmpty ? "none" : "#fff"}
+                    stroke={clickable ? "#ffe08a" : "#bdb4a4"} strokeWidth={clickable ? 3 : 1.5}
                     strokeDasharray={isEmpty ? "8 6" : undefined}
-                    filter={!isEmpty && i === layers - 1 ? "url(#shadow)" : undefined} opacity={isEmpty ? 0.85 : 0.96} />
+                    filter={!isEmpty && i === layers - 1 ? "url(#shadow)" : undefined} opacity={isEmpty ? 0.85 : 1} />
                 ))}
                 {!isEmpty && (
                   <>
-                    <clipPath id="deckclip"><rect x={topX} y={topY} width={dw - 6} height={dh - 6} rx={6} /></clipPath>
-                    <image href={cardBackImage} x={topX} y={topY} width={dw - 6} height={dh - 6} preserveAspectRatio="xMidYMid slice" clipPath="url(#deckclip)" opacity={0.92} />
+                    <svg x={topX} y={topY} width={dw} height={dh} viewBox="0 0 600 1000"><CardBackFace /></svg>
                     <text x={anchor.x + (layers - 1)} y={anchor.y - (layers - 1) - dh * 0.16} textAnchor="middle" fill="#fff" stroke="#2b1a0e" strokeWidth={3} paintOrder="stroke" fontSize={dh * 0.3} fontFamily="Georgia, serif" fontWeight={700}>{deckCount}</text>
                   </>
                 )}
@@ -326,7 +330,7 @@ export function Board({ balls, players = [], handCounts = [], deckHolder = null,
               </g>
             );
           })()}
-          {topCards.map((entry) => <g key={entry.card.id} transform={`translate(${geo.center.x + entry.offset * 5} ${geo.center.y + entry.offset * 4}) rotate(${entry.rotation} 0 0)`}><rect x={-35} y={-48} width={70} height={96} rx={8} fill="#fffaf0" stroke={BALL_STROKE[COLOR_BY_SEAT_LOCAL[entry.actor]]} strokeWidth="4" filter="url(#shadow)" /><foreignObject x={-31} y={-43} width={62} height={72}><CardArtwork card={entry.card} compact /></foreignObject><text x="0" y="38" textAnchor="middle" fill={BALL_STROKE[COLOR_BY_SEAT_LOCAL[entry.actor]]} fontSize="9">{COLOR_LABEL[COLOR_BY_SEAT_LOCAL[entry.actor]]}</text><title>{cardLabel(entry.card)} von {COLOR_LABEL[COLOR_BY_SEAT_LOCAL[entry.actor]]}. Zum Zurücknehmen unten nutzen.</title></g>)}
+          {topCards.map((entry) => <g key={entry.card.id} transform={`translate(${geo.center.x + entry.offset * 5} ${geo.center.y + entry.offset * 4}) rotate(${entry.rotation} 0 0)`}><rect x={-31} y={-51} width={62} height={102} rx={6} fill="#fff" stroke={BALL_STROKE[COLOR_BY_SEAT_LOCAL[entry.actor]]} strokeWidth="4" filter="url(#shadow)" /><foreignObject x={-30} y={-50} width={60} height={100}><CardArtwork card={entry.card} /></foreignObject><title>{cardLabel(entry.card)} von {COLOR_LABEL[COLOR_BY_SEAT_LOCAL[entry.actor]]}. Zum Zurücknehmen unten nutzen.</title></g>)}
           {balls.map((ball) => { const isDragged = drag?.ballId === ball.id; const point = isDragged && drag.moved ? drag.current : ballPoints.get(ball.id) ?? geo.center; return <g key={ball.id} onPointerDown={(event) => handleDown(event, ball)} style={{ cursor: "grab" }}><circle cx={point.x} cy={point.y} r={geo.fieldRadius * 1.03} fill={`url(#marble-${ball.owner})`} stroke={isDragged ? "#fff7cf" : BALL_STROKE[ball.color]} strokeWidth={isDragged ? 5 : 2.5} filter="url(#shadow)" /><circle cx={point.x - 5} cy={point.y - 6} r={geo.fieldRadius * .2} fill="#fff" opacity=".7" /></g>; })}
         </g>
       </svg>

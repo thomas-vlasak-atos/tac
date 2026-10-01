@@ -21,19 +21,11 @@ export interface HandProps {
   disabled?: boolean;
 }
 
-function cardTone(card: Card): { ink: string; accent: string } {
-  if (card.kind === "number") return { ink: "#4c2a1a", accent: "#c88b4a" };
-  if (card.kind === "tac") return { ink: "#233d5b", accent: "#5d91b8" };
-  if (card.kind === "trickster") return { ink: "#5c284b", accent: "#b56d9b" };
-  return { ink: "#4c2a1a", accent: "#d6a44b" };
-}
-
 export function Hand({ cards, compact = false, onPlayCard, actionHint, disabled = false }: HandProps) {
   if (cards.length === 0) return <p style={{ color: "#765234" }}>Keine Handkarten. „Geben“ drücken.</p>;
   return (
     <div className={`hand-cards${compact ? " hand-cards-compact" : ""}`} style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "end" }}>
       {cards.map((card) => {
-        const tone = cardTone(card);
         const label = cardLabel(card);
         const activate = () => {
           if (!disabled) onPlayCard?.(card.id);
@@ -52,26 +44,17 @@ export function Hand({ cards, compact = false, onPlayCard, actionHint, disabled 
                 activate();
               }
             }}
+            title={`${label} – ${disabled ? "nicht möglich" : (actionHint ?? "spielen")}`}
             style={{
-              width: 94,
-              minHeight: 138,
-              padding: 8,
-              borderRadius: 10,
-              border: `3px solid ${tone.accent}`,
-              background: "linear-gradient(145deg, #fffdf7, #f2dfbd)",
-              boxShadow: "0 5px 10px #4c2a1a30",
-              transition: "transform .12s, box-shadow .12s",
-              color: tone.ink,
-              display: "flex",
-              flexDirection: "column",
-              justifyContent: "space-between",
+              width: compact ? undefined : 94,
+              flex: "0 0 auto",
+              filter: "drop-shadow(0 4px 6px #4c2a1a55)",
+              transition: "transform .12s",
               cursor: disabled ? "not-allowed" : "pointer",
-              opacity: disabled ? 0.6 : 1,
+              opacity: disabled ? 0.55 : 1,
             }}
           >
-            <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, fontWeight: 700 }}><span>{label}</span><span>♠</span></div>
             <CardArtwork card={card} />
-            <div style={{ textAlign: "center", fontSize: 10, color: tone.ink, opacity: 0.75 }}>{disabled ? "—" : (actionHint ?? "spielen")}</div>
           </article>
         );
       })}

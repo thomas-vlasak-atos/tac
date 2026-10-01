@@ -126,12 +126,7 @@
   }
 
   .own-hand-panel .hand-card-compact {
-    width: auto !important;
     min-width: 0;
-    min-height: 148px !important;
-    aspect-ratio: 2 / 3;
-    padding: 6px !important;
-    border-width: 2px !important;
   }
 }
 
@@ -185,4 +180,10 @@
     overflow-x: auto;
     padding: 4px 2px 10px;
   }
+}
+
+/* Handkarten: leichtes Anheben beim Überfahren/Fokussieren. */
+.hand-cards article:not([aria-disabled="true"]):hover,
+.hand-cards article:not([aria-disabled="true"]):focus-visible {
+  transform: translateY(-4px);
 }

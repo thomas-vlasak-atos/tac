@@ -8,11 +8,27 @@ Versionierung nach [Semantic Versioning](https://semver.org/lang/de/).
 ## [Unreleased]
 
 > **Offen für die nächste Session** (Details in `docs/STATUS.md` §0):
-> - **Kartenvorderseiten-Rendering** überarbeiten (`ui/cardArtwork.tsx`) – gefällt
->   noch nicht; für 2,3,5,6,7,8,9,10,12 und Trickser fehlen Bilder (Text-Fallback).
 > - Kleine Layout-Reste: vertikale Scrollbar in einer Zwischengröße, evtl. Rand ums
 >   Brett, „Meisterkarten"-Button wird in einem Breitenbereich abgeschnitten
 >   (Header `nowrap`/`overflow:hidden`).
+
+### Fixed
+- **Kartenrücken auf dem Brett unsichtbar:** `clipPath` hing direkt am verschachtelten
+  `<svg>` (falsches Koordinatensystem); jetzt in einer umschließenden `<g>`.
+
+### Changed
+- **Kartenrücken auf dem Brett:** Gegnerhand und Ziehstapel zeigen die Karte jetzt
+  vollständig im Format 3:5 (statt beschnitten, `slice`) und ohne dunklen Rahmen; die
+  Stapelschichten sind weiß abgesetzt.
+- **Handkarten-Design (D11):** Karten mit Bild werden vollständig im Format 3:5 ohne
+  zusätzlichen Rahmen/Beschriftung gezeigt (vorher beschnitten); gleiches Format auf
+  der Ablage und im Text-Fallback. Hover-Effekt, Aktionshinweis als Tooltip.
+
+### Added
+- **SVG-Nachbau aller Zahlenkarten, Trickser, TAC, Engel, Teufel, Krieger, Narr und Kartenrücken (D12):** `ui/cardFaces.tsx`
+  (Vorlage `cards/tac-sonst01-1.jpg`; 3/5/8/9/10/12 schwarz mit Blume, bestätigt); Darstellungspriorität SVG > PNG >
+  Text-Fallback. Test: `cardFaces.test.ts`.
+- **Favicon:** Browser-Tab-Icon (`packages/client/public/favicon.svg`) – Brett mit vier farbigen Kugeln.
 
 ### Changed
 - **Seitenleiste bleibt konstant hoch:** Der Verlauf füllt im Querformat den

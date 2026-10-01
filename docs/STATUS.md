@@ -39,16 +39,13 @@ Seit dem letzten Stand umgesetzt (alle in `main`, gepusht):
 
 ### Offene Punkte / bewusst für die nächste Session vertagt
 
-1. **Kartenvorderseiten-Rendering überarbeiten (Priorität lt. User).** Die aktuelle
-   Darstellung gefällt noch nicht. Betroffen: `packages/client/src/ui/cardArtwork.tsx`.
-   - Vorhandene Assets in `cards/`: `1-13.png` (Sprite: links=1, rechts=13),
-     `4.png`, `tactac.png`, `engel.png`, `krieger.png`, `narr.png`, `background.png`
-     (Rücken; wird aktuell auch als Teufel-Platzhalter genutzt).
-   - Für alle **übrigen** Zahlenkarten (2,3,5,6,7,8,9,10,12) sowie Trickser gibt es
-     KEIN Bild → Text-Fallback (`CardArtwork`, `artwork == null`). Ziel: einheitliche,
-     schön gestaltete Vorderseiten (entweder echte Bilder liefern/erzeugen oder ein
-     konsistentes gezeichnetes Design statt reinem Text-Fallback).
-   - `CardArtwork` nutzt für 1/13 ein 200%-Sprite mit `translateX(-50%)`.
+1. **Kartendesign – erledigt (REQ-DESIGN D11/D12).** Alle Karten (Zahlen 1–10/12/13,
+   Trickser, TAC, Engel, Teufel, Krieger, Narr) und der Kartenrücken sind als SVG
+   nachgebaut (`ui/cardFaces.tsx`, Vorlagen `cards/*.png|jpg`). Darstellungspriorität
+   SVG > PNG > Text-Fallback (`ui/cardArtwork.tsx`). Handkarten zeigen die komplette
+   Karte (3:5); Rücken auf dem Brett (Gegnerhand, Ziehstapel) ebenfalls vollständig.
+   Offen/optional: Schrift der Schriftzüge (aktuell Arial Bold statt eckiger Schrift),
+   TAC-Wortzeichen ist eine Annäherung.
 2. **Kleine Layout-Restpunkte (niedrige Prio, „später"):**
    - In einer **Zwischengröße** bleibt noch eine **vertikale Scrollbar** (soweit ok,
      aber nicht ideal) – Chrome-Abzug `100svh − 110px` in `styles.css` ggf. justieren.
@@ -111,11 +108,13 @@ React + Vite, schematisches SVG-Brett.
   anklicken = aufnehmen, freies Feld = setzen, andere Kugel = tauschen
   (Trickser). Leere Plätze sichtbar (B7).
 - `net/useTacSocket.ts` – WebSocket-Hook (robust gegen StrictMode-Doppel-Mount).
+- `ui/cardFaces.tsx` – SVG-Kartenvorderseiten und -rücken; `ui/cardArtwork.tsx` –
+  Auswahl SVG/PNG/Fallback.
 - `ui/Hand.tsx`, `ui/HistoryPanel.tsx`, `ui/JoinScreen.tsx` – Handkarten,
   Verlauf, Beitritt (mit URL-Parametern `?room=&name=&seat=`).
 - `App.tsx` / `main.tsx` – Zusammenbau, Steuerung (Geben/Meister/Reset).
 
-**Tests:** 48 Vitest-Tests, alle grün. `npm run typecheck` sauber.
+**Tests:** 83 Vitest-Tests, alle grün. `npm run typecheck` sauber.
 `npm run build` (Client) läuft.
 
 ---
