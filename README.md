@@ -78,7 +78,8 @@ npm run dev:client
 
 Zum lokalen Spielen: Server starten, dann Client starten und pro Spieler einen
 Browser-Tab auf `http://localhost:5173` öffnen. Über URL-Parameter lässt sich der
-Beitritt vorbelegen, z. B. `http://localhost:5173/?room=abc&name=Anna&seat=0`
+Beitritt vorbelegen; sind `room` und `name` gesetzt, geht es **ohne Startformular direkt
+auf das Spielbrett** (fehlt einer von beiden, wird das Formular vorbelegt), z. B. `http://localhost:5173/?room=abc&name=Anna&seat=0`
 (siehe `docs/decisions/ADR-0002-hosting-und-sitzplatz-links.md`).
 
 **Testmodus:** Mit zusätzlichem Parameter `test=1` (z. B. `?room=abc&name=Anna&seat=0&test=1`)

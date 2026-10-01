@@ -4,10 +4,11 @@
  * Bezug: REQ-BOARD (gesamt), ARCH-OVERVIEW §7 (Frontend).
  */
 
-import type { BallPosition, Seat } from "@tac/shared";
+import type { BallPosition } from "@tac/shared";
 import { useState } from "react";
 import { Board } from "./board/Board.js";
 import { COLOR_LABEL } from "./board/colors.js";
+import { directJoinFromUrl, isTestMode, readUrlDefaults } from "./net/urlParams.js";
 import { useTacSocket } from "./net/useTacSocket.js";
 import { Hand } from "./ui/Hand.js";
 import { HistoryPanel } from "./ui/HistoryPanel.js";
@@ -15,24 +16,6 @@ import { CardArtwork } from "./ui/cardArtwork.js";
 import { type JoinInfo, JoinScreen } from "./ui/JoinScreen.js";
 import { MasterCardsHelp } from "./ui/MasterCardsHelp.js";
 import "./styles.css";
-
-/** Liest Vorbelegungen aus der URL (ADR-0002 Sitzplatz-Links). */
-function readUrlDefaults(): Partial<JoinInfo> {
-  const params = new URLSearchParams(window.location.search);
-  const seatRaw = params.get("seat");
-  const seat = seatRaw != null ? (Number(seatRaw) as Seat) : undefined;
-  return {
-    roomId: params.get("room") ?? undefined,
-    name: params.get("name") ?? undefined,
-    seat: seat != null && seat >= 0 && seat <= 3 ? seat : undefined,
-  };
-}
-
-/** Testmodus per URL-Parameter `?test=1` (oder `true`). */
-function isTestMode(): boolean {
-  const value = new URLSearchParams(window.location.search).get("test");
-  return value === "1" || value === "true";
-}
 
 /**
  * WebSocket-URL des Servers.
@@ -62,14 +45,15 @@ function serverUrl(): string {
 }
 
 export function App() {
-  const [join, setJoin] = useState<JoinInfo | null>(null);
+  // Enthält die URL Raum + Name (Sitzplatz-Link), geht es ohne Startformular direkt ins Spiel.
+  const [join, setJoin] = useState<JoinInfo | null>(() => directJoinFromUrl(window.location.search));
   const { status, state, seat, error, send } = useTacSocket(serverUrl());
   const [joined, setJoined] = useState(false);
   const [showFieldNumbers, setShowFieldNumbers] = useState(false);
   const [showMasterHelp, setShowMasterHelp] = useState(false);
   // Testmodus (?test=1): kein Partnertausch (erste Klick auf eine Karte legt sie ab),
   // und jeder darf geben/mischen. Nur zum Testen einer kompletten Runde gedacht.
-  const testMode = isTestMode();
+  const testMode = isTestMode(window.location.search);
 
   // Nach Verbindungsaufbau automatisch beitreten (einmalig).
   if (join && status === "open" && !joined) {
@@ -78,7 +62,7 @@ export function App() {
   }
 
   if (!join) {
-    return <JoinScreen initial={readUrlDefaults()} onJoin={setJoin} />;
+    return <JoinScreen initial={readUrlDefaults(window.location.search)} onJoin={setJoin} />;
   }
 
   const moveBall = (ballId: string, to: BallPosition) =>

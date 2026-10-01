@@ -48,6 +48,8 @@ erreichbar. Kandidaten:
 
 - [x] Link-Schema: `?room=<name>&name=<name>&seat=<0-3>` (siehe README); der Platz aus
       dem Link wird immer zugewiesen (Verdrängung), ohne `seat` gilt Auto-Join.
+- [x] Ein Link mit `room` und `name` führt ohne Startformular direkt ins Spiel
+      (`net/urlParams.ts`).
 - [x] Hosting-Weg: Cloud-Host Render (Option 4), kein Heim-Server/Tunnel nötig.
 - [x] Persistenz: Partie nur im Speicher (Neustart/Deploy/Einschlafen = neu) – für den
       Freundeskreis ausreichend.

@@ -38,6 +38,8 @@ Versionierung nach [Semantic Versioning](https://semver.org/lang/de/).
   der Ablage und im Text-Fallback. Hover-Effekt, Aktionshinweis als Tooltip.
 
 ### Added
+- **Direkteinstieg per Link:** Enthält die URL `room` und `name` (optional `seat`), wird das
+  Startformular übersprungen und direkt dem Spiel beigetreten (`net/urlParams.ts`, 7 Tests).
 - **Testmodus per URL-Parameter `test=1`:** kein Partnertausch (erster Klick legt die Karte
   ab), jeder darf geben/mischen (`force` bei `DealCards`/`ShuffleCards`), Kennzeichnung
   „TESTMODUS" im Header. Dokumentiert in der README.
