@@ -55,7 +55,7 @@ export interface PublicDevilRequest extends DevilRequest {
   visibleCards?: Card[];
 }
 
-/** Ein Eintrag im Zugverlauf (nur Anzeige, kein Undo). REQ-BOARD H1–H3. */
+/** Ein Eintrag im Zugverlauf (nur Anzeige). REQ-BOARD H1–H3. */
 export interface HistoryEntry {
   /** Fortlaufende ID (aufsteigend). */
   id: number;
@@ -146,4 +146,9 @@ export interface PublicGameState {
   deckShuffleable: boolean;
   masterMode: boolean;
   history: HistoryEntry[];
+  /**
+   * Beschreibung der Aktion, die der Empfänger gerade rückgängig machen kann (U1),
+   * sonst `null`.
+   */
+  undoLabel: string | null;
 }

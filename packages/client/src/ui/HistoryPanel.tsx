@@ -1,5 +1,5 @@
 /**
- * Verlaufs-Panel: zeigt die letzten Züge (nur Anzeige, kein Undo).
+ * Verlaufs-Panel: zeigt die letzten Züge (nur Anzeige).
  *
  * Bezug: REQ-BOARD H1–H3.
  */

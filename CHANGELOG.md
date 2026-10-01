@@ -7,16 +7,20 @@ Versionierung nach [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
-> **Offen für die nächste Session** (Details in `docs/STATUS.md` §0):
-> - Kleine Layout-Reste: vertikale Scrollbar in einer Zwischengröße, evtl. Rand ums
->   Brett, „Meisterkarten"-Button wird in einem Breitenbereich abgeschnitten
->   (Header `nowrap`/`overflow:hidden`).
-
 ### Fixed
+- **Fenster-Scrollbar:** Es fehlte `body { margin: 0 }`; der 8px-Standardrand plus eine
+  100svh hohe App erzeugte einen Überlauf. Behoben.
+- **Seitenleiste bei geringer Höhe:** scrollt jetzt allein (eigene Scrollbar), Brett bleibt
+  sichtbar, alle Handkarten erreichbar; Handkarten im 3-Spalten-Raster. Behebt zudem
+  zu schmale Handkarten im einspaltigen Layout (<= 900px).
 - **Kartenrücken auf dem Brett unsichtbar:** `clipPath` hing direkt am verschachtelten
   `<svg>` (falsches Koordinatensystem); jetzt in einer umschließenden `<g>`.
 
 ### Changed
+- **Handkarten größer (D10):** Seitenleiste 360px; ab 850px Fensterhöhe 2 Spalten x 3
+  Reihen mit mit der Höhe wachsender Kartenbreite, sonst 3 Spalten. Verlauf ist unten
+  angeheftet (min. 2 Zeilen sichtbar). Ablagekarten etwas größer (106px).
+- **Bestätigung bei „Narr: alle Hände weitergeben" (D14)** (wie schon bei „Neu").
 - **Kartenrücken auf dem Brett:** Gegnerhand und Ziehstapel zeigen die Karte jetzt
   vollständig im Format 3:5 (statt beschnitten, `slice`) und ohne dunklen Rahmen; die
   Stapelschichten sind weiß abgesetzt.
@@ -25,6 +29,15 @@ Versionierung nach [Semantic Versioning](https://semver.org/lang/de/).
   der Ablage und im Text-Fallback. Hover-Effekt, Aktionshinweis als Tooltip.
 
 ### Added
+- **Testmodus per URL-Parameter `test=1`:** kein Partnertausch (erster Klick legt die Karte
+  ab), jeder darf geben/mischen (`force` bei `DealCards`/`ShuffleCards`), Kennzeichnung
+  „TESTMODUS" im Header. Dokumentiert in der README.
+- **Einstufiges Undo (REQ-BOARD U1):** Schaltfläche „↩ Rückgängig" im Header; nur der
+  Urheber der letzten Aktion, solange niemand danach etwas getan hat. Erfasst Kugeln,
+  Karten, Tausch, Geben, Mischen, Narr. Server: `UndoTracker`/`undoLast` in `room.ts`,
+  Aktion `Undo`; 11 neue Tests.
+- **Ablage (K4c):** größere Karten (3:5), zufällige Lage/Drehung, stets vollständig im
+  Ablagekreis (`discardPlacement`, Tests in `geometry.test.ts`).
 - **SVG-Nachbau aller Zahlenkarten, Trickser, TAC, Engel, Teufel, Krieger, Narr und Kartenrücken (D12):** `ui/cardFaces.tsx`
   (Vorlage `cards/tac-sonst01-1.jpg`; 3/5/8/9/10/12 schwarz mit Blume, bestätigt); Darstellungspriorität SVG > PNG >
   Text-Fallback. Test: `cardFaces.test.ts`.

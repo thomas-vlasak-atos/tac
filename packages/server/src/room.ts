@@ -652,8 +652,10 @@ export function markDisconnected(state: GameState, seat: Seat): GameState {
 export function toPublicState(
   state: GameState,
   viewer: Seat | null,
+  undoLabel: string | null = null,
 ): PublicGameState {
   return {
+    undoLabel,
     players: state.players,
     balls: state.balls,
     discardPile: state.discardPile,
@@ -696,6 +698,89 @@ export function findCardInHand(
   cardId: string,
 ): Card | undefined {
   return (state.hands[seat] ?? []).find((c) => c.id === cardId);
+}
+
+// ---------------------------------------------------------------------------
+// Einstufiges Undo (REQ-BOARD U1)
+// ---------------------------------------------------------------------------
+
+/** Aktionen, die rückgängig gemacht werden können. */
+export const UNDOABLE_ACTIONS: ReadonlySet<string> = new Set([
+  "MoveBall",
+  "SwapBalls",
+  "DealCards",
+  "ShuffleCards",
+  "PlayCard",
+  "ReturnCard",
+  "SwapWithPartner",
+  "OfferCardToPartner",
+  "ClaimTradeOffer",
+  "RevokeTradeOffer",
+  "PlayForeignCard",
+  "PassHandsRight",
+]);
+
+/** Zustand vor der letzten undo-fähigen Aktion. */
+export interface UndoSlot {
+  actor: Seat;
+  before: GameState;
+  /** `UndoTracker.revision` direkt nach der Aktion; ungültig, wenn sich das ändert. */
+  revision: number;
+  /** Beschreibung der Aktion (für Schaltfläche und Verlauf). */
+  label: string;
+}
+
+/** Verwaltet pro Raum, ob und was zurückgenommen werden kann. */
+export interface UndoTracker {
+  /** Zählt jede zustandsändernde Aktion (außer Undo-Gültigkeit selbst). */
+  revision: number;
+  slot: UndoSlot | null;
+}
+
+export function createUndoTracker(): UndoTracker {
+  return { revision: 0, slot: null };
+}
+
+/**
+ * Registriert eine ausgeführte Aktion. Hat sich der Zustand nicht geändert
+ * (Aktion wurde ignoriert), bleibt der Tracker unverändert.
+ */
+export function trackAction(
+  tracker: UndoTracker,
+  actionType: string,
+  actor: Seat,
+  before: GameState,
+  after: GameState,
+): UndoTracker {
+  if (before === after) return tracker;
+  const revision = tracker.revision + 1;
+  if (!UNDOABLE_ACTIONS.has(actionType)) return { revision, slot: null };
+  const label = after.history.at(-1)?.text ?? actionType;
+  return { revision, slot: { actor, before, revision, label } };
+}
+
+/** Beschreibung der zurücknehmbaren Aktion für diesen Betrachter, sonst `null`. */
+export function undoLabelFor(tracker: UndoTracker, viewer: Seat | null): string | null {
+  const slot = tracker.slot;
+  if (!slot || viewer == null || slot.actor !== viewer || slot.revision !== tracker.revision) return null;
+  return slot.label;
+}
+
+/**
+ * Macht die letzte Aktion rückgängig, falls `actor` ihr Urheber ist und seither
+ * nichts geschehen ist. Liefert `null`, wenn kein Undo möglich ist.
+ */
+export function undoLast(
+  state: GameState,
+  tracker: UndoTracker,
+  actor: Seat,
+): { state: GameState; tracker: UndoTracker } | null {
+  if (undoLabelFor(tracker, actor) == null || !tracker.slot) return null;
+  const { before, label } = tracker.slot;
+  // Spielerliste/Verbindungen bleiben aktuell; alles andere wird zurückgesetzt.
+  const restored: GameState = { ...before, players: state.players };
+  const next = pushHistory(restored, actor, `${seatLabel(state, actor)}: Rückgängig – ${label}`);
+  return { state: next, tracker: { revision: tracker.revision + 1, slot: null } };
 }
 
 export { seatOfBall };

@@ -28,6 +28,10 @@ import {
   swapBalls,
   swapWithPartner,
   toPublicState,
+  createUndoTracker,
+  trackAction,
+  undoLabelFor,
+  undoLast,
 } from "./room.js";
 
 /** Deterministischer RNG für reproduzierbare Tests. */
@@ -535,5 +539,109 @@ describe("toPublicState", () => {
     const s = dealCards(createInitialState({ rng: seededRng(5) }), 5);
     const pub = toPublicState(s, null);
     expect(pub.ownHand).toEqual([]);
+  });
+});
+
+describe("Undo (REQ-BOARD U1: einstufig, nur Urheber der letzten Aktion)", () => {
+  /** Führt eine Kugelbewegung aus und registriert sie wie der Server. */
+  function moveTracked(state = createInitialState(), seat: Seat = 0) {
+    const tracker = createUndoTracker();
+    const after = moveBall(state, "blau-0", { kind: "FELD", index: 12 }, seat);
+    return { before: state, after, tracker: trackAction(tracker, "MoveBall", seat, state, after) };
+  }
+
+  it("Given eine Kugelbewegung, When der Urheber Undo ausführt, Then liegt die Kugel wieder am alten Platz", () => {
+    const { before, after, tracker } = moveTracked();
+    const result = undoLast(after, tracker, 0)!;
+    expect(result.state.balls).toEqual(before.balls);
+    expect(result.state.history.at(-1)!.text).toContain("Rückgängig");
+    expect(result.state.history.some((h) => h.text.includes("Feld 12") && !h.text.includes("Rückgängig"))).toBe(false);
+  });
+
+  it("Given eine Aktion, When ein ANDERER Spieler Undo versucht, Then ist es nicht möglich", () => {
+    const { after, tracker } = moveTracked();
+    expect(undoLabelFor(tracker, 1)).toBeNull();
+    expect(undoLast(after, tracker, 1)).toBeNull();
+  });
+
+  it("Given eine Aktion, When danach jemand anderes etwas tut, Then ist das Undo des ersten verfallen", () => {
+    const { after, tracker } = moveTracked();
+    const next = moveBall(after, "gelb-0", { kind: "FELD", index: 20 }, 1);
+    const t2 = trackAction(tracker, "MoveBall", 1, after, next);
+    expect(undoLabelFor(t2, 0)).toBeNull();
+    expect(undoLabelFor(t2, 1)).not.toBeNull();
+  });
+
+  it("Given ein Undo, When es einmal ausgeführt wurde, Then ist ein zweites Undo (kein Mehrschritt/Redo) nicht möglich", () => {
+    const { after, tracker } = moveTracked();
+    const result = undoLast(after, tracker, 0)!;
+    expect(undoLast(result.state, result.tracker, 0)).toBeNull();
+  });
+
+  it("Given eine ignorierte Aktion (Zustand unverändert), Then bleibt das bestehende Undo gültig", () => {
+    const { after, tracker } = moveTracked();
+    const t2 = trackAction(tracker, "MoveBall", 1, after, after);
+    expect(undoLabelFor(t2, 0)).not.toBeNull();
+  });
+
+  it("Given eine nicht undo-fähige Aktion (Teufel-Anfrage), Then verfällt das Undo", () => {
+    const { after, tracker } = moveTracked();
+    const next = requestDevilView(after, 0, leftNeighborSeat(0));
+    const t2 = trackAction(tracker, "RequestDevilView", 0, after, next);
+    expect(undoLabelFor(t2, 0)).toBeNull();
+  });
+
+  it("Given Karte ablegen, When Undo, Then liegt die Karte wieder in der Hand und nicht auf der Ablage", () => {
+    const dealt = dealCards(createInitialState({ rng: seededRng(3) }), 5);
+    const card = dealt.hands[0]![0]!;
+    const played = playCard(dealt, 0, card.id);
+    const tracker = trackAction(createUndoTracker(), "PlayCard", 0, dealt, played);
+    const restored = undoLast(played, tracker, 0)!.state;
+    expect(restored.hands[0]!.some((c) => c.id === card.id)).toBe(true);
+    expect(restored.discardPile.some((c) => c.id === card.id)).toBe(false);
+    expect(restored.discardEntries).toHaveLength(0);
+  });
+
+  it("Given Geben, When Undo, Then sind die Hände wieder leer und der Stapel vollständig", () => {
+    const start = createInitialState({ rng: seededRng(7) });
+    const dealt = dealCards(start, 5);
+    const tracker = trackAction(createUndoTracker(), "DealCards", 0, start, dealt);
+    const restored = undoLast(dealt, tracker, 0)!.state;
+    expect(restored.hands.every((h) => h.length === 0)).toBe(true);
+    expect(restored.deck).toHaveLength(start.deck.length);
+  });
+
+  it("Given Narr, When Undo, Then stehen die Hände wieder bei ihren ursprünglichen Spielern", () => {
+    const dealt = dealCards(createInitialState({ rng: seededRng(9) }), 5);
+    const passed = passHandsRight(dealt, 0);
+    const tracker = trackAction(createUndoTracker(), "PassHandsRight", 0, dealt, passed);
+    expect(undoLast(passed, tracker, 0)!.state.hands).toEqual(dealt.hands);
+  });
+
+  it("Given Undo nach Spielerbeitritt, Then bleibt die aktuelle Spielerliste erhalten", () => {
+    const { after, tracker } = moveTracked();
+    const joined = joinRoom(after, "conn-1", "Anna", 2).state;
+    const restored = undoLast(joined, tracker, 0)!.state;
+    expect(restored.players).toEqual(joined.players);
+  });
+
+  it("Given das Undo-Label, When der Urheber die öffentliche Sicht erhält, Then enthält sie die Beschreibung", () => {
+    const { after, tracker } = moveTracked();
+    expect(toPublicState(after, 0, undoLabelFor(tracker, 0)).undoLabel).toContain("Feld 12");
+    expect(toPublicState(after, 1, undoLabelFor(tracker, 1)).undoLabel).toBeNull();
+  });
+});
+
+describe("dealCards ohne Actor (Testmodus `test=1`, REQ-BOARD K2)", () => {
+  it("Given der Stapel liegt bei Sitz 2, When Sitz 0 gibt, Then passiert nichts", () => {
+    const s = { ...createInitialState({ rng: seededRng(11) }), deckHolder: 2 as Seat };
+    expect(dealCards(s, 5, 0).hands.every((h) => h.length === 0)).toBe(true);
+  });
+
+  it("Given der Stapel liegt bei Sitz 2, When ohne Actor gegeben wird (force), Then wird ausgeteilt und der Stapel wandert weiter", () => {
+    const s = { ...createInitialState({ rng: seededRng(11) }), deckHolder: 2 as Seat };
+    const dealt = dealCards(s, 5, undefined);
+    expect(dealt.hands.every((h) => h.length === 5)).toBe(true);
+    expect(dealt.deckHolder).toBe(3);
   });
 });

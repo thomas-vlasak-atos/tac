@@ -14,6 +14,12 @@
    - Einspaltig, normaler Fluss, darf vertikal scrollen.
    =========================================================================== */
 
+html,
+body {
+  margin: 0;
+  background: #f1dfc2;
+}
+
 .app-shell {
   box-sizing: border-box;
   background: #f1dfc2;
@@ -46,6 +52,29 @@
 
 .board-frame {
   aspect-ratio: 1 / 1;
+}
+
+/* Eigene Handkarten in der Seitenleiste: Raster mit 3 Spalten, damit alle Karten
+   (Format 3:5) auch bei wenig Höhe kompakt bleiben. */
+.own-hand-panel .hand-cards-compact {
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 150px));
+  gap: 8px;
+  align-items: start;
+}
+
+/* Genug Höhe: 2 Spalten x 3 Reihen mit größeren Karten. Die Kartenbreite wächst mit
+   der Fensterhöhe mit (3 Reihen im Format 3:5 = 5 x Breite) und ist nach oben begrenzt;
+   bei 850px Höhe entspricht sie genau der 3-Spalten-Variante (kein Sprung). */
+@media (min-height: 850px) and (min-width: 901px) {
+  .own-hand-panel .hand-cards-compact {
+    grid-template-columns: repeat(2, min(154px, calc((100svh - 330px) / 5)));
+  }
+}
+
+.own-hand-panel .hand-card-compact {
+  width: auto !important;
+  min-width: 0;
 }
 
 /* --- Desktop / Querformat: eine Bildschirmhöhe, kein Scrollen -------------- */
@@ -97,36 +126,39 @@
   }
 
   .board-drop-zone .board-frame {
-    width: min(calc(100svh - 110px), calc(100vw - 360px));
+    width: min(calc(100svh - 110px), calc(100vw - 440px));
     height: auto;
   }
 
   /* Seitenleiste: feste Breite, füllt die Höhe. */
   .side-panel {
-    flex: 0 0 320px;
-    width: 320px;
+    flex: 0 0 360px;
+    width: 360px;
     height: 100%;
     min-height: 0;
     display: flex;
     flex-direction: column;
+    /* Reicht die Höhe nicht, scrollt nur die Seitenleiste – das Brett bleibt sichtbar
+       und alle Handkarten sind erreichbar. */
+    overflow-y: auto;
+    overflow-x: hidden;
+    scrollbar-gutter: stable;
   }
 
-  /* Der Verlauf füllt den Rest der Seitenleiste und scrollt intern. */
+  .side-panel > * {
+    flex-shrink: 0;
+  }
+
+  /* Der Verlauf füllt den Rest der Seitenleiste und scrollt intern. Mindestens
+     2 Zeilen bleiben immer sichtbar (am unteren Rand der Seitenleiste „angeklebt"),
+     auch wenn die Seitenleiste selbst scrollt. */
   .side-panel .history-panel {
-    flex: 1 1 auto;
-    min-height: 0;
+    flex: 1 0 88px;
+    min-height: 88px;
     max-height: none;
-  }
-
-  .own-hand-panel .hand-cards-compact {
-    display: grid !important;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 8px;
-    align-items: stretch;
-  }
-
-  .own-hand-panel .hand-card-compact {
-    min-width: 0;
+    margin-top: 12px;
+    position: sticky;
+    bottom: 0;
   }
 }
 

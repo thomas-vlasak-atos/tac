@@ -11,6 +11,7 @@ import {
   type BoardGeometry,
   circleFieldPosition,
   defaultGeometry,
+  discardPlacement,
   housePositions,
   type Point,
   vorfeldBallPosition,
@@ -46,6 +47,10 @@ const CARD_ASPECT = 5 / 3;
 const CARD_INSET_X = 0.03;
 const CARD_INSET_Y = 0.032;
 const CARD_RADIUS_FACTOR = 0.092;
+/** Ablagekreis (dunkle Mulde in der Brettmitte, Radius ~124 von 1024) abzüglich Rand. */
+const DISCARD_RADIUS = 116;
+const DISCARD_CARD_W = 106;
+const DISCARD_CARD_H = DISCARD_CARD_W * CARD_ASPECT;
 
 function nearestTarget(point: Point, geo: BoardGeometry): BallPosition {
   let best: { pos: BallPosition; distance: number } | undefined;
@@ -127,6 +132,8 @@ export interface BoardProps {
   deckHolder?: Seat | null;
   /** Anzahl Karten im Reststapel (für die Stapelhöhe). */
   deckCount?: number;
+  /** Testmodus: jeder darf geben/mischen (nicht nur der zuständige Geber). */
+  anyDealer?: boolean;
   /** Ob der Stapel „geben" auslösen kann (klickbar). */
   deckActive?: boolean;
   /** Ob der (leere) Stapel gemischt werden muss/kann, bevor gegeben wird. */
@@ -147,7 +154,7 @@ export interface BoardProps {
 
 interface DragState { ballId: string; current: Point; moved: boolean; from: BallPosition }
 
-export function Board({ balls, players = [], handCounts = [], deckHolder = null, deckCount = 0, deckActive = false, deckShuffleable = false, onDeal, onShuffle, onRequestDevil, lastBallMove = null, showFieldNumbers = false, discardEntries = [], onMoveBall, onReturnCard, ownSeat }: BoardProps) {
+export function Board({ balls, players = [], handCounts = [], deckHolder = null, deckCount = 0, deckActive = false, deckShuffleable = false, anyDealer = false, onDeal, onShuffle, onRequestDevil, lastBallMove = null, showFieldNumbers = false, discardEntries = [], onMoveBall, onReturnCard, ownSeat }: BoardProps) {
   const geo = defaultGeometry(1024);
   const [drag, setDrag] = useState<DragState | null>(null);
 
@@ -287,7 +294,7 @@ export function Board({ balls, players = [], handCounts = [], deckHolder = null,
               In der Mitte darf JEDER klicken (wer zuerst klickt, wird Geber),
               sonst nur der Halter. Leerer Stapel zeigt „MISCHEN", sonst „GEBEN". */}
           {(() => {
-            const isDealerViewer = deckHolder == null || (ownSeat != null && ownSeat === deckHolder);
+            const isDealerViewer = anyDealer || deckHolder == null || (ownSeat != null && ownSeat === deckHolder);
             const canDeal = deckActive && isDealerViewer && ownSeat != null && !!onDeal;
             const canShuffle = deckShuffleable && isDealerViewer && ownSeat != null && !!onShuffle;
             const clickable = canDeal || canShuffle;
@@ -330,7 +337,17 @@ export function Board({ balls, players = [], handCounts = [], deckHolder = null,
               </g>
             );
           })()}
-          {topCards.map((entry) => <g key={entry.card.id} transform={`translate(${geo.center.x + entry.offset * 5} ${geo.center.y + entry.offset * 4}) rotate(${entry.rotation} 0 0)`}><rect x={-31} y={-51} width={62} height={102} rx={6} fill="#fff" stroke={BALL_STROKE[COLOR_BY_SEAT_LOCAL[entry.actor]]} strokeWidth="4" filter="url(#shadow)" /><foreignObject x={-30} y={-50} width={60} height={100}><CardArtwork card={entry.card} /></foreignObject><title>{cardLabel(entry.card)} von {COLOR_LABEL[COLOR_BY_SEAT_LOCAL[entry.actor]]}. Zum Zurücknehmen unten nutzen.</title></g>)}
+          {topCards.map((entry) => {
+            const stroke = BALL_STROKE[COLOR_BY_SEAT_LOCAL[entry.actor]];
+            const placement = discardPlacement(`${entry.card.id}:${entry.timestamp}`, DISCARD_RADIUS, DISCARD_CARD_W / 2, DISCARD_CARD_H / 2);
+            return (
+              <g key={entry.card.id} transform={`translate(${geo.center.x + placement.x} ${geo.center.y + placement.y}) rotate(${placement.rotation})`}>
+                <rect x={-DISCARD_CARD_W / 2 + DISCARD_CARD_W * CARD_INSET_X} y={-DISCARD_CARD_H / 2 + DISCARD_CARD_H * CARD_INSET_Y} width={DISCARD_CARD_W * (1 - 2 * CARD_INSET_X)} height={DISCARD_CARD_H * (1 - 2 * CARD_INSET_Y)} rx={DISCARD_CARD_W * CARD_RADIUS_FACTOR} fill="#fff" stroke={stroke} strokeWidth="4" filter="url(#shadow)" />
+                <foreignObject x={-DISCARD_CARD_W / 2} y={-DISCARD_CARD_H / 2} width={DISCARD_CARD_W} height={DISCARD_CARD_H}><CardArtwork card={entry.card} /></foreignObject>
+                <title>{cardLabel(entry.card)} von {COLOR_LABEL[COLOR_BY_SEAT_LOCAL[entry.actor]]}. Zum Zurücknehmen unten nutzen.</title>
+              </g>
+            );
+          })}
           {balls.map((ball) => { const isDragged = drag?.ballId === ball.id; const point = isDragged && drag.moved ? drag.current : ballPoints.get(ball.id) ?? geo.center; return <g key={ball.id} onPointerDown={(event) => handleDown(event, ball)} style={{ cursor: "grab" }}><circle cx={point.x} cy={point.y} r={geo.fieldRadius * 1.03} fill={`url(#marble-${ball.owner})`} stroke={isDragged ? "#fff7cf" : BALL_STROKE[ball.color]} strokeWidth={isDragged ? 5 : 2.5} filter="url(#shadow)" /><circle cx={point.x - 5} cy={point.y - 6} r={geo.fieldRadius * .2} fill="#fff" opacity=".7" /></g>; })}
         </g>
       </svg>

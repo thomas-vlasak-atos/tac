@@ -71,6 +71,8 @@ Atomar, ohne Regelprüfung:
 - `PlayCard { cardId }` – Karte aus eigener Hand offen in `discardPile`.
 - `SwapWithPartner { cardId }` – Tauschphase.
 - `Announce { canOpen: boolean }` – Melden (informativ).
+- `Undo` – macht die letzte Aktion des Absenders rückgängig (einstufig, nur wenn seither
+  nichts geschah; serverseitiger `UndoTracker`, REQ-BOARD U1).
 - `ToggleMasterMode`, `ResetGame` – Sitzungssteuerung.
 
 ## 5. Nachrichten (Server → Client)

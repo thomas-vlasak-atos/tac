@@ -219,3 +219,63 @@ export function allStartIndices(): Record<Seat, number> {
   for (const seat of SEATS) out[seat] = startIndexForSeat(seat);
   return out;
 }
+
+/** Platzierung einer abgelegten Karte relativ zur Kreismitte. */
+export interface DiscardPlacement {
+  x: number;
+  y: number;
+  /** Drehung in Grad (−180 … 180). */
+  rotation: number;
+}
+
+/** Deterministischer 32-Bit-Hash (FNV-1a) eines Textes. */
+function hashSeed(seed: string): number {
+  let h = 0x811c9dc5;
+  for (let i = 0; i < seed.length; i++) {
+    h ^= seed.charCodeAt(i);
+    h = Math.imul(h, 0x01000193);
+  }
+  return h >>> 0;
+}
+
+/** Kleiner deterministischer Zufallsgenerator (mulberry32), Werte in [0, 1). */
+function mulberry32(seed: number): () => number {
+  let a = seed;
+  return () => {
+    a = (a + 0x6d2b79f5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+/** Größter Abstand der vier Kartenecken vom Kreismittelpunkt. */
+export function maxCornerDistance(x: number, y: number, rotationDeg: number, halfW: number, halfH: number): number {
+  const rad = (rotationDeg * Math.PI) / 180;
+  const cos = Math.cos(rad);
+  const sin = Math.sin(rad);
+  let max = 0;
+  for (const [cx, cy] of [[-halfW, -halfH], [halfW, -halfH], [halfW, halfH], [-halfW, halfH]] as const) {
+    max = Math.max(max, Math.hypot(x + cx * cos - cy * sin, y + cx * sin + cy * cos));
+  }
+  return max;
+}
+
+/**
+ * Zufällige, aber pro `seed` stabile Lage einer abgelegten Karte (REQ-BOARD K4c).
+ * Beliebige Drehung und Versatz; alle vier Ecken liegen garantiert innerhalb des
+ * Ablagekreises (`radius`). Passt die Karte nicht mit Versatz, bleibt sie zentriert.
+ */
+export function discardPlacement(seed: string, radius: number, halfW: number, halfH: number): DiscardPlacement {
+  const random = mulberry32(hashSeed(seed));
+  for (let attempt = 0; attempt < 40; attempt++) {
+    const rotation = random() * 360 - 180;
+    const distance = radius * Math.sqrt(random());
+    const angle = random() * 2 * Math.PI;
+    const x = distance * Math.cos(angle);
+    const y = distance * Math.sin(angle);
+    if (maxCornerDistance(x, y, rotation, halfW, halfH) <= radius) return { x, y, rotation };
+  }
+  // Fallback: zentriert, Drehung so gewählt, dass die Karte sicher passt (hochkant).
+  return { x: 0, y: 0, rotation: random() * 20 - 10 };
+}

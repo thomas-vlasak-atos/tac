@@ -46,14 +46,10 @@ Seit dem letzten Stand umgesetzt (alle in `main`, gepusht):
    Karte (3:5); Rücken auf dem Brett (Gegnerhand, Ziehstapel) ebenfalls vollständig.
    Offen/optional: Schrift der Schriftzüge (aktuell Arial Bold statt eckiger Schrift),
    TAC-Wortzeichen ist eine Annäherung.
-2. **Kleine Layout-Restpunkte (niedrige Prio, „später"):**
-   - In einer **Zwischengröße** bleibt noch eine **vertikale Scrollbar** (soweit ok,
-     aber nicht ideal) – Chrome-Abzug `100svh − 110px` in `styles.css` ggf. justieren.
-   - Evtl. ein kleiner **Rand** ums Brett in einer bestimmten Zwischengröße.
-   - Der **„Meisterkarten"-Button** wird in einem bestimmten Breitenbereich
-     abgeschnitten (Header `overflow:hidden` + `nowrap`). Fix: Header umbrechen
-     lassen ODER Buttons/Info bei Platzmangel kürzen/umbrechen, ohne die Brett-Höhen-
-     rechnung springen zu lassen (ggf. Chrome-Höhe dynamisch statt fixem Abzug).
+2. **Layout – erledigt.** Bei geringer Fensterhöhe scrollt nur die Seitenleiste
+   (eigene Scrollbar, Verlauf mind. 180 px); das Brett bleibt vollständig sichtbar und
+   alle Handkarten sind erreichbar (3-Spalten-Raster, Format 3:5). Rand ums Brett und
+   abgeschnittener „Meisterkarten"-Button sind nicht mehr reproduzierbar.
 
 ---
 
@@ -114,7 +110,7 @@ React + Vite, schematisches SVG-Brett.
   Verlauf, Beitritt (mit URL-Parametern `?room=&name=&seat=`).
 - `App.tsx` / `main.tsx` – Zusammenbau, Steuerung (Geben/Meister/Reset).
 
-**Tests:** 83 Vitest-Tests, alle grün. `npm run typecheck` sauber.
+**Tests:** 97 Vitest-Tests, alle grün. `npm run typecheck` sauber.
 `npm run build` (Client) läuft.
 
 ---
@@ -209,10 +205,11 @@ npm run typecheck  # tsc --build über alle Pakete
       auf die Hand holen (ohne Regelprüfung, Vertrauen wie offline).
 - [x] **K4c – Natürlicher Kartenstapel (Gimmick):** Karten in der Mitte leicht
       zufällig versetzt/gedreht darstellen (wie echt); optional, verzichtbar.
-- [~] **K4d – Runden-Ablagestapel + Einsicht:** Die letzten Karten werden als
+- [x] **K4d – Runden-Ablagestapel + Einsicht:** Die letzten Karten werden als
       sichtbarer Stapel überlagert und per Hover/Titel inspizierbar. Ein expliziter
-      Rundenabschluss zum Archivieren ist noch nicht vorhanden, weil das
-      ursprüngliche Modell keine Rundenaktion hatte.
+      Rundenabschluss ist bewusst nicht nötig: Haben alle ihre Karten gespielt, gibt
+      der neue Geber aus und der Ablagestapel wird entfernt (vom Projektinhaber
+      bestätigt).
 
 ### Als Nächstes geplant
 - [ ] Manuelles 4-Spieler-Spiel lokal testen (Drag & Drop, Sync, Wurf-Gefühl).
@@ -223,10 +220,10 @@ npm run typecheck  # tsc --build über alle Pakete
       Reststapelgröße.
 
 ### Später / optional
-- [ ] Hosting umsetzen (ADR-0002): Sitzplatz-Link-Erzeugung im Client,
-      Cloudflare Tunnel o. Ä.
-- [ ] Optionale, **nicht-verbietende** Regel-Hilfen (auf Basis von REQ-RULES).
-- [ ] Optionales Undo (letzten Zug zurücknehmen) für Verklicker.
+- [x] Hosting läuft (Render, siehe README/ADR-0002). Offen/optional: Sitzplatz-Link-
+      Erzeugung im Client.
+- [x] ~~Regel-Hilfen / Zielfeld-Hervorhebung~~ – vom Projektinhaber verworfen.
+- [x] Einstufiges Undo für den Urheber der letzten Aktion (REQ-BOARD U1).
 - [x] Exakte Deck-Zusammensetzung je Kartenwert verifiziert (Auszählung echter
       Kartensatz; eingetragen in `SINGLE_DECK_COUNTS`, siehe REQ-RULES §3).
 - [x] Brettdesign anhand der Vorlagen in `vorlage/` abgeglichen. Referenz sind ein

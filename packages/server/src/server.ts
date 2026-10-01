@@ -39,6 +39,11 @@ import {
   swapBalls,
   swapWithPartner,
   toPublicState,
+  createUndoTracker,
+  trackAction,
+  undoLabelFor,
+  undoLast,
+  type UndoTracker,
 } from "./room.js";
 
 /** Eine aktive Verbindung mit Zuordnung zu Raum und Sitzplatz. */
@@ -53,6 +58,8 @@ interface Connection {
 interface Room {
   id: string;
   state: GameState;
+  /** Einstufiges Undo (REQ-BOARD U1). */
+  undo: UndoTracker;
   connections: Set<Connection>;
 }
 
@@ -62,7 +69,7 @@ const rooms = new Map<string, Room>();
 function getOrCreateRoom(roomId: string): Room {
   let room = rooms.get(roomId);
   if (!room) {
-    room = { id: roomId, state: createInitialState(), connections: new Set() };
+    room = { id: roomId, state: createInitialState(), undo: createUndoTracker(), connections: new Set() };
     rooms.set(roomId, room);
   }
   return room;
@@ -80,7 +87,7 @@ function broadcastState(room: Room): void {
   for (const conn of room.connections) {
     send(conn, {
       type: "StateUpdate",
-      state: toPublicState(room.state, conn.seat),
+      state: toPublicState(room.state, conn.seat, undoLabelFor(room.undo, conn.seat)),
       yourSeat: conn.seat,
     });
   }
@@ -136,6 +143,19 @@ function handleAction(conn: Connection, action: ClientAction): void {
   if (!room) return;
   const seat = conn.seat;
 
+  if (action.type === "Undo") {
+    const result = undoLast(room.state, room.undo, seat);
+    if (!result) {
+      send(conn, { type: "Error", message: "Es gibt nichts, was du rückgängig machen kannst." });
+      return;
+    }
+    room.state = result.state;
+    room.undo = result.tracker;
+    broadcastState(room);
+    return;
+  }
+
+  const stateBefore = room.state;
   switch (action.type) {
     case "MoveBall":
       room.state = moveBall(room.state, action.ballId, action.to, seat);
@@ -144,10 +164,10 @@ function handleAction(conn: Connection, action: ClientAction): void {
       room.state = swapBalls(room.state, action.ballA, action.ballB, seat);
       break;
     case "DealCards":
-      room.state = dealCards(room.state, 5, seat);
+      room.state = dealCards(room.state, 5, action.force ? undefined : seat);
       break;
     case "ShuffleCards":
-      room.state = shuffleDiscard(room.state, Math.random, seat);
+      room.state = shuffleDiscard(room.state, Math.random, action.force ? undefined : seat);
       break;
     case "PlayCard":
       room.state = playCard(room.state, seat, action.cardId);
@@ -196,6 +216,7 @@ function handleAction(conn: Connection, action: ClientAction): void {
       room.state = resetGame(room.state);
       break;
   }
+  room.undo = trackAction(room.undo, action.type, seat, stateBefore, room.state);
   broadcastState(room);
 }
 

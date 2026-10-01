@@ -37,7 +37,16 @@ verändern.
   Bedienknöpfe und eigenen Handkarten höhenbegrenzt. Im Querformat stehen die
   eigenen Handkarten neben dem Brett; die übrige Seitenleiste bleibt sekundär.
 - `D10`: Im Querformat werden die eigenen Handkarten neben dem Brett in einem
-  kompakten zweispaltigen Raster ohne horizontale Scrollleiste angezeigt.
+  Raster ohne horizontale Scrollleiste angezeigt. Seitenleiste 360 px breit. Bei
+  genug Fensterhöhe (>= 850 px) 2 Spalten x 3 Reihen mit größeren Karten (Breite
+  wächst mit der Höhe, max. 154 px), sonst 3 Spalten x 2 Reihen.
+- `D13`: Reicht die Höhe nicht, scrollt **nur die Seitenleiste** (das Brett bleibt
+  vollständig sichtbar, alle Handkarten sind erreichbar). Das Browserfenster selbst
+  hat im Querformat keine Scrollleiste (kein Body-Rand). Der Verlauf ist am unteren
+  Rand der Seitenleiste angeheftet; mindestens 2 Zeilen sind immer sichtbar, der Rest
+  scrollt.
+- `D14`: Folgenreiche Sammelaktionen (Neues Spiel, Narr: Hände weitergeben) verlangen
+  eine Bestätigung, um Fehlklicks zu vermeiden.
 
 ## Deck-Annahme
 

@@ -28,6 +28,12 @@ function readUrlDefaults(): Partial<JoinInfo> {
   };
 }
 
+/** Testmodus per URL-Parameter `?test=1` (oder `true`). */
+function isTestMode(): boolean {
+  const value = new URLSearchParams(window.location.search).get("test");
+  return value === "1" || value === "true";
+}
+
 /**
  * WebSocket-URL des Servers.
  *
@@ -61,6 +67,9 @@ export function App() {
   const [joined, setJoined] = useState(false);
   const [showFieldNumbers, setShowFieldNumbers] = useState(false);
   const [showMasterHelp, setShowMasterHelp] = useState(false);
+  // Testmodus (?test=1): kein Partnertausch (erste Klick auf eine Karte legt sie ab),
+  // und jeder darf geben/mischen. Nur zum Testen einer kompletten Runde gedacht.
+  const testMode = isTestMode();
 
   // Nach Verbindungsaufbau automatisch beitreten (einmalig).
   if (join && status === "open" && !joined) {
@@ -83,6 +92,13 @@ export function App() {
     }
   };
 
+  // „Narr: Hände weitergeben" betrifft alle Spieler – mit Sicherheitsabfrage gegen Fehlklicks.
+  const handlePassHands = () => {
+    if (window.confirm("Narr ausspielen? Alle Handkarten werden an den nächsten Spieler weitergegeben.")) {
+      send({ type: "PassHandsRight" });
+    }
+  };
+
   // Phasenbegriff (STATUS §4, To-do 2): In der Tauschphase legt ein Klick auf
   // eine Handkarte sie dem Partner vor; in der Spielphase legt er sie ab.
   // Tauschphase = es sind noch nicht alle belegten Sitze in `tradeDone`.
@@ -90,7 +106,7 @@ export function App() {
     ? state.players.reduce((count, player) => (player ? count + 1 : count), 0)
     : 0;
   const tradeDoneCount = state?.tradeDone.length ?? 0;
-  const isTradePhase = occupiedSeats > 0 && tradeDoneCount < occupiedSeats;
+  const isTradePhase = !testMode && occupiedSeats > 0 && tradeDoneCount < occupiedSeats;
   const iAmTradeDone = seat != null && (state?.tradeDone.includes(seat) ?? false);
   // Der Partner hat meine angebotene Karte bereits genommen: dann darf ich in
   // dieser Runde keine neue Karte mehr anbieten (Tausch ist von meiner Seite
@@ -124,6 +140,7 @@ export function App() {
             <> · Sitzplatz wird zugewiesen…</>
           )}
         </span>
+        {testMode && <span title="URL-Parameter test=1: kein Partnertausch, jeder darf geben" style={{ background: "#b91c1c", color: "#fff", borderRadius: 6, padding: "2px 8px", fontFamily: "system-ui", fontSize: 12, fontWeight: 700 }}>TESTMODUS</span>}
         <span style={{ color: "#765234", fontFamily: "system-ui", fontSize: 13 }}><strong>Verbindung:</strong> {status}</span>
         {state && (
           <span style={{ color: "#765234", fontFamily: "system-ui", fontSize: 13 }}>
@@ -132,6 +149,9 @@ export function App() {
           </span>
         )}
         <div style={{ marginLeft: "auto", display: "flex", gap: 8, fontFamily: "system-ui", fontSize: 13 }}>
+          {state?.undoLabel && (
+            <button type="button" onClick={() => send({ type: "Undo" })} title={`Rückgängig: ${state.undoLabel}`}>↩ Rückgängig</button>
+          )}
           <button type="button" onClick={handleReset}>Neu</button>
           <button type="button" onClick={() => setShowMasterHelp(true)}>Meisterkarten erklären</button>
         </div>
@@ -158,8 +178,9 @@ export function App() {
                   deckCount={state.deckCount}
                   deckActive={state.deckActive}
                   deckShuffleable={state.deckShuffleable}
-                  onDeal={() => send({ type: "DealCards" })}
-                  onShuffle={() => send({ type: "ShuffleCards" })}
+                  anyDealer={testMode}
+                  onDeal={() => send({ type: "DealCards", force: testMode || undefined })}
+                  onShuffle={() => send({ type: "ShuffleCards", force: testMode || undefined })}
                   onRequestDevil={(target) => send({ type: "RequestDevilView", target })}
                   lastBallMove={state.lastBallMove}
                   showFieldNumbers={showFieldNumbers}
@@ -236,7 +257,7 @@ export function App() {
             {/* Partnertausch: unterhalb der eigenen Karten. Nach dem eigenen Tausch
                 ausgeblendet – erst nach dem nächsten Geben wieder sichtbar (dann ist
                 `tradeDone`/`tradeOffers` zurückgesetzt). */}
-            {!iAmTradeDone && state.tradeOffers.length > 0 && (
+            {!testMode && !iAmTradeDone && state.tradeOffers.length > 0 && (
               <div style={{ marginTop: 12, padding: 12, borderRadius: 12, background: "#f5e5c8", border: "1px solid #c8955c" }}>
                 <strong>Partnertausch</strong>
                 <div style={{ display: "grid", gap: 6, marginTop: 8 }}>
@@ -265,7 +286,7 @@ export function App() {
                 </div>
               </div>
             )}
-            <div style={{ marginTop: 12, padding: 12, borderRadius: 12, background: "#f5e5c8", color: "#6b3d22", fontFamily: "system-ui", fontSize: 13 }}><strong>Meisteraktionen</strong><div style={{ marginTop: 8, display: "grid", gap: 6 }}><button type="button" onClick={() => send({ type: "PassHandsRight" })}>Narr: alle Hände weitergeben</button></div><p style={{ margin: "8px 0 0", fontSize: 12, color: "#8a5a33" }}>Teufel: auf den Kartenstapel deines linken Nachbarn am Brett klicken.</p></div>
+            <div style={{ marginTop: 12, padding: 12, borderRadius: 12, background: "#f5e5c8", color: "#6b3d22", fontFamily: "system-ui", fontSize: 13 }}><strong>Meisteraktionen</strong><div style={{ marginTop: 8, display: "grid", gap: 6 }}><button type="button" onClick={handlePassHands}>Narr: alle Hände weitergeben</button></div><p style={{ margin: "8px 0 0", fontSize: 12, color: "#8a5a33" }}>Teufel: auf den Kartenstapel deines linken Nachbarn am Brett klicken.</p></div>
             {state.devilRequests.map((request) => request.controller === seat && request.approved && request.visibleCards ? <div key={request.id} style={{ marginTop: 12, padding: 12, borderRadius: 12, background: "#ead0a8", fontFamily: "system-ui", fontSize: 13 }}><strong>Teufel-Hand von {state.players[request.target]?.name}</strong><div style={{ display: "flex", gap: 5, flexWrap: "wrap", marginTop: 8 }}>{request.visibleCards.map((card) => <button key={card.id} type="button" onClick={() => send({ type: "PlayForeignCard", requestId: request.id, cardId: card.id })} style={{ width: 52, padding: 2, background: "#fff8e7", border: "1px solid #a56b3d" }}><CardArtwork card={card} /></button>)}</div><button type="button" onClick={() => send({ type: "CancelDevilView", requestId: request.id })} style={{ marginTop: 8 }}>Einsicht beenden</button></div> : null)}
             <HistoryPanel entries={state.history} />
           </aside>

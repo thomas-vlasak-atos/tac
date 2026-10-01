@@ -81,6 +81,11 @@ Browser-Tab auf `http://localhost:5173` öffnen. Über URL-Parameter lässt sich
 Beitritt vorbelegen, z. B. `http://localhost:5173/?room=abc&name=Anna&seat=0`
 (siehe `docs/decisions/ADR-0002-hosting-und-sitzplatz-links.md`).
 
+**Testmodus:** Mit zusätzlichem Parameter `test=1` (z. B. `?room=abc&name=Anna&seat=0&test=1`)
+entfällt der Partnertausch – ein Klick auf eine Handkarte legt sie sofort ab – und jeder
+Sitz darf geben/mischen (nicht nur der zuständige Geber). Im Header erscheint „TESTMODUS".
+Nur zum Testen einer kompletten Runde gedacht, z. B. alles in einem Tab.
+
 Diese Anleitung wird bei jeder Änderung am Setup/Start-Prozess aktuell gehalten.
 
 ## Online-Test-Deployment (kostenlos, via Render)
@@ -115,10 +120,10 @@ Sitzplatz-Nummer im Link ist 0-basiert (`seat=0` = angezeigter „Platz 1").
 
 | Spieler  | Platz (Farbe)        | Link |
 |----------|----------------------|------|
-| Thomas   | Platz 1 – Blau (Team A)  | https://tac-client.onrender.com/?room=tac&name=Thomas&seat=0 |
-| Torsten  | Platz 2 – Gelb (Team B)  | https://tac-client.onrender.com/?room=tac&name=Torsten&seat=1 |
-| Matthias | Platz 3 – Grün (Team A)  | https://tac-client.onrender.com/?room=tac&name=Matthias&seat=2 |
-| Steffen  | Platz 4 – Rot (Team B)   | https://tac-client.onrender.com/?room=tac&name=Steffen&seat=3 |
+| Thomas   | Platz 1 – Blau (Team A)  | https://tac-client.onrender.com/?room=T-T-M-S_Freunde&name=Thomas&seat=0 |
+| Torsten  | Platz 2 – Gelb (Team B)  | https://tac-client.onrender.com/?room=T-T-M-S_Freunde&name=Torsten&seat=1 |
+| Matthias | Platz 3 – Grün (Team A)  | https://tac-client.onrender.com/?room=T-T-M-S_Freunde&name=Matthias&seat=2 |
+| Steffen  | Platz 4 – Rot (Team B)   | https://tac-client.onrender.com/?room=T-T-M-S_Freunde&name=Steffen&seat=3 |
 
 Teams sitzen gegenüber: Thomas + Matthias (Team A), Torsten + Steffen (Team B).
 

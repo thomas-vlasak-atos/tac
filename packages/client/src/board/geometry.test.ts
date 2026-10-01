@@ -13,6 +13,8 @@ import {
   housePositions,
   startIndexForSeat,
   vorfeldBallPosition,
+  discardPlacement,
+  maxCornerDistance,
 } from "./geometry.js";
 
 const geo = defaultGeometry(1024);
@@ -106,5 +108,30 @@ describe("vorfeldBallPosition", () => {
         expect(p.y + geo.fieldRadius).toBeLessThanOrEqual(geo.size);
       }
     }
+  });
+});
+
+describe("discardPlacement (REQ-BOARD K4c: zufällige Ablage, nie außerhalb des Kreises)", () => {
+  const radius = 116;
+  // Kartengröße wie im Board (106 x 176,7): größte Variante, die noch sicher passen muss.
+  const halfW = 53;
+  const halfH = 88.3;
+
+  it("Given viele Karten, When sie abgelegt werden, Then liegen alle vier Ecken immer im Ablagekreis", () => {
+    for (let i = 0; i < 2000; i++) {
+      const p = discardPlacement(`card-${i}:${i * 7}`, radius, halfW, halfH);
+      expect(maxCornerDistance(p.x, p.y, p.rotation, halfW, halfH)).toBeLessThanOrEqual(radius + 1e-9);
+    }
+  });
+
+  it("Given dieselbe Karte, When die Lage mehrfach berechnet wird, Then ist sie identisch (alle Spieler sehen dasselbe)", () => {
+    expect(discardPlacement("abc:1", radius, halfW, halfH)).toEqual(discardPlacement("abc:1", radius, halfW, halfH));
+  });
+
+  it("Given verschiedene Karten, When sie abgelegt werden, Then variieren Drehung und Position deutlich", () => {
+    const placements = Array.from({ length: 200 }, (_, i) => discardPlacement(`k${i}:0`, radius, halfW, halfH));
+    const rotations = placements.map((p) => p.rotation);
+    expect(Math.max(...rotations) - Math.min(...rotations)).toBeGreaterThan(300);
+    expect(new Set(placements.map((p) => Math.round(p.x))).size).toBeGreaterThan(20);
   });
 });

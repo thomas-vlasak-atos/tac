@@ -132,10 +132,14 @@
   oder zu früh gelegte Karte kann zurück auf die Hand des ursprünglichen Spielers
   geholt werden. Bewusst ohne Regelprüfung (Vertrauen wie offline). Sinnvoll auf
   die zuletzt gelegte(n) Karte(n) beschränken; Detailumfang beim UI-Feinschliff.
-- **K4c – Natürlicher Kartenstapel (optionales Gimmick, geplant):** Die in die
-  Mitte gelegten Karten werden leicht **zufällig versetzt und gedreht**
-  dargestellt, wie echte Karten auf dem Tisch (nie exakt übereinander). Rein
-  visuell, „nice to have"; kann entfallen, falls zu komplex/fehleranfällig.
+- **K4c – Natürlicher Kartenstapel (umgesetzt):** Die in die Mitte gelegten Karten
+  werden **zufällig versetzt und beliebig gedreht** (−180…180°) dargestellt, wie echte
+  Karten auf dem Tisch. Die Lage ist pro Karte stabil (aus Karten-ID/Zeitstempel
+  abgeleitet, daher für alle Spieler gleich) und liegt **garantiert vollständig im
+  Ablagekreis** (alle vier Ecken, `discardPlacement` in `board/geometry.ts`). Die
+  Karten sind im Kartenformat 3:5 deutlich größer als zuvor (106 x 177 von 1024).
+  Die Lage ist bewusst deterministisch (einfacher Zufallsgenerator mit Karten-ID als
+  Startwert), nicht serverseitig gespeichert.
 - **K4d – Runden-Ablagestapel + Einsicht (geplant, noch nicht umgesetzt):** Da
   sich gestapelte Karten in der Mitte überdecken, wird pro Runde die Mitte auf
   einen **Ablagestapel** geräumt. Die gelegten Karten der aktuellen (bzw. letzten)
@@ -174,25 +178,41 @@
   - "Blau: Kugel von Feld 12 → Feld 17"
   - "Rot: Kugel von Feld 30 → Vorfeld (geworfen)"
   - "Grün: Karte 7 abgelegt"
-- **H2 – Nur Anzeige:** Kein Undo/kein Zurücksetzen (bewusste Entscheidung – wie
-  offline). Der Verlauf gibt lediglich Sicherheit bei Rückwärts-/TAC-Situationen,
-  um den vorherigen Zustand nachzuvollziehen.
+- **H2 – Nur Anzeige:** Der Verlauf selbst ist nur eine Anzeige (kein Zurücksetzen
+  auf beliebige frühere Stände). Er gibt Sicherheit bei Rückwärts-/TAC-Situationen,
+  um den vorherigen Zustand nachzuvollziehen. Für Fehlklicks gibt es das
+  einstufige Undo (U1).
 - **H3 – Umfang:** Mindestens die letzten ~20 Aktionen; ältere können ausgeblendet
   werden.
+
+- **U1 – Einstufiges Undo (Fehlklick-Schutz):**
+  - Der Urheber der **letzten Aktion** kann sie mit „Rückgängig" zurücknehmen, solange
+    danach **keine weitere Aktion** (von irgendwem) stattgefunden hat. Nur 1 Schritt,
+    kein Redo.
+  - Erfasst werden alle spielrelevanten Aktionen: Kugel bewegen/tauschen, Karte
+    ablegen/zurücknehmen/fremde Karte spielen (Teufel), Partnertausch (anbieten,
+    nehmen, zurücknehmen), Geben, Mischen, Narr (Hände weitergeben).
+  - Nicht erfasst (und sie machen ein bestehendes Undo ungültig): Teufel-Anfrage und
+    -Entscheidung, „Neu", Meisterversion umschalten. Beitritt/Trennen von Spielern
+    ändert nichts an der Gültigkeit.
+  - Wiederhergestellt wird der komplette Spielzustand vor der Aktion (Kugeln, Hände,
+    Stapel, Ablage, Tausch), nicht aber die Spielerliste/Verbindungen.
+  - Im Verlauf erscheint ein Eintrag „Rückgängig: …"; der zurückgenommene Eintrag
+    verschwindet. Die Schaltfläche zeigt, was zurückgenommen würde, und ist nur beim
+    Urheber sichtbar.
+  - Umsetzung: serverseitig (`UndoTracker` in `room.ts`), Aktion `Undo`.
 
 ## 6. Nicht im Scope (Stufe 1)
 
 - Keine Regelprüfung/-erzwingung.
-- Kein Undo/Redo.
+- Kein Redo und kein mehrstufiges Undo (nur U1).
 - Keine KI/Computer-Gegner.
 - Keine Accounts, kein Matchmaking, keine Fremdnutzer.
 - Nur 4-Spieler-Modus (keine 1–3 / 6er-Varianten).
 
 ## 7. Mögliche Erweiterungen (später, optional)
 
-- Zuschaltbare, **nicht-verbietende** Hilfen (mögliche Felder hervorheben) auf
-  Basis von `REQ-RULES`.
-- Optionales Undo (letzten Zug zurücknehmen) für Verklicker.
+- ~~Regel-Hilfen / Zielfeld-Hervorhebung~~ – vom Projektinhaber verworfen.
 - Würfel/Chat/Emotes, Sound.
 - Zwei Design-Varianten zum Vergleich (modern-flach vs. hochwertig-realistisch).
 
