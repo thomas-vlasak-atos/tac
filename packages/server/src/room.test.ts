@@ -25,8 +25,6 @@ import {
   playForeignCard,
   passHandsRight,
   returnCard,
-  swapBalls,
-  swapWithPartner,
   toPublicState,
   createUndoTracker,
   trackAction,
@@ -91,27 +89,6 @@ describe("moveBall", () => {
     const s0 = createInitialState();
     const s1 = moveBall(s0, "gibtsnicht", { kind: "FELD", index: 1 }, 0);
     expect(s1).toBe(s0);
-  });
-});
-
-describe("swapBalls", () => {
-  it("tauscht die Positionen zweier Kugeln (B3a / Trickser)", () => {
-    let s = createInitialState();
-    s = moveBall(s, "blau-0", { kind: "FELD", index: 10 }, 0);
-    s = moveBall(s, "rot-0", { kind: "FELD", index: 40 }, 3);
-    s = swapBalls(s, "blau-0", "rot-0", 0);
-
-    const blau = s.balls.find((b) => b.id === "blau-0")!;
-    const rot = s.balls.find((b) => b.id === "rot-0")!;
-    expect(blau.position).toEqual({ kind: "FELD", index: 40 });
-    expect(rot.position).toEqual({ kind: "FELD", index: 10 });
-    expect(s.history.at(-1)!.text).toContain("getauscht");
-  });
-
-  it("ignoriert Tausch mit sich selbst oder unbekannter Kugel", () => {
-    const s0 = createInitialState();
-    expect(swapBalls(s0, "blau-0", "blau-0", 0)).toBe(s0);
-    expect(swapBalls(s0, "blau-0", "gibtsnicht", 0)).toBe(s0);
   });
 });
 
@@ -251,18 +228,7 @@ describe("returnCard", () => {
   });
 });
 
-describe("swapWithPartner", () => {
-  it("gibt eine Karte an den gegenübersitzenden Partner", () => {
-    let s = dealCards(createInitialState({ rng: seededRng(4) }), 5);
-    const seat: Seat = 0;
-    const partner = partnerSeat(seat);
-    const card = s.hands[seat]![0]!;
-
-    s = swapWithPartner(s, seat, card.id);
-    expect(s.hands[seat]!.some((c) => c.id === card.id)).toBe(false);
-    expect(s.hands[partner]!.some((c) => c.id === card.id)).toBe(true);
-  });
-
+describe("partnerSeat", () => {
   it("partnerSeat: 0<->2 und 1<->3", () => {
     expect(partnerSeat(0)).toBe(2);
     expect(partnerSeat(2)).toBe(0);

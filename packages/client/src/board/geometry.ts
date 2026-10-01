@@ -14,7 +14,6 @@
 import {
   CIRCLE_FIELD_COUNT,
   type Seat,
-  SEATS,
 } from "@tac/shared";
 
 /** Ein Punkt in SVG-Koordinaten. */
@@ -211,13 +210,6 @@ export function vorfeldBallPosition(
     x: center.x + (col - 0.5) * spread,
     y: center.y + (row - 0.5) * spread,
   };
-}
-
-/** Liefert die Startindizes aller Sitzplätze (für Marker/Highlights). */
-export function allStartIndices(): Record<Seat, number> {
-  const out = {} as Record<Seat, number>;
-  for (const seat of SEATS) out[seat] = startIndexForSeat(seat);
-  return out;
 }
 
 /** Platzierung einer abgelegten Karte relativ zur Kreismitte. */

@@ -52,24 +52,22 @@ verändern.
 
 ## Kartenbilder
 
-Die unter `cards/` abgelegten Entwürfe werden direkt als PNG-Assets verwendet,
-ohne sie in SVG nachzuzeichnen. Aktuell sind Designs für 1/13, 4, TAC, Engel,
-Krieger und Narr vorhanden. Für noch fehlende Kartentypen bleibt zunächst ein
-lesbarer Text-Fallback im gleichen Kartenformat (3:5) aktiv; neue PNGs können später ohne Änderung am
-Datenmodell ergänzt werden.
+Alle Karten sind als SVG nachgebaut (`ui/cardFaces.tsx`). Die ursprünglichen Entwürfe
+(PNG/JPG, früher `cards/`) wurden nach Abschluss des Designs entfernt; sie bleiben in
+der Git-Historie abrufbar. Für unbekannte Kartenarten gibt es einen schlichten Text-Fallback
+im gleichen Kartenformat (3:5).
 
 `D11`: Karten mit vorhandenem Bild werden vollständig (Seitenverhältnis 3:5, nichts
 abgeschnitten) und ohne zusätzlichen Rahmen dargestellt – das Bild ist die Karte.
 Handkarten heben sich beim Überfahren leicht an.
 
-`D12`: Darstellungspriorität je Karte: **SVG-Nachbau** (`ui/cardFaces.tsx`) vor
-**PNG-Vorlage** (`cards/`) vor **Text-Fallback**. Als SVG vorhanden: alle
+`D12`: Darstellung je Karte: **SVG-Nachbau** (`ui/cardFaces.tsx`), sonst
+**Text-Fallback**. Als SVG vorhanden: alle
 Zahlenkarten (1–10, 12, 13), der Trickser, TAC und alle vier Meisterkarten
-(Engel, Teufel, Krieger, Narr) sowie der Kartenrücken (`CardBackFace`/`CardBackSvg`,
-verwendet bei Gegnerhänden, Ziehstapel und verdeckten Karten auf dem Brett). Die
-PNGs in `cards/` dienen nur noch als Vorlage bzw. Fallback. Alle SVGs nutzen das Koordinatensystem 600 x 1000 der PNGs.
+(Engel, Teufel, Krieger, Narr) sowie der Kartenrücken (`CardBackFace`,
+verwendet bei Gegnerhänden, Ziehstapel und verdeckten Karten auf dem Brett). Alle SVGs nutzen das Koordinatensystem 600 x 1000 der PNGs.
 
-Vorlage für die SVG-Nachbauten: `cards/tac-sonst01-1.jpg` (Foto des Kartensatzes).
+Vorlage der SVG-Nachbauten war ein Foto des Kartensatzes (`tac-sonst01-1.jpg`, entfernt).
 Daraus abgeleitet: Zahlen 1, 4, 7, 13 rot (mit Dreiecken bzw. Punkten), die übrigen
 Zahlen schwarz mit sechszähliger Farbblume im Zentrum; Trickser mit zwei roten
 Rauten und Schriftzug.
@@ -86,12 +84,10 @@ die auf die anderen Spieler oder auf eine vollständige Tauschphase wartet.
 
 ## Brettreferenz
 
-Die Vorlagen unter `vorlage/` definieren die visuelle Richtung für den späteren
-Brettausbau: quadratische Holzplatte, großer Kreis aus eingelassenen Kugellöchern,
-feine florale Verbindungslinien, zentrale Mulde und vier Eckmulden. Die Fotos
-dienen als Referenz; sie werden wegen enthaltener Kugeln, Karten und Perspektive
-nicht direkt als UI-Hintergrund eingeblendet. Die interaktiven Felder werden als
-eigene SVG-/CSS-Geometrie nachgebildet.
+Unter `vorlage/` liegen die Brettgrundlage `Board.png` (wird im Client als Hintergrund
+eingebunden, siehe D6a) und die Referenzzeichnung `board.svg`. Die früheren
+Brett-Referenzfotos wurden entfernt (Git-Historie). Die interaktiven Felder werden als
+eigene SVG-/CSS-Geometrie über `Board.png` gelegt.
 
 Die Primärdokumente (offizielles Regelheft) legen 100 Basiskarten fest, nennen
 aber keine Einzelhäufigkeit je Wert. Die Verteilung wurde daher anhand eines

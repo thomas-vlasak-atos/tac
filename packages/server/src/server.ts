@@ -35,9 +35,6 @@ import {
   passHandsRight,
   resetGame,
   returnCard,
-  setMasterMode,
-  swapBalls,
-  swapWithPartner,
   toPublicState,
   createUndoTracker,
   trackAction,
@@ -160,9 +157,6 @@ function handleAction(conn: Connection, action: ClientAction): void {
     case "MoveBall":
       room.state = moveBall(room.state, action.ballId, action.to, seat);
       break;
-    case "SwapBalls":
-      room.state = swapBalls(room.state, action.ballA, action.ballB, seat);
-      break;
     case "DealCards":
       room.state = dealCards(room.state, 5, action.force ? undefined : seat);
       break;
@@ -174,9 +168,6 @@ function handleAction(conn: Connection, action: ClientAction): void {
       break;
     case "ReturnCard":
       room.state = returnCard(room.state, seat, action.cardId);
-      break;
-    case "SwapWithPartner":
-      room.state = swapWithPartner(room.state, seat, action.cardId);
       break;
     case "OfferCardToPartner":
       room.state = offerCardToPartner(room.state, seat, action.cardId);
@@ -204,13 +195,6 @@ function handleAction(conn: Connection, action: ClientAction): void {
       break;
     case "PassHandsRight":
       room.state = passHandsRight(room.state, seat);
-      break;
-    case "Announce":
-      // Rein informativ; als Verlaufseintrag über moveBall-artiges Muster
-      // könnte man das ergänzen. Vorerst kein Zustandsänderung nötig.
-      break;
-    case "SetMasterMode":
-      room.state = setMasterMode(room.state, action.enabled);
       break;
     case "ResetGame":
       room.state = resetGame(room.state);

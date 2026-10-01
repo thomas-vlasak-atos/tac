@@ -2,7 +2,7 @@
  * Als SVG nachgebaute Kartenvorderseiten (verlustfrei skalierbar).
  *
  * Bezug: REQ-DESIGN D11/D12. Koordinatensystem 600 x 1000, identisch zu den
- * PNG-Vorlagen unter `cards/`, damit SVG und PNG gleich groß erscheinen.
+ * ursprünglichen Kartenvorlagen (Seitenverhältnis 3:5).
  * Priorität bei der Darstellung: SVG > PNG > Text-Fallback (siehe cardArtwork.tsx).
  */
 
@@ -355,15 +355,6 @@ export function CardBackFace() {
         ))}
       </g>
     </>
-  );
-}
-
-/** Eigenständiges SVG-Element des Kartenrückens (füllt die Breite des Eltern-Elements). */
-export function CardBackSvg({ style }: { style?: React.CSSProperties }) {
-  return (
-    <svg role="img" aria-label="Verdeckte Karte" viewBox="0 0 600 1000" style={{ display: "block", width: "100%", aspectRatio: "3 / 5", ...style }}>
-      <CardBackFace />
-    </svg>
   );
 }
 

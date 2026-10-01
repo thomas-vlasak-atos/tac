@@ -16,6 +16,15 @@ Versionierung nach [Semantic Versioning](https://semver.org/lang/de/).
 - **Kartenrücken auf dem Brett unsichtbar:** `clipPath` hing direkt am verschachtelten
   `<svg>` (falsches Koordinatensystem); jetzt in einer umschließenden `<g>`.
 
+### Removed
+- Ungenutzter Code: Aktionen `SwapBalls`, `SwapWithPartner`, `Announce`, `SetMasterMode`
+  (der Client sendet sie nicht; Partnertausch läuft über Angebot/Annehmen), `findCardInHand`,
+  `allStartIndices`, `HOUSE_SLOT_COUNT`, `CardBack`-Komponente, `DiscardEntry.offset/rotation`,
+  PNG-Ladepfad in `cardArtwork.tsx` (alle Karten sind SVG; kleinerer Client-Bundle).
+- Ordner `cards/` (PNG-/JPG-Kartenvorlagen, `trickser.png` im Projektstamm) und die
+  Brett-Referenzfotos in `vorlage/` (`Spielbrett*.jpg`, `spielbrett3.avif`) gelöscht;
+  das Design steht. In `vorlage/` bleiben `Board.png` (Brettgrundlage) und `board.svg`.
+
 ### Changed
 - **Handkarten größer (D10):** Seitenleiste 360px; ab 850px Fensterhöhe 2 Spalten x 3
   Reihen mit mit der Höhe wachsender Kartenbreite, sonst 3 Spalten. Verlauf ist unten

@@ -1,7 +1,7 @@
 # ADR-0002: Hosting & Beitritt über Sitzplatz-Links (Entwurf)
 
-**Status:** teilweise umgesetzt (kostenloser Cloud-Test via Render)
-**Datum:** 2026-09-21 (aktualisiert 2026-09-29)
+**Status:** umgesetzt (Render; Sitzplatz-Links in der README)
+**Datum:** 2026-09-21 (aktualisiert 2026-10-01)
 
 ## Kontext
 
@@ -46,18 +46,18 @@ erreichbar. Kandidaten:
 
 ## Offene Punkte / später zu entscheiden
 
-- [ ] Genaues Link-Schema und ob Sitzplätze „gesperrt" (nur per Link) oder frei
-      wählbar sind.
-- [ ] Optionaler Zugangscode pro Raum (leichter Schutz gegen Zufallszugriffe).
-- [ ] Konkrete Wahl des Tunnel-/Hosting-Wegs – erst relevant, wenn Client/Server
-      lokal spielbar sind.
-- [ ] Persistenz: Läuft eine Partie nur im Speicher (Server-Neustart = neu)? Für
-      den Anfang vermutlich ausreichend.
+- [x] Link-Schema: `?room=<name>&name=<name>&seat=<0-3>` (siehe README); der Platz aus
+      dem Link wird immer zugewiesen (Verdrängung), ohne `seat` gilt Auto-Join.
+- [x] Hosting-Weg: Cloud-Host Render (Option 4), kein Heim-Server/Tunnel nötig.
+- [x] Persistenz: Partie nur im Speicher (Neustart/Deploy/Einschlafen = neu) – für den
+      Freundeskreis ausreichend.
+- [ ] ~~Zugangscode pro Raum~~ – bewusst nicht umgesetzt (der Raumname im Link genügt).
 
 ## Konsequenzen
 
-- Der Client braucht später: eine „Raum anlegen"-Ansicht (Namen/Sitze → Links
-  generieren) und das Auslesen von `roomId`/`seat`/`name` aus der URL.
+- Der Client liest `roomId`/`seat`/`name` aus der URL. Eine „Raum anlegen"-Ansicht
+  zum Erzeugen der Links ist nicht nötig: die Links stehen in der README und werden
+  per Mail verteilt.
 - Serverseitig ist die Grundlage (`JoinRoom` mit Sitzplatz) bereits vorhanden.
 - Keine Änderung am aktuellen Umsetzungsstand nötig; dies ist ein Planungs-ADR.
 

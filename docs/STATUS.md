@@ -41,7 +41,7 @@ Seit dem letzten Stand umgesetzt (alle in `main`, gepusht):
 
 1. **Kartendesign – erledigt (REQ-DESIGN D11/D12).** Alle Karten (Zahlen 1–10/12/13,
    Trickser, TAC, Engel, Teufel, Krieger, Narr) und der Kartenrücken sind als SVG
-   nachgebaut (`ui/cardFaces.tsx`, Vorlagen `cards/*.png|jpg`). Darstellungspriorität
+   nachgebaut (`ui/cardFaces.tsx`, Vorlagen aus der Git-Historie). Darstellungspriorität
    SVG > PNG > Text-Fallback (`ui/cardArtwork.tsx`). Handkarten zeigen die komplette
    Karte (3:5); Rücken auf dem Brett (Gegnerhand, Ziehstapel) ebenfalls vollständig.
    Offen/optional: Schrift der Schriftzüge (aktuell Arial Bold statt eckiger Schrift),
@@ -63,8 +63,8 @@ letzten Züge.
 
 **Wichtige Grundentscheidungen:**
 - `docs/decisions/ADR-0001-freies-brett.md` – freies Brett statt Regel-Engine.
-- `docs/decisions/ADR-0002-hosting-und-sitzplatz-links.md` – Heim-Server +
-  Sitzplatz-Links, Tunnel-Optionen (nur Planung).
+- `docs/decisions/ADR-0002-hosting-und-sitzplatz-links.md` – Hosting (Render) +
+  Sitzplatz-Links (umgesetzt).
 - `docs/decisions/ADR-0003-windows-subst-pfad.md` – Windows-`subst`-Pfadproblem
   (relevant fürs lokale Entwickeln).
 
@@ -88,8 +88,8 @@ Gemeinsame Typen & reine Funktionen. Keine Regellogik.
 ### `@tac/server` (fertig, getestet, End-to-End verifiziert)
 WebSocket-Server = **State-Synchronisierer** (kein Schiedsrichter).
 - `room.ts` – reine, testbare Logik: `moveBall` (freies Ziehen + Werfen am
-  Zielfeld), `dealCards`, `playCard`, `swapWithPartner`, `joinRoom` (Sitzvergabe
-  + Reconnect über Namen), `resetGame`, `setMasterMode`, `toPublicState`
+  Zielfeld), `dealCards`, `playCard`, Partnertausch (`offerCardToPartner` …), `joinRoom` (Sitzvergabe
+  + Reconnect über Namen), `resetGame`, Undo (`undoLast`), `toPublicState`
   (Sichtbarkeitsfilter), Verlaufseinträge.
 - `server.ts` – WebSocket-Transport: Räume, Aktionen anwenden, gefilterter
   Broadcast (jeder Client sieht nur die eigene Hand).
@@ -100,17 +100,17 @@ WebSocket-Server = **State-Synchronisierer** (kein Schiedsrichter).
 React + Vite, schematisches SVG-Brett.
 - `board/geometry.ts` – reine, getestete Feldkoordinaten (Kreis, Startfelder
   0/16/32/48, Häuser radial nach innen, Vorfelder – alles im Bild).
-- `board/Board.tsx` – SVG-Brett; **Klick-Bedienung** (REQ-BOARD B3a): Kugel
-  anklicken = aufnehmen, freies Feld = setzen, andere Kugel = tauschen
-  (Trickser). Leere Plätze sichtbar (B7).
+- `board/Board.tsx` – SVG-Brett; **Drag & Drop** (REQ-BOARD B3a): Kugel greifen und
+  auf ein Feld ziehen. Leere Plätze sichtbar (B7).
 - `net/useTacSocket.ts` – WebSocket-Hook (robust gegen StrictMode-Doppel-Mount).
 - `ui/cardFaces.tsx` – SVG-Kartenvorderseiten und -rücken; `ui/cardArtwork.tsx` –
-  Auswahl SVG/PNG/Fallback.
+  Anzeige der Karte (SVG, sonst Text-Fallback). Die früheren PNG-/JPG-Vorlagen
+  (`cards/`) sind entfernt (Git-Historie).
 - `ui/Hand.tsx`, `ui/HistoryPanel.tsx`, `ui/JoinScreen.tsx` – Handkarten,
   Verlauf, Beitritt (mit URL-Parametern `?room=&name=&seat=`).
 - `App.tsx` / `main.tsx` – Zusammenbau, Steuerung (Geben/Meister/Reset).
 
-**Tests:** 97 Vitest-Tests, alle grün. `npm run typecheck` sauber.
+**Tests:** 96 Vitest-Tests, alle grün. `npm run typecheck` sauber.
 `npm run build` (Client) läuft.
 
 ---
@@ -156,7 +156,7 @@ npm run typecheck  # tsc --build über alle Pakete
 - [x] **Partnertausch** überarbeitet: 1× pro Runde, Angebot ersetz-/zurücknehmbar,
       nehmen erst nach eigenem Angebot.
 - [x] **Meisterkarten-Anleitung** als Overlay im Client.
-- [ ] Bedienung im echten 4-Spieler-Spiel testen (jetzt online möglich); Feedback sammeln.
+- [x] Bedienung im echten 4-Spieler-Spiel getestet (erfolgreich).
 
 ### Nächste Session: offene To-dos (Feedback aus dem Testen, noch NICHT umgesetzt)
 
@@ -174,9 +174,8 @@ npm run typecheck  # tsc --build über alle Pakete
    Die separaten Aktions-Buttons entfielen. REQ-BOARD K3a/K5 angepasst.
 
 ### Sofort (offen aus dieser Session)
-- [~] **Feinschliff der Bedienung** im echten Spiel testen (zu viert):
-      Kartenklick, Kugel-Drag & Drop, gefächerte Kugeln auf gleichem Feld, Orientierung.
-      Erster kleiner Test durchgeführt, Ergebnis positiv; weitere Bugfixes folgen.
+- [x] **Feinschliff der Bedienung** im echten Spiel getestet (zu viert): Kartenklick,
+      Kugel-Drag & Drop, gefächerte Kugeln, Orientierung – erfolgreich.
 - [x] Client lädt im Browser (Windows-`subst`-Problem gelöst, ADR-0003).
 - [x] WebSocket-Verbindung stabil (StrictMode-Doppel-Mount behoben).
 
@@ -212,8 +211,9 @@ npm run typecheck  # tsc --build über alle Pakete
       bestätigt).
 
 ### Als Nächstes geplant
-- [ ] Manuelles 4-Spieler-Spiel lokal testen (Drag & Drop, Sync, Wurf-Gefühl).
-- [ ] UI-Feinschliff nach echtem Spiel mit vier Browser-Tabs.
+- [x] Manuelles 4-Spieler-Spiel getestet (Drag & Drop, Sync) und UI-Feinschliff.
+- [x] Sitzplatz-Links stehen in der README (per Mail verteilbar); eine Link-Ansicht
+      im Client ist nicht geplant.
 - [x] Tauschphase: freiwillige verdeckte Angebote und Annahme beim gegenüber-
       sitzenden Partner; harte Wartepflicht bleibt bewusst ausgeschaltet.
 - [x] Geberrotation und sichtbare Anzeige von aktuellem/nächstem Geber sowie

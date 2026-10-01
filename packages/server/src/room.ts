@@ -11,7 +11,6 @@
 
 import {
   type BallPosition,
-  type Card,
   cardLabel,
   COLOR_BY_SEAT,
   createInitialState,
@@ -102,32 +101,6 @@ export function moveBall(
     actor,
     text,
   );
-}
-
-/**
- * Tauscht die Positionen zweier Kugeln (REQ-BOARD B3a, entspricht Trickser).
- * Ignoriert, wenn eine der Kugeln unbekannt ist oder beide identisch sind.
- */
-export function swapBalls(
-  state: GameState,
-  ballAId: string,
-  ballBId: string,
-  actor: Seat | null,
-): GameState {
-  if (ballAId === ballBId) return state;
-  const a = state.balls.find((b) => b.id === ballAId);
-  const b = state.balls.find((x) => x.id === ballBId);
-  if (!a || !b) return state;
-
-  const next = state.balls.map((ball) => {
-    if (ball.id === ballAId) return { ...ball, position: b.position };
-    if (ball.id === ballBId) return { ...ball, position: a.position };
-    return ball;
-  });
-
-  const actorLabel = actor != null ? `${seatLabel(state, actor)}: ` : "";
-  const text = `${actorLabel}${a.color} ↔ ${b.color} getauscht`;
-  return pushHistory({ ...state, balls: next }, actor, text);
 }
 
 /**
@@ -241,8 +214,6 @@ export function playCard(
         card,
         actor: seat,
         timestamp: Date.now(),
-        offset: state.discardEntries.length % 7,
-        rotation: ((state.discardEntries.length * 13) % 15) - 7,
       },
     ],
   };
@@ -287,35 +258,6 @@ export function returnCard(
     { ...state, hands, discardPile, discardEntries },
     seat,
     `${seatLabel(state, seat)}: Karte ${cardLabel(entry.card)} zurückgenommen`,
-  );
-}
-
-/**
- * Legt eine Karte in den "Tauschbereich" mit dem Partner. Vereinfachte Variante:
- * Die Karte wird direkt aus der eigenen Hand in die Hand des Partners übergeben.
- * Die geführte 2-Phasen-Simultanität kann später ergänzt werden.
- * REQ-BOARD K5.
- */
-export function swapWithPartner(
-  state: GameState,
-  seat: Seat,
-  cardId: string,
-): GameState {
-  const partner = partnerSeat(seat);
-  const hand = state.hands[seat] ?? [];
-  const card = hand.find((c) => c.id === cardId);
-  if (!card) return state;
-
-  const hands = state.hands.map((h, i) => {
-    if (i === seat) return h.filter((c) => c.id !== cardId);
-    if (i === partner) return [...h, card];
-    return h;
-  });
-  const withState: GameState = { ...state, hands };
-  return pushHistory(
-    withState,
-    seat,
-    `${seatLabel(state, seat)}: Karte an Partner ${seatLabel(state, partner)} getauscht`,
   );
 }
 
@@ -544,22 +486,6 @@ export function resetGame(state: GameState): GameState {
   return pushHistory(withPlayers, null, "Spiel zurückgesetzt");
 }
 
-/** Aktiviert/deaktiviert die Meisterversion (baut den Stapel neu). */
-export function setMasterMode(state: GameState, enabled: boolean): GameState {
-  const fresh = createInitialState({ masterMode: enabled, dealer: state.dealer });
-  const withPlayers: GameState = {
-    ...fresh,
-    players: state.players,
-    history: state.history,
-    nextHistoryId: state.nextHistoryId,
-  };
-  return pushHistory(
-    withPlayers,
-    null,
-    enabled ? "Meisterversion aktiviert" : "Basisversion aktiviert",
-  );
-}
-
 /**
  * Weist einem beitretenden Client einen Sitzplatz zu.
  *
@@ -691,15 +617,6 @@ export function toPublicState(
   };
 }
 
-/** Hilfs-Export für Tests/Server: Karte in einer Hand suchen. */
-export function findCardInHand(
-  state: GameState,
-  seat: Seat,
-  cardId: string,
-): Card | undefined {
-  return (state.hands[seat] ?? []).find((c) => c.id === cardId);
-}
-
 // ---------------------------------------------------------------------------
 // Einstufiges Undo (REQ-BOARD U1)
 // ---------------------------------------------------------------------------
@@ -707,12 +624,10 @@ export function findCardInHand(
 /** Aktionen, die rückgängig gemacht werden können. */
 export const UNDOABLE_ACTIONS: ReadonlySet<string> = new Set([
   "MoveBall",
-  "SwapBalls",
   "DealCards",
   "ShuffleCards",
   "PlayCard",
   "ReturnCard",
-  "SwapWithPartner",
   "OfferCardToPartner",
   "ClaimTradeOffer",
   "RevokeTradeOffer",

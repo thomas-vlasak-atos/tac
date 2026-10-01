@@ -11,9 +11,6 @@
 /** Anzahl der Felder im Spielkreis (großer Ring). */
 export const CIRCLE_FIELD_COUNT = 64;
 
-/** Anzahl der Hausfelder pro Spieler. */
-export const HOUSE_SLOT_COUNT = 4;
-
 /** Kugeln pro Spieler / Farbe. */
 export const BALLS_PER_PLAYER = 4;
 

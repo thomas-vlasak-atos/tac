@@ -189,7 +189,7 @@
   - Der Urheber der **letzten Aktion** kann sie mit „Rückgängig" zurücknehmen, solange
     danach **keine weitere Aktion** (von irgendwem) stattgefunden hat. Nur 1 Schritt,
     kein Redo.
-  - Erfasst werden alle spielrelevanten Aktionen: Kugel bewegen/tauschen, Karte
+  - Erfasst werden alle spielrelevanten Aktionen: Kugel bewegen, Karte
     ablegen/zurücknehmen/fremde Karte spielen (Teufel), Partnertausch (anbieten,
     nehmen, zurücknehmen), Geben, Mischen, Narr (Hände weitergeben).
   - Nicht erfasst (und sie machen ein bestehendes Undo ungültig): Teufel-Anfrage und
@@ -225,12 +225,12 @@
 - [x] Design-Richtung: hochwertig-realistisch, dokumentiert in `REQ-DESIGN`.
 - [x] Letzter Kugelzug bleibt rein visuell mit Quelle und Ziel markiert, bis die
   nächste Kugel bewegt wird. Das ersetzt kein Undo und keine Regel-Engine.
-- [ ] Feldnummern sind über einen lokalen UI-Schalter einblendbar.
-- [ ] Fremde Hände werden als Kartenrücken mit sichtbarer Anzahl dargestellt.
-- [ ] Teufel-Sonderaktion: Zielspieler bestätigt die Einsicht; danach darf der
+- [x] Feldnummern sind über einen lokalen UI-Schalter einblendbar.
+- [x] Fremde Hände werden als Kartenrücken mit sichtbarer Anzahl dargestellt.
+- [x] Teufel-Sonderaktion: Zielspieler bestätigt die Einsicht; danach darf der
   Teufel eine Karte aus dessen Hand offen ausspielen.
-- [ ] Narr-Sonderaktion: alle Hände können bewusst an den rechten Nachbarn
-      weitergegeben werden.
+- [x] Narr-Sonderaktion: alle Hände können bewusst an den rechten Nachbarn
+      weitergegeben werden (mit Bestätigungsdialog, D14).
 
 ## 9.1 Präzisierungen für den aktuellen Spielablauf
 

@@ -14,8 +14,6 @@ export interface DiscardEntry {
   card: Card;
   actor: Seat;
   timestamp: number;
-  offset: number;
-  rotation: number;
 }
 
 /** Eine verdeckte Karte im freiwilligen Partnertausch. */

@@ -69,11 +69,14 @@ Atomar, ohne Regelprüfung:
   "geworfene" Kugel ins Vorfeld (REQ-BOARD B4).
 - `DealCards` – mischen & austeilen (5 bzw. 6 Karten).
 - `PlayCard { cardId }` – Karte aus eigener Hand offen in `discardPile`.
-- `SwapWithPartner { cardId }` – Tauschphase.
-- `Announce { canOpen: boolean }` – Melden (informativ).
+- `OfferCardToPartner`, `ClaimTradeOffer`, `RevokeTradeOffer` – freiwilliger
+  verdeckter Partnertausch (Tauschphase).
+- `ReturnCard`, `ShuffleCards`, `PassHandsRight` (Narr) sowie die Teufel-Aktionen
+  (`RequestDevilView`, `ApproveDevilView`, `DeclineDevilView`, `CancelDevilView`,
+  `PlayForeignCard`).
 - `Undo` – macht die letzte Aktion des Absenders rückgängig (einstufig, nur wenn seither
   nichts geschah; serverseitiger `UndoTracker`, REQ-BOARD U1).
-- `ToggleMasterMode`, `ResetGame` – Sitzungssteuerung.
+- `ResetGame` – Sitzungssteuerung. Die Meisterversion ist fest aktiviert.
 
 ## 5. Nachrichten (Server → Client)
 

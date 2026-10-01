@@ -16,13 +16,11 @@ export type MoveTarget = BallPosition;
 export type ClientAction =
   | { type: "JoinRoom"; roomId: string; name: string; seat?: Seat }
   | { type: "MoveBall"; ballId: string; to: MoveTarget }
-  | { type: "SwapBalls"; ballA: string; ballB: string }
   /** `force`: Testmodus – hebt die Geber-Einschränkung auf (URL-Parameter `test=1`). */
   | { type: "DealCards"; force?: boolean }
   | { type: "ShuffleCards"; force?: boolean }
   | { type: "PlayCard"; cardId: string }
   | { type: "ReturnCard"; cardId: string }
-  | { type: "SwapWithPartner"; cardId: string }
   | { type: "OfferCardToPartner"; cardId: string }
   | { type: "ClaimTradeOffer"; offerId: string }
   | { type: "RevokeTradeOffer"; offerId: string }
@@ -33,8 +31,6 @@ export type ClientAction =
   | { type: "PlayForeignCard"; requestId: string; cardId: string }
   | { type: "PassHandsRight" }
   | { type: "Undo" }
-  | { type: "Announce"; canOpen: boolean }
-  | { type: "SetMasterMode"; enabled: boolean }
   | { type: "ResetGame" };
 
 /** Nachrichten, die der Server an einen Client sendet. */
