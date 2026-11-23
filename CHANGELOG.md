@@ -8,7 +8,7 @@ Versionierung nach [Semantic Versioning](https://semver.org/lang/de/).
 ## [Unreleased]
 
 ### Fixed
-- **Kartenzahl 8:** rote Ziffern und große rote Raute im Zentrum (nach Foto der Vorlage).
+- **Kartenzahl 8:** rote Ziffern, 8 Punkte (Muster der 13), Linie und kleine rote Raute (nach Foto der Vorlage).
 - **Haus-Slots (#0–#3):** Reihenfolge je Haus korrigiert: Slot 0 ist der Eingang, danach im
   Uhrzeigersinn (unten/oben aus Spielersicht das linke Feld zuerst, links/rechts das Feld am
   äußeren Ring). Basis: Screenshot mit eingeblendeten Slot-Nummern.

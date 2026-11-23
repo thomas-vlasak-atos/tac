@@ -185,11 +185,15 @@ function Diamond({ cx, cy, w, h }: { cx: number; cy: number; w: number; h: numbe
   return <polygon points={`${cx},${cy - h} ${cx + w},${cy} ${cx},${cy + h} ${cx - w},${cy}`} fill={RED} stroke={EDGE} strokeWidth={5} strokeLinejoin="miter" />;
 }
 
+const DOTS_8: Array<[number, number]> = DOTS_13.filter(([x, y]) => x !== 173 && x !== 175 && !(x > 230 && x < 240 && y !== 499));
+
 function Eight() {
   return (
     <CardBase>
       <Corners text="8" color={RED} />
-      <Diamond cx={302} cy={499} w={95} h={165} />
+      {DOTS_8.map(([x, y]) => <Dot key={`${x}-${y}`} x={x} y={y} />)}
+      <path d="M318 337V660" fill="none" stroke={LINE} strokeWidth={1.6} />
+      <Diamond cx={380} cy={499} w={38} h={66} />
     </CardBase>
   );
 }
