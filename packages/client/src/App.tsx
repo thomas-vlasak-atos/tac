@@ -78,7 +78,7 @@ export function App() {
 
   // „Narr: Hände weitergeben" betrifft alle Spieler – mit Sicherheitsabfrage gegen Fehlklicks.
   const handlePassHands = () => {
-    if (window.confirm("Narr ausspielen? Alle Handkarten werden an den nächsten Spieler weitergegeben.")) {
+    if (window.confirm("Narr ausspielen? Alle Handkarten werden gegen den Uhrzeigersinn weitergegeben.")) {
       send({ type: "PassHandsRight" });
     }
   };

@@ -465,10 +465,10 @@ export function playForeignCard(state: GameState, controller: Seat, requestId: s
   );
 }
 
-/** Gibt alle Hände verdeckt an den rechten Nachbarn weiter (Narr). */
+/** Gibt alle Hände verdeckt gegen den Uhrzeigersinn (Sitz i → Sitz i-1) weiter (Narr). */
 export function passHandsRight(state: GameState, actor: Seat): GameState {
-  const hands = state.hands.map((_, index) => state.hands[(index + 3) % 4] ?? []);
-  return pushHistory({ ...state, hands }, actor, `${seatLabel(state, actor)}: Alle Hände an den rechten Nachbarn weitergegeben`);
+  const hands = state.hands.map((_, index) => state.hands[(index + 1) % 4] ?? []);
+  return pushHistory({ ...state, hands }, actor, `${seatLabel(state, actor)}: Alle Hände gegen den Uhrzeigersinn weitergegeben`);
 }
 
 /** Der gegenübersitzende Partner-Sitzplatz. */

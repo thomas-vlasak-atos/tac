@@ -191,7 +191,7 @@ Zug verwenden.
   Farbe) wird geworfen; die eigene Kugel rückt auf deren Feld. Ohne eigene Kugel im
   Kreis verfällt der Krieger. Sind außer eigenen keine Kugeln im Kreis, wirft man
   sich selbst (bei nur 1 eigenen Kugel → diese wirft sich selbst zurück ins Vorfeld).
-- **Narr:** Alle Spieler geben ihre **gesamte Hand** verdeckt an den rechten Nachbarn
+- **Narr:** Alle Spieler geben ihre **gesamte Hand** verdeckt **gegen den Uhrzeigersinn** an den nächsten Spieler
   weiter. Der Narr-Spieler muss danach sofort eine seiner **neuen** Karten spielen.
   Als letzte Karte der letzten Runde: verfällt. Muss gespielt werden (auch ohne Kugel).
 

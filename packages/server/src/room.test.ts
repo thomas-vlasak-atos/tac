@@ -417,11 +417,11 @@ describe("confirmed master actions", () => {
     expect(s.devilRequests).toHaveLength(1);
   });
 
-  it("passes all hands to the right neighbor for the narrator action", () => {
+  it("passes all hands counter-clockwise for the narrator action", () => {
     let s = dealCards(createInitialState({ rng: seededRng(12) }), 5);
     const original = s.hands.map((hand) => hand[0]?.id);
     s = passHandsRight(s, 0);
-    expect(s.hands.map((hand) => hand[0]?.id)).toEqual([original[3], original[0], original[1], original[2]]);
+    expect(s.hands.map((hand) => hand[0]?.id)).toEqual([original[1], original[2], original[3], original[0]]);
   });
 });
 

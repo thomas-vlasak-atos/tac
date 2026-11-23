@@ -8,6 +8,8 @@ Versionierung nach [Semantic Versioning](https://semver.org/lang/de/).
 ## [Unreleased]
 
 ### Fixed
+- **Narr-Richtung:** Die Hände werden jetzt **gegen den Uhrzeigersinn** weitergegeben
+  (Sitz i → Sitz i-1); vorher fälschlich mit dem Uhrzeigersinn. Doku und Test angepasst.
 - **Fenster-Scrollbar:** Es fehlte `body { margin: 0 }`; der 8px-Standardrand plus eine
   100svh hohe App erzeugte einen Überlauf. Behoben.
 - **Seitenleiste bei geringer Höhe:** scrollt jetzt allein (eigene Scrollbar), Brett bleibt
