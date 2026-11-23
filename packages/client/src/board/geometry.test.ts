@@ -78,6 +78,31 @@ describe("housePositions", () => {
       }
     }
   });
+
+  it("Given jedes Haus, When Slot 0 gesucht, Then liegt er am Eingang und Slot 1-3 folgen im Uhrzeigersinn", () => {
+    const mean = (pts: { x: number; y: number }[]) => ({
+      x: pts.reduce((s, p) => s + p.x, 0) / pts.length,
+      y: pts.reduce((s, p) => s + p.y, 0) / pts.length,
+    });
+    // Bildschirm-Uhrzeigersinn (y nach unten) = zunehmender atan2-Winkel.
+    const angle = (p: { x: number; y: number }, c: { x: number; y: number }) => Math.atan2(p.y - c.y, p.x - c.x);
+    for (const seat of [0, 1, 2, 3] as Seat[]) {
+      const house = housePositions(seat, geo);
+      const c = mean(house);
+      const step = (i: number) => {
+        let d = angle(house[(i + 1) % 4]!, c) - angle(house[i]!, c);
+        while (d < 0) d += 2 * Math.PI;
+        return d;
+      };
+      for (let i = 0; i < 3; i++) expect(step(i)).toBeLessThan(Math.PI);
+    }
+    // unten: aus Spielersicht links zuerst; oben: Spielersicht gedreht, also Bildschirm-rechts.
+    expect(housePositions(0, geo)[0]!.x).toBeLessThan(housePositions(0, geo)[3]!.x);
+    expect(housePositions(2, geo)[0]!.x).toBeGreaterThan(housePositions(2, geo)[3]!.x);
+    // links/rechts: Slot 0 liegt am äußeren Ring.
+    expect(housePositions(1, geo)[0]!.x).toBeLessThan(housePositions(1, geo)[2]!.x);
+    expect(housePositions(3, geo)[0]!.x).toBeGreaterThan(housePositions(3, geo)[2]!.x);
+  });
 });
 
 describe("vorfeldBallPosition", () => {

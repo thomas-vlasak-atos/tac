@@ -160,11 +160,13 @@ export function housePositions(seat: Seat, geo: BoardGeometry): Point[] {
   // vorlage/board.svg). Die seitlichen Mulden zeigen bei ALLEN Häusern zur
   // Brettmitte hin (nach innen), daher sind links/rechts bzw. oben/unten
   // jeweils zueinander gespiegelt und NICHT identisch.
+  // Slot 0 = Eingang, dann im Uhrzeigersinn (Bildschirm). Unten/oben: aus
+  // Spielersicht das linke Feld zuerst; links/rechts: Feld am äußeren Ring zuerst.
   const anglesBySeat: Record<Seat, number[]> = {
-    0: [0, 60, 120, 180], // unten: 3, 1, 11, 9 Uhr (seitliche nach oben/innen)
-    1: [0, 60, 180, 300], // links: 3, 1, 9, 5 Uhr (seitliche nach rechts/innen)
-    2: [0, 300, 240, 180], // oben:  3, 5, 7, 9 Uhr (seitliche nach unten/innen)
-    3: [180, 120, 0, 240], // rechts: 9, 11, 3, 7 Uhr (seitliche nach links/innen)
+    0: [180, 120, 60, 0], // unten: 9, 11, 1, 3 Uhr
+    1: [180, 60, 0, 300], // links: 9, 1, 3, 5 Uhr
+    2: [0, 300, 240, 180], // oben:  3, 5, 7, 9 Uhr
+    3: [0, 240, 180, 120], // rechts: 3, 7, 9, 11 Uhr
   };
 
   const center = centers[seat];

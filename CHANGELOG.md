@@ -8,6 +8,9 @@ Versionierung nach [Semantic Versioning](https://semver.org/lang/de/).
 ## [Unreleased]
 
 ### Fixed
+- **Haus-Slots (#0–#3):** Reihenfolge je Haus korrigiert: Slot 0 ist der Eingang, danach im
+  Uhrzeigersinn (unten/oben aus Spielersicht das linke Feld zuerst, links/rechts das Feld am
+  äußeren Ring). Basis: Screenshot mit eingeblendeten Slot-Nummern.
 - **Narr-Richtung:** Die Hände werden jetzt **gegen den Uhrzeigersinn** weitergegeben
   (Sitz i → Sitz i-1); vorher fälschlich mit dem Uhrzeigersinn. Doku und Test angepasst.
 - **Fenster-Scrollbar:** Es fehlte `body { margin: 0 }`; der 8px-Standardrand plus eine
