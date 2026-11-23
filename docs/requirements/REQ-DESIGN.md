@@ -70,9 +70,10 @@ verwendet bei Gegnerhänden, Ziehstapel und verdeckten Karten auf dem Brett). Al
 Vorlage der SVG-Nachbauten war ein Foto des Kartensatzes (`tac-sonst01-1.jpg`, entfernt).
 Daraus abgeleitet: Zahlen 1, 4, 7, 13 rot (mit Dreiecken bzw. Punkten), die übrigen
 Zahlen schwarz mit sechszähliger Farbblume im Zentrum; Trickser mit zwei roten
-Rauten und Schriftzug.
+Rauten und Schriftzug. Die 8 (Sonderkarte „Aussetzen“) hat rote Ziffern und eine große
+rote Raute im Zentrum (nach einem Foto des Kartensatzes, `docs/temp/8.jpg`).
 
-**Bestätigt:** Für 3, 5, 8, 9, 10 und 12 liegt keine Vorlage vor. Sie sind wie 2 und 6
+**Bestätigt:** Für 3, 5, 9, 10 und 12 liegt keine Vorlage vor. Sie sind wie 2 und 6
 als schwarze Zahl mit Blume umgesetzt (vom Projektinhaber bestätigt).
 
 ## Bedienmodell

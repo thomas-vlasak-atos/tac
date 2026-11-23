@@ -131,7 +131,7 @@ function Flower({ x = 302, y = 499, scale = 1, mirror = false }: { x?: number; y
   );
 }
 
-const BLACK_NUMBERS_WITH_FLOWER = new Set([2, 3, 5, 6, 8, 9, 10, 12]);
+const BLACK_NUMBERS_WITH_FLOWER = new Set([2, 3, 5, 6, 9, 10, 12]);
 
 const DOTS_7: Array<[number, number]> = [
   [240, 390], [362, 390], [178, 499], [302, 499], [427, 499], [240, 608], [362, 608],
@@ -183,6 +183,15 @@ function BlackNumber({ value }: { value: number }) {
 
 function Diamond({ cx, cy, w, h }: { cx: number; cy: number; w: number; h: number }) {
   return <polygon points={`${cx},${cy - h} ${cx + w},${cy} ${cx},${cy + h} ${cx - w},${cy}`} fill={RED} stroke={EDGE} strokeWidth={5} strokeLinejoin="miter" />;
+}
+
+function Eight() {
+  return (
+    <CardBase>
+      <Corners text="8" color={RED} />
+      <Diamond cx={302} cy={499} w={95} h={165} />
+    </CardBase>
+  );
 }
 
 function Trickster() {
@@ -368,6 +377,7 @@ export function cardSvgContent(card: Card): ReactNode | null {
   if (card.kind === "teufel") return <Devil />;
   if (card.kind === "number") {
     if ([1, 4, 7, 13].includes(card.value)) return <RedNumber value={card.value} />;
+    if (card.value === 8) return <Eight />;
     if (BLACK_NUMBERS_WITH_FLOWER.has(card.value)) return <BlackNumber value={card.value} />;
   }
   return null;

@@ -45,7 +45,9 @@ Seit dem letzten Stand umgesetzt (alle in `main`, gepusht):
    SVG > PNG > Text-Fallback (`ui/cardArtwork.tsx`). Handkarten zeigen die komplette
    Karte (3:5); Rücken auf dem Brett (Gegnerhand, Ziehstapel) ebenfalls vollständig.
    Offen/optional: Schrift der Schriftzüge (aktuell Arial Bold statt eckiger Schrift),
-   TAC-Wortzeichen ist eine Annäherung.
+    TAC-Wortzeichen ist eine Annäherung.
+    Karte 8: rote Ziffern und rote Raute nach winzigem Foto; Größe/Proportion der Raute
+    ggf. mit besserem Foto nachschärfen.
 2. **Layout – erledigt.** Bei geringer Fensterhöhe scrollt nur die Seitenleiste
    (eigene Scrollbar, Verlauf mind. 180 px); das Brett bleibt vollständig sichtbar und
    alle Handkarten sind erreichbar (3-Spalten-Raster, Format 3:5). Rand ums Brett und
