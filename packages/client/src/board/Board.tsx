@@ -18,21 +18,17 @@ import {
   vorfeldBallPosition,
   vorfeldCenter,
 } from "./geometry.js";
-import { type MovePath, movePath } from "./movePath.js";
+import { type MovePath, movePath, segmentTimings, totalDuration } from "./movePath.js";
 import { type SeenMove, moveKey, updateSeenMoves, visibleMoves } from "./recentMoves.js";
 
 const COLOR_BY_SEAT_LOCAL = ["blau", "gelb", "gruen", "rot"] as const;
 
 /** Markierung des letzten Zugs: weder Kugel- noch Holzfarbe (REQ-FEEDBACK F2). */
 const MARK_COLOR = "#d6199b";
-/** Dauer eines Einzelschritts bzw. eines Gleitflugs der Zug-Animation. */
-const STEP_MS = 150;
-const GLIDE_MS = 650;
 
 interface MoveAnim { ballId: string; path: MovePath; start: number }
 
-const animDuration = (path: MovePath): number =>
-  path.mode === "glide" ? GLIDE_MS : (path.waypoints.length - 1) * STEP_MS;
+const animDuration = totalDuration;
 const easeInOut = (u: number): number => (u < 0.5 ? 2 * u * u : 1 - 2 * (1 - u) * (1 - u));
 
 // ===========================================================================
@@ -336,19 +332,22 @@ export function Board({ balls, players = [], handCounts = [], deckHolder = null,
     const wps = anim.path.waypoints.map((pos) => pointOf(pos, anim.ballId));
     if (target) wps[wps.length - 1] = target;
     const elapsed = Math.max(0, now - anim.start);
-    if (anim.path.mode === "glide") {
-      const a = wps[0]!;
-      const b = wps[1]!;
-      const e = easeInOut(Math.min(1, elapsed / GLIDE_MS));
-      const dx = b.x - a.x;
-      const dy = b.y - a.y;
-      const bulge = Math.sin(Math.PI * e) * 0.12;
-      return { x: a.x + dx * e - dy * bulge, y: a.y + dy * e + dx * bulge };
+    const timings = segmentTimings(anim.path);
+    let t = elapsed;
+    let segment = 0;
+    while (segment < timings.length - 1 && t >= timings[segment]!.hop + timings[segment]!.rest) {
+      t -= timings[segment]!.hop + timings[segment]!.rest;
+      segment++;
     }
-    const segment = Math.min(Math.floor(elapsed / STEP_MS), wps.length - 2);
-    const u = easeInOut(Math.min(1, elapsed / STEP_MS - segment));
+    const u = easeInOut(Math.min(1, t / timings[segment]!.hop));
     const a = wps[segment]!;
     const b = wps[segment + 1]!;
+    if (anim.path.mode === "glide") {
+      const dx = b.x - a.x;
+      const dy = b.y - a.y;
+      const bulge = Math.sin(Math.PI * u) * 0.12;
+      return { x: a.x + dx * u - dy * bulge, y: a.y + dy * u + dx * bulge };
+    }
     return { x: a.x + (b.x - a.x) * u, y: a.y + (b.y - a.y) * u };
   };
 
@@ -422,14 +421,15 @@ export function Board({ balls, players = [], handCounts = [], deckHolder = null,
             const d = arrowPath(item.move);
             return d ? <path key={`arrow-${item.key}`} d={d} fill="none" stroke={MARK_COLOR} strokeWidth={4} strokeOpacity={0.6} strokeLinecap="round" markerEnd="url(#move-arrow)" style={{ pointerEvents: "none" }} /> : null;
           })}
-          {/* „Wer ist dran": pulsierender Ring ums Startfeld (REQ-FEEDBACK F1). */}
+          {/* „Wer ist dran": pulsierender Ring ums Vorfeld des Spielers (REQ-FEEDBACK F1). */}
           {turnSeat != null && (() => {
-            const p = circleFieldPosition(visIndex(turnSeat * (CIRCLE_FIELD_COUNT / 4)), geo);
+            const p = vorfeldCenter(visSeat(turnSeat), geo);
             const color = BALL_FILL[COLOR_BY_SEAT_LOCAL[turnSeat]];
+            const r = geo.vorfeldOuterRadius + 6;
             return (
               <g className="turn-ring" style={{ pointerEvents: "none" }}>
-                <circle cx={p.x} cy={p.y} r={geo.fieldRadius * 2.5} fill="none" stroke="#1b1008" strokeWidth={9} strokeOpacity={0.55} />
-                <circle cx={p.x} cy={p.y} r={geo.fieldRadius * 2.5} fill="none" stroke={color} strokeWidth={5} />
+                <circle cx={p.x} cy={p.y} r={r} fill="none" stroke="#1b1008" strokeWidth={11} strokeOpacity={0.55} />
+                <circle cx={p.x} cy={p.y} r={r} fill="none" stroke={color} strokeWidth={6} />
               </g>
             );
           })()}

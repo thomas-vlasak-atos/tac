@@ -59,6 +59,7 @@ export function createInitialState(options?: {
     nextTradeOfferId: 1,
     tradeDone: [],
     lastBallMove: null,
+    ballMovedSinceCard: false,
     devilRequests: [],
     nextDevilRequestId: 1,
     hands: [[], [], [], []],

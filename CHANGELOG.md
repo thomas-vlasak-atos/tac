@@ -11,11 +11,14 @@ Versionierung nach [Semantic Versioning](https://semver.org/lang/de/).
 - **„Wer ist dran" (F1):** `nextToPlay` in `@tac/shared` (getestet) leitet aus der zuletzt
   gespielten Karte den nächsten Spieler im Uhrzeigersinn ab (freie Sitze und Spieler ohne
   Handkarten übersprungen, Teufel-Zug springt hinter das Opfer). Anzeige: pulsierender Ring
-  in Spielerfarbe ums Startfeld und Banner „Du bist dran". Rein informativ, abschaltbar.
+  in Spielerfarbe ums **Vorfeld** des Spielers (Name in der Mitte) und Banner „Du bist dran".
+  Erscheint erst, wenn nach der gespielten Karte eine Kugel bewegt wurde
+  (`ballMovedSinceCard` im Spielzustand; Karte spielen merkt vor, Kugelzug löst aus).
+  Rein informativ, abschaltbar.
 - **Zug-Darstellung (F2):** Letzter Zug mit Magenta statt Gelb (Quelle gestrichelt, Ziel
   durchgezogen), Pfeil von Quelle nach Ziel (Bogen auf dem Kreis), bei Trickser beide Züge.
   Fremdzüge werden Feld für Feld nachgezählt (bis 5 einzeln, darüber 2er-Schritte, vor/im
-  Haus einzeln) bzw. quer über das Brett geglitten (`board/movePath.ts`,
+  Haus einzeln; nach jedem 2er-Schritt eine kurze Pause von 130 ms) bzw. quer über das Brett geglitten (`board/movePath.ts`,
   `board/recentMoves.ts`, getestet). Eigene Züge werden nicht animiert; abschaltbar.
 - **Einstellungen (F10, Grundgerüst):** Zahnrad-Button „Einstellungen" in der Kopfzeile,
   Werte lokal im Browser (`ui/settings.ts`, getestet). Feldnummern-Schalter dorthin

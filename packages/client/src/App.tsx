@@ -121,7 +121,8 @@ export function App() {
   };
 
   // „Wer ist dran" (rein informativ, REQ-FEEDBACK F1).
-  const turnSeat = state ? nextToPlay(state) : null;
+  // Karte spielen merkt vor, erst das Bewegen einer Kugel löst die Anzeige aus.
+  const turnSeat = state && state.ballMovedSinceCard && state.discardEntries.length > 0 ? nextToPlay(state) : null;
   const itsMyTurn = settings.showTurnMarker && seat != null && turnSeat === seat;
 
   return (

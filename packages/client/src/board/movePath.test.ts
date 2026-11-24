@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { BallPosition } from "@tac/shared";
-import { movePath } from "./movePath.js";
+import { GLIDE_MS, STEP_MS, movePath, segmentTimings } from "./movePath.js";
 
 const f = (index: number): BallPosition => ({ kind: "FELD", index });
 const h = (owner: 0 | 1 | 2 | 3, slot: number): BallPosition => ({ kind: "HAUS", owner, slot });
@@ -58,5 +58,22 @@ describe("movePath (REQ-FEEDBACK F2)", () => {
   it("Given Vorfeld → Startfeld oder Wurf ins Vorfeld, Then gleitet die Kugel", () => {
     expect(movePath({ kind: "VORFELD", owner: 0 }, f(0)).mode).toBe("glide");
     expect(movePath(f(20), { kind: "VORFELD", owner: 2 }).mode).toBe("glide");
+  });
+});
+
+describe("segmentTimings", () => {
+  it("Given Einzelschritte, Then gibt es keine Pause", () => {
+    const t = segmentTimings(movePath(f(0), f(4)));
+    expect(t).toHaveLength(4);
+    expect(t.every((s) => s.rest === 0 && s.hop === STEP_MS)).toBe(true);
+  });
+
+  it("Given 2er-Schritte, Then haben sie eine Pause, der Einzelschritt am Ende nicht", () => {
+    const t = segmentTimings(movePath(f(0), f(7)));
+    expect(t.map((s) => s.rest > 0)).toEqual([true, true, true, false]);
+  });
+
+  it("Given ein Gleitflug, Then ist es ein einziger Abschnitt", () => {
+    expect(segmentTimings(movePath(f(0), f(40)))).toEqual([{ hop: GLIDE_MS, rest: 0 }]);
   });
 });

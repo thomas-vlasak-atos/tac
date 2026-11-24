@@ -89,3 +89,33 @@ export function movePath(from: BallPosition, to: BallPosition): MovePath {
 
   return glide(from, to);
 }
+
+export const STEP_MS = 150;
+export const GLIDE_MS = 650;
+/** Kurze Pause nach einem 2er-Schritt, damit man das Zählen in Zweiern erkennt. */
+export const DOUBLE_STEP_PAUSE_MS = 130;
+
+export interface SegmentTiming {
+  /** Dauer der Bewegung. */
+  hop: number;
+  /** Ruhezeit nach der Landung. */
+  rest: number;
+}
+
+const isDoubleStep = (a: BallPosition, b: BallPosition): boolean => {
+  if (a.kind !== "FELD" || b.kind !== "FELD") return false;
+  const d = Math.abs(a.index - b.index) % FIELDS;
+  return d === 2 || d === FIELDS - 2;
+};
+
+/** Zeitplan je Wegabschnitt: Einzelschritte unverändert, 2er-Schritte mit Pause. */
+export function segmentTimings(path: MovePath): SegmentTiming[] {
+  if (path.mode === "glide") return [{ hop: GLIDE_MS, rest: 0 }];
+  return path.waypoints.slice(1).map((to, i) => ({
+    hop: STEP_MS,
+    rest: isDoubleStep(path.waypoints[i]!, to) ? DOUBLE_STEP_PAUSE_MS : 0,
+  }));
+}
+
+export const totalDuration = (path: MovePath): number =>
+  segmentTimings(path).reduce((sum, s) => sum + s.hop + s.rest, 0);

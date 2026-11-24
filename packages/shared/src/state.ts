@@ -85,6 +85,8 @@ export interface GameState {
    */
   tradeDone: Seat[];
   lastBallMove: LastBallMove | null;
+  /** Wurde seit der zuletzt gespielten Karte eine Kugel bewegt? (löst den „Wer ist dran"-Hinweis aus) */
+  ballMovedSinceCard: boolean;
   devilRequests: DevilRequest[];
   nextDevilRequestId: number;
   /** Handkarten je Sitzplatz (nur an den jeweiligen Spieler ausgeliefert). */
@@ -121,6 +123,7 @@ export interface PublicGameState {
   /** Sitze, die ihren Partnertausch in dieser Runde abgeschlossen haben. */
   tradeDone: Seat[];
   lastBallMove: LastBallMove | null;
+  ballMovedSinceCard: boolean;
   devilRequests: PublicDevilRequest[];
   /** Anzahl Handkarten je Sitzplatz (nicht die Karten selbst). */
   handCounts: number[];

@@ -97,7 +97,7 @@ export function moveBall(
     from,
   )} → ${describePosition(state, to)}`;
   return pushHistory(
-    { ...state, balls: next, lastBallMove: { ballId, from, to } },
+    { ...state, balls: next, lastBallMove: { ballId, from, to }, ballMovedSinceCard: true },
     actor,
     text,
   );
@@ -208,6 +208,7 @@ export function playCard(
     ...state,
     hands,
     discardPile: [...state.discardPile, card],
+    ballMovedSinceCard: false,
     discardEntries: [
       ...state.discardEntries,
       {
@@ -595,6 +596,7 @@ export function toPublicState(
     })),
     tradeDone: state.tradeDone,
     lastBallMove: state.lastBallMove,
+    ballMovedSinceCard: state.ballMovedSinceCard,
     devilRequests: state.devilRequests.map((request): PublicDevilRequest => ({
       ...request,
       ...(request.approved && request.controller === viewer ? { visibleCards: state.hands[request.target] ?? [] } : {}),

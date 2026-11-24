@@ -611,3 +611,29 @@ describe("dealCards ohne Actor (Testmodus `test=1`, REQ-BOARD K2)", () => {
     expect(dealt.deckHolder).toBe(3);
   });
 });
+
+describe("ballMovedSinceCard (REQ-FEEDBACK F1: Hinweis „dran“ erst nach Kugelzug)", () => {
+  const dealt = () => dealCards(createInitialState({ rng: seededRng(3) }), 5);
+
+  it("Given eine gespielte Karte, Then ist noch keine Kugel danach bewegt", () => {
+    const s = dealt();
+    const played = playCard(s, 0, s.hands[0]![0]!.id);
+    expect(played.ballMovedSinceCard).toBe(false);
+    expect(toPublicState(played, 0).ballMovedSinceCard).toBe(false);
+  });
+
+  it("Given Karte gespielt und danach eine Kugel bewegt, Then ist der Hinweis ausgelöst", () => {
+    const s = dealt();
+    const played = playCard(s, 0, s.hands[0]![0]!.id);
+    const moved = moveBall(played, "blau-0", { kind: "FELD", index: 0 }, 0);
+    expect(moved.ballMovedSinceCard).toBe(true);
+  });
+
+  it("Given der nächste Spieler legt eine Karte, Then wird der Hinweis wieder zurückgesetzt", () => {
+    const s = dealt();
+    let t = playCard(s, 0, s.hands[0]![0]!.id);
+    t = moveBall(t, "blau-0", { kind: "FELD", index: 0 }, 0);
+    t = playCard(t, 1, t.hands[1]![0]!.id);
+    expect(t.ballMovedSinceCard).toBe(false);
+  });
+});

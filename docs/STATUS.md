@@ -42,7 +42,7 @@ Seit dem letzten Stand umgesetzt (alle in `main`, gepusht):
 Vollständig beschrieben in `docs/requirements/REQ-FEEDBACK.md` (F1–F12, Priorität,
 Aufwand, offene Fragen O1–O7). Kurzliste:
 
-- [x] **F1** „Wer ist dran": Ring ums Startfeld des nächsten Spielers im Uhrzeigersinn
+- [x] **F1** „Wer ist dran": Ring ums Vorfeld (Name in der Mitte) des nächsten Spielers im Uhrzeigersinn, erst nachdem nach der Karte eine Kugel bewegt wurde
 - [x] **F2** Letzten Zug sichtbarer: andere Farbe als Gelb, Pfeil, Zähl-Animation
       Feld für Feld (2er-Schritte bei > 5, Einzelschritte vor/im Haus) – am Brett prüfen
 - [ ] **F3** Töne: „Zug gemacht" / „Du bist dran"

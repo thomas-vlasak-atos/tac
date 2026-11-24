@@ -83,7 +83,11 @@ Annahme „links vom Geber beginnt" ist bestätigt.
 **Umsetzung:**
 - Ableitung als **reine, getestete Funktion** in `@tac/shared` (`nextToPlay(state)`),
   kein Serverzustand nötig außer der Teufel-Erweiterung.
-- Anzeige: **Ring um das Startfeld** des Spielers, der dran ist (Feld `seat * 16`,
+- **Änderung 2026-11-24:** Der Marker erscheint erst, wenn nach der gespielten Karte
+  eine Kugel bewegt wurde (Karte spielen merkt vor, Kugelzug löst aus; Flag
+  `ballMovedSinceCard`), und liegt als Ring ums **Vorfeld** (Name in der Mitte) statt
+  ums Startfeld.
+- Anzeige (ursprünglich): **Ring um das Startfeld** des Spielers, der dran ist (Feld `seat * 16`,
   leicht pulsierend, in **Spielerfarbe**, nicht gelb – siehe F2). Zusätzlich Banner
   „Du bist dran" in der Kopfzeile, wenn man selbst gemeint ist.
 - Per Einstellung abschaltbar (F10), da nicht verlässlich (Teufel/Sonderfälle).
