@@ -10,12 +10,15 @@ export interface Settings {
   showTurnMarker: boolean;
   /** Fremdzüge Feld für Feld animieren (F2). */
   animateMoves: boolean;
+  /** Einrastfeld und Distanz beim Ziehen einer Kugel anzeigen (F7). */
+  showDragHint: boolean;
 }
 
 export const DEFAULT_SETTINGS: Settings = {
   showFieldNumbers: false,
   showTurnMarker: true,
   animateMoves: true,
+  showDragHint: true,
 };
 
 export const SETTINGS_STORAGE_KEY = "tac.settings";

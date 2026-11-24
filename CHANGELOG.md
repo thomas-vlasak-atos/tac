@@ -8,6 +8,9 @@ Versionierung nach [Semantic Versioning](https://semver.org/lang/de/).
 ## [Unreleased]
 
 ### Added
+- **Zielhilfe beim Ziehen (F7, Stufe 1):** Das Feld, auf dem die Kugel einrasten würde, wird
+  hervorgehoben und die Distanz angezeigt („+5" im Uhrzeigersinn, „−3" rückwärts, auch ins
+  Haus). Regelfrei, abschaltbar (`board/dragHint.ts`, getestet).
 - **„Wer ist dran" (F1):** `nextToPlay` in `@tac/shared` (getestet) leitet aus der zuletzt
   gespielten Karte den nächsten Spieler im Uhrzeigersinn ab (freie Sitze und Spieler ohne
   Handkarten übersprungen, Teufel-Zug springt hinter das Opfer). Anzeige: pulsierender Ring

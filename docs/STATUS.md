@@ -49,7 +49,7 @@ Aufwand, offene Fragen O1–O7). Kurzliste:
 - [ ] **F4** ~~Kugeln größer~~ ✅ umgesetzt (×1,25, am Brett prüfen/nachjustieren)
 - [ ] **F5** Zählpunkte: vom Projektinhaber von Hand ins `Board.png` (danach prüfen)
 - [ ] **F6** Häuser: ebenfalls von Hand ins `Board.png`, danach Kalibrierung prüfen
-- [ ] **F7** Zielhilfe beim Ziehen: nur Einrastfeld + Distanz (Stufe 1)
+- [x] **F7** Zielhilfe beim Ziehen: nur Einrastfeld + Distanz (Stufe 1) – am Brett prüfen
 - [x] **F8** Teufel: Nachbarkarten größer (direkt per Klick spielen)
 - [ ] **F9** Karten per Klick **und** Drag & Drop
 - [~] **F10** Einstellungen (lokal): Grundgerüst steht, weitere Schalter kommen mit den Features

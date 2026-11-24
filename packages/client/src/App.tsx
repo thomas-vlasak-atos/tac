@@ -185,6 +185,7 @@ export function App() {
                   lastBallMove={state.lastBallMove}
                   turnSeat={settings.showTurnMarker ? turnSeat : null}
                   animateMoves={settings.animateMoves}
+                  showDragHint={settings.showDragHint}
                   showFieldNumbers={showFieldNumbers}
                   discardEntries={state.discardEntries}
                   onMoveBall={moveBall}

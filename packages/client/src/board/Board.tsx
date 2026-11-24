@@ -18,6 +18,7 @@ import {
   vorfeldBallPosition,
   vorfeldCenter,
 } from "./geometry.js";
+import { dragDistanceLabel } from "./dragHint.js";
 import { type MovePath, movePath, segmentTimings, totalDuration } from "./movePath.js";
 import { type SeenMove, moveKey, updateSeenMoves, visibleMoves } from "./recentMoves.js";
 
@@ -162,6 +163,8 @@ export interface BoardProps {
   turnSeat?: Seat | null;
   /** Zug-Animation für Fremdzüge (Einstellung). */
   animateMoves?: boolean;
+  /** Einrastfeld und Distanz beim Ziehen einblenden (F7). */
+  showDragHint?: boolean;
   showFieldNumbers?: boolean;
   discardEntries?: DiscardEntry[];
   onMoveBall: (ballId: string, to: BallPosition) => void;
@@ -171,7 +174,7 @@ export interface BoardProps {
 
 interface DragState { ballId: string; current: Point; moved: boolean; from: BallPosition }
 
-export function Board({ balls, players = [], handCounts = [], deckHolder = null, deckCount = 0, deckActive = false, deckShuffleable = false, anyDealer = false, onDeal, onShuffle, onRequestDevil, lastBallMove = null, turnSeat = null, animateMoves = true, showFieldNumbers = false, discardEntries = [], onMoveBall, onReturnCard, ownSeat }: BoardProps) {
+export function Board({ balls, players = [], handCounts = [], deckHolder = null, deckCount = 0, deckActive = false, deckShuffleable = false, anyDealer = false, onDeal, onShuffle, onRequestDevil, lastBallMove = null, turnSeat = null, animateMoves = true, showDragHint = true, showFieldNumbers = false, discardEntries = [], onMoveBall, onReturnCard, ownSeat }: BoardProps) {
   const geo = defaultGeometry(1024);
   const [drag, setDrag] = useState<DragState | null>(null);
   const [seen, setSeen] = useState<SeenMove[]>(() => lastBallMove ? [{ move: lastBallMove, key: moveKey(lastBallMove), seenAt: Date.now() }] : []);
@@ -416,6 +419,22 @@ export function Board({ balls, players = [], handCounts = [], deckHolder = null,
               </g>
             );
           })}
+          {/* Zielhilfe: Einrastfeld und Distanz beim Ziehen (REQ-FEEDBACK F7). */}
+          {showDragHint && drag?.moved && (() => {
+            const target = pointToDataPos(drag.current);
+            const dragged = balls.find((b) => b.id === drag.ballId);
+            const isVorfeld = target.kind === "VORFELD";
+            const p = isVorfeld ? vorfeldCenter(visSeat(target.owner), geo) : dataPosToPoint(target, dragged);
+            const r = isVorfeld ? geo.vorfeldOuterRadius : geo.fieldRadius * 1.9;
+            const label = dragDistanceLabel(drag.from, target);
+            return (
+              <g style={{ pointerEvents: "none" }}>
+                <circle cx={p.x} cy={p.y} r={r} fill="#fff" fillOpacity={0.25} stroke="#1b1008" strokeWidth={7} strokeOpacity={0.6} />
+                <circle cx={p.x} cy={p.y} r={r} fill="none" stroke="#fff" strokeWidth={3.5} />
+                {label && <text x={p.x} y={p.y - r - 8} textAnchor="middle" fill="#fff" stroke="#1b1008" strokeWidth={4} paintOrder="stroke" fontSize={26} fontFamily="system-ui" fontWeight={800}>{label}</text>}
+              </g>
+            );
+          })()}
           {/* Zug-Pfeile (letzter Zug, bei Trickser zwei). */}
           {visible.map((item) => {
             const d = arrowPath(item.move);

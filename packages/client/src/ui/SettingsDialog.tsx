@@ -50,6 +50,14 @@ export function SettingsDialog({ settings, onChange, onClose }: SettingsDialogPr
           />
           Züge der anderen animieren
         </label>
+        <label style={{ display: "flex", gap: 8, alignItems: "center", marginTop: 8 }}>
+          <input
+            type="checkbox"
+            checked={settings.showDragHint}
+            onChange={(event) => onChange({ ...settings, showDragHint: event.target.checked })}
+          />
+          Zielhilfe beim Ziehen (Einrastfeld und Distanz)
+        </label>
       </div>
     </div>
   );
