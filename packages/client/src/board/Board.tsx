@@ -51,6 +51,8 @@ const CARD_RADIUS_FACTOR = 0.092;
 const DISCARD_RADIUS = 116;
 const DISCARD_CARD_W = 106;
 const DISCARD_CARD_H = DISCARD_CARD_W * CARD_ASPECT;
+/** Kugelradius relativ zum Feldradius (REQ-FEEDBACK F4): größer als die Mulden im Bild. */
+const BALL_RADIUS_FACTOR = 1.25;
 
 function nearestTarget(point: Point, geo: BoardGeometry): BallPosition {
   let best: { pos: BallPosition; distance: number } | undefined;
@@ -209,7 +211,7 @@ export function Board({ balls, players = [], handCounts = [], deckHolder = null,
       if (group && group.length > 1) {
         const idx = group.findIndex((item) => item.id === ball.id);
         const angle = (idx / group.length) * Math.PI * 2;
-        const radius = geo.fieldRadius * 0.72;
+        const radius = geo.fieldRadius * 0.9;
         ballPoints.set(ball.id, { x: base.x + Math.cos(angle) * radius, y: base.y + Math.sin(angle) * radius });
       } else ballPoints.set(ball.id, base);
     }
@@ -348,7 +350,7 @@ export function Board({ balls, players = [], handCounts = [], deckHolder = null,
               </g>
             );
           })}
-          {balls.map((ball) => { const isDragged = drag?.ballId === ball.id; const point = isDragged && drag.moved ? drag.current : ballPoints.get(ball.id) ?? geo.center; return <g key={ball.id} onPointerDown={(event) => handleDown(event, ball)} style={{ cursor: "grab" }}><circle cx={point.x} cy={point.y} r={geo.fieldRadius * 1.03} fill={`url(#marble-${ball.owner})`} stroke={isDragged ? "#fff7cf" : BALL_STROKE[ball.color]} strokeWidth={isDragged ? 5 : 2.5} filter="url(#shadow)" /><circle cx={point.x - 5} cy={point.y - 6} r={geo.fieldRadius * .2} fill="#fff" opacity=".7" /></g>; })}
+          {balls.map((ball) => { const isDragged = drag?.ballId === ball.id; const point = isDragged && drag.moved ? drag.current : ballPoints.get(ball.id) ?? geo.center; return <g key={ball.id} onPointerDown={(event) => handleDown(event, ball)} style={{ cursor: "grab" }}><circle cx={point.x} cy={point.y} r={geo.fieldRadius * BALL_RADIUS_FACTOR} fill={`url(#marble-${ball.owner})`} stroke={isDragged ? "#fff7cf" : BALL_STROKE[ball.color]} strokeWidth={isDragged ? 5 : 2.5} filter="url(#shadow)" /><circle cx={point.x - geo.fieldRadius * 0.4} cy={point.y - geo.fieldRadius * 0.5} r={geo.fieldRadius * .2} fill="#fff" opacity=".7" /></g>; })}
         </g>
       </svg>
       {topCards.length > 0 && onReturnCard && <div style={{ display: "flex", justifyContent: "center", gap: 6, flexWrap: "wrap", marginTop: 8 }}><span style={{ color: "#f5d3a0", fontSize: 12 }}>Ablage:</span>{topCards.map((entry) => <button key={`return-${entry.card.id}`} type="button" onClick={() => onReturnCard(entry.card.id)} style={{ background: "#f8e5c4", border: 0, borderRadius: 5, color: "#5b321e", padding: "3px 7px", cursor: "pointer" }}>↩ {cardLabel(entry.card)}</button>)}</div>}

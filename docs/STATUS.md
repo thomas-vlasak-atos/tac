@@ -37,6 +37,28 @@ Seit dem letzten Stand umgesetzt (alle in `main`, gepusht):
   `min(100svh − chrome, 100vw − Seitenleiste)`, oben-links verankert, Seitenleiste
   fix 320px. Kollidierende Inline-Styles entfernt (u. a. Header `flex-wrap`).
 
+### Neues Feedback (2026-11-24) – ausgearbeitet, noch nicht umgesetzt
+
+Vollständig beschrieben in `docs/requirements/REQ-FEEDBACK.md` (F1–F12, Priorität,
+Aufwand, offene Fragen O1–O7). Kurzliste:
+
+- [ ] **F1** „Wer ist dran": Ring ums Startfeld des nächsten Spielers im Uhrzeigersinn
+- [ ] **F2** Letzten Zug sichtbarer: andere Farbe als Gelb, Pfeil, Zähl-Animation
+      Feld für Feld (2er-Schritte bei > 5, Einzelschritte vor/im Haus)
+- [ ] **F3** Töne: „Zug gemacht" / „Du bist dran"
+- [ ] **F4** ~~Kugeln größer~~ ✅ umgesetzt (×1,25, am Brett prüfen/nachjustieren)
+- [ ] **F5** Zählpunkte: vom Projektinhaber von Hand ins `Board.png` (danach prüfen)
+- [ ] **F6** Häuser: ebenfalls von Hand ins `Board.png`, danach Kalibrierung prüfen
+- [ ] **F7** Zielhilfe beim Ziehen: nur Einrastfeld + Distanz (Stufe 1)
+- [x] **F8** Teufel: Nachbarkarten größer (direkt per Klick spielen)
+- [ ] **F9** Karten per Klick **und** Drag & Drop
+- [~] **F10** Einstellungen (lokal): Grundgerüst steht, weitere Schalter kommen mit den Features
+- [ ] **F11** Meisterkarten: eigenes Fenster / Kurzinfo
+- [ ] **F12** Gimmick „Anstupsen" für alle, Name wird vorgelesen (Prio 10000)
+
+Brett-Technik: `vorlage/Board.png` ist der Hintergrund, alles Interaktive ist ein
+SVG-Overlay (siehe REQ-FEEDBACK §0).
+
 ### Offene Punkte / bewusst für die nächste Session vertagt
 
 1. **Kartendesign – erledigt (REQ-DESIGN D11/D12).** Alle Karten (Zahlen 1–10/12/13,

@@ -12,9 +12,10 @@ import { directJoinFromUrl, isTestMode, readUrlDefaults } from "./net/urlParams.
 import { useTacSocket } from "./net/useTacSocket.js";
 import { Hand } from "./ui/Hand.js";
 import { HistoryPanel } from "./ui/HistoryPanel.js";
-import { CardArtwork } from "./ui/cardArtwork.js";
 import { type JoinInfo, JoinScreen } from "./ui/JoinScreen.js";
 import { MasterCardsHelp } from "./ui/MasterCardsHelp.js";
+import { SettingsDialog } from "./ui/SettingsDialog.js";
+import { type Settings, loadSettings, saveSettings } from "./ui/settings.js";
 import "./styles.css";
 
 /**
@@ -49,7 +50,13 @@ export function App() {
   const [join, setJoin] = useState<JoinInfo | null>(() => directJoinFromUrl(window.location.search));
   const { status, state, seat, error, send } = useTacSocket(serverUrl());
   const [joined, setJoined] = useState(false);
-  const [showFieldNumbers, setShowFieldNumbers] = useState(false);
+  const [settings, setSettings] = useState<Settings>(() => loadSettings());
+  const [showSettings, setShowSettings] = useState(false);
+  const showFieldNumbers = settings.showFieldNumbers;
+  const updateSettings = (next: Settings) => {
+    setSettings(next);
+    saveSettings(next);
+  };
   const [showMasterHelp, setShowMasterHelp] = useState(false);
   // Testmodus (?test=1): kein Partnertausch (erste Klick auf eine Karte legt sie ab),
   // und jeder darf geben/mischen. Nur zum Testen einer kompletten Runde gedacht.
@@ -138,10 +145,12 @@ export function App() {
           )}
           <button type="button" onClick={handleReset}>Neu</button>
           <button type="button" onClick={() => setShowMasterHelp(true)}>Meisterkarten erklären</button>
+          <button type="button" onClick={() => setShowSettings(true)} title="Einstellungen">⚙ Einstellungen</button>
         </div>
       </header>
 
       {showMasterHelp && <MasterCardsHelp onClose={() => setShowMasterHelp(false)} />}
+      {showSettings && <SettingsDialog settings={settings} onChange={updateSettings} onClose={() => setShowSettings(false)} />}
 
       {error && (
         <p style={{ color: "#b91c1c" }}>Fehler: {error}</p>
@@ -174,7 +183,6 @@ export function App() {
                   ownSeat={seat}
                 />
               </div>
-              <label style={{ display: "inline-flex", gap: 6, alignItems: "center", marginTop: 7, color: "#765234", fontFamily: "system-ui", fontSize: 13 }}><input type="checkbox" checked={showFieldNumbers} onChange={(event) => setShowFieldNumbers(event.target.checked)} /> Feldnummern anzeigen</label>
 
             {/* Teufel-Anfrage: Overlay über dem Spielfeld. Das Ziel entscheidet
                 (erlauben/ablehnen); der Anfrager sieht den Wartestatus und kann
@@ -271,7 +279,20 @@ export function App() {
               </div>
             )}
             <div style={{ marginTop: 12, padding: 12, borderRadius: 12, background: "#f5e5c8", color: "#6b3d22", fontFamily: "system-ui", fontSize: 13 }}><strong>Meisteraktionen</strong><div style={{ marginTop: 8, display: "grid", gap: 6 }}><button type="button" onClick={handlePassHands}>Narr: alle Hände weitergeben</button></div><p style={{ margin: "8px 0 0", fontSize: 12, color: "#8a5a33" }}>Teufel: auf den Kartenstapel deines linken Nachbarn am Brett klicken.</p></div>
-            {state.devilRequests.map((request) => request.controller === seat && request.approved && request.visibleCards ? <div key={request.id} style={{ marginTop: 12, padding: 12, borderRadius: 12, background: "#ead0a8", fontFamily: "system-ui", fontSize: 13 }}><strong>Teufel-Hand von {state.players[request.target]?.name}</strong><div style={{ display: "flex", gap: 5, flexWrap: "wrap", marginTop: 8 }}>{request.visibleCards.map((card) => <button key={card.id} type="button" onClick={() => send({ type: "PlayForeignCard", requestId: request.id, cardId: card.id })} style={{ width: 52, padding: 2, background: "#fff8e7", border: "1px solid #a56b3d" }}><CardArtwork card={card} /></button>)}</div><button type="button" onClick={() => send({ type: "CancelDevilView", requestId: request.id })} style={{ marginTop: 8 }}>Einsicht beenden</button></div> : null)}
+            {state.devilRequests.map((request) => request.controller === seat && request.approved && request.visibleCards ? (
+              <div key={request.id} className="own-hand-panel" style={{ marginTop: 12, padding: 12, borderRadius: 12, background: "#ead0a8", fontFamily: "system-ui", fontSize: 13 }}>
+                <strong>Teufel-Hand von {state.players[request.target]?.name}</strong>
+                <div style={{ marginTop: 8 }}>
+                  <Hand
+                    cards={request.visibleCards}
+                    compact
+                    actionHint="für den Nachbarn spielen"
+                    onPlayCard={(cardId) => send({ type: "PlayForeignCard", requestId: request.id, cardId })}
+                  />
+                </div>
+                <button type="button" onClick={() => send({ type: "CancelDevilView", requestId: request.id })} style={{ marginTop: 8 }}>Einsicht beenden</button>
+              </div>
+            ) : null)}
             <HistoryPanel entries={state.history} />
           </aside>
         </div>

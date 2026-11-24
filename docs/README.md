@@ -10,6 +10,8 @@ Einstiegspunkt in die Projektdokumentation.
   - `ARCH-OVERVIEW.md` – Gesamtarchitektur
 - **[requirements/](./requirements/)** – fachliche Anforderungen / Spielregeln
   - `REQ-BOARD.md` – **primär, aktiv**: freies Online-Brett (Kugeln, Karten, Verlauf)
+  - `REQ-FEEDBACK.md` – **neu, Entwurf**: Feedback aus dem Praxistest (Züge erkennen,
+    Töne, Zielhilfe, Einstellungen, Gimmicks) inkl. Priorisierung und offener Fragen
   - `REQ-RULES.md` – Spielregeln als **Referenz** (nicht technisch erzwungen)
 - **[decisions/](./decisions/)** – Architecture Decision Records (ADRs)
   - `ADR-0001-freies-brett.md` – freies Brett statt Regel-Engine

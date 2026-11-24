@@ -7,6 +7,19 @@ Versionierung nach [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+### Added
+- **Einstellungen (F10, Grundgerüst):** Zahnrad-Button „Einstellungen" in der Kopfzeile,
+  Werte lokal im Browser (`ui/settings.ts`, getestet). Feldnummern-Schalter dorthin
+  verschoben (vorher unter dem Brett).
+- Doku: `docs/requirements/REQ-FEEDBACK.md` – ausgearbeitetes Feedback aus dem
+  Praxistest (F1–F12) mit Priorisierung und Entscheidungen; Verweis in `STATUS.md`.
+
+### Changed
+- **Kugeln größer (F4):** Radius `× 1,25` des Feldradius (Konstante `BALL_RADIUS_FACTOR`),
+  gefächerte Kugeln entsprechend weiter auseinander.
+- **Teufel-Hand (F8):** Aufgedeckte Fremdkarten werden in Handkartengröße (Raster wie die
+  eigene Hand) statt als 52-px-Miniaturen angezeigt; Klick spielt sie direkt.
+
 ### Fixed
 - **Kartenzahl 8:** rote Ziffern, 8 Punkte (Muster der 13), Linie und kleine rote Raute (nach Foto der Vorlage).
 - **Haus-Slots (#0–#3):** Reihenfolge je Haus korrigiert: Slot 0 ist der Eingang, danach im
