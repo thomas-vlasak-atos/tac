@@ -42,9 +42,9 @@ Seit dem letzten Stand umgesetzt (alle in `main`, gepusht):
 Vollständig beschrieben in `docs/requirements/REQ-FEEDBACK.md` (F1–F12, Priorität,
 Aufwand, offene Fragen O1–O7). Kurzliste:
 
-- [ ] **F1** „Wer ist dran": Ring ums Startfeld des nächsten Spielers im Uhrzeigersinn
-- [ ] **F2** Letzten Zug sichtbarer: andere Farbe als Gelb, Pfeil, Zähl-Animation
-      Feld für Feld (2er-Schritte bei > 5, Einzelschritte vor/im Haus)
+- [x] **F1** „Wer ist dran": Ring ums Startfeld des nächsten Spielers im Uhrzeigersinn
+- [x] **F2** Letzten Zug sichtbarer: andere Farbe als Gelb, Pfeil, Zähl-Animation
+      Feld für Feld (2er-Schritte bei > 5, Einzelschritte vor/im Haus) – am Brett prüfen
 - [ ] **F3** Töne: „Zug gemacht" / „Du bist dran"
 - [ ] **F4** ~~Kugeln größer~~ ✅ umgesetzt (×1,25, am Brett prüfen/nachjustieren)
 - [ ] **F5** Zählpunkte: vom Projektinhaber von Hand ins `Board.png` (danach prüfen)

@@ -5,6 +5,7 @@
  */
 
 import type { BallPosition } from "@tac/shared";
+import { nextToPlay } from "@tac/shared";
 import { useState } from "react";
 import { Board } from "./board/Board.js";
 import { COLOR_LABEL } from "./board/colors.js";
@@ -119,6 +120,10 @@ export function App() {
     }
   };
 
+  // „Wer ist dran" (rein informativ, REQ-FEEDBACK F1).
+  const turnSeat = state ? nextToPlay(state) : null;
+  const itsMyTurn = settings.showTurnMarker && seat != null && turnSeat === seat;
+
   return (
     <div className="app-shell">
       <header className="app-header">
@@ -133,6 +138,7 @@ export function App() {
         </span>
         {testMode && <span title="URL-Parameter test=1: kein Partnertausch, jeder darf geben" style={{ background: "#b91c1c", color: "#fff", borderRadius: 6, padding: "2px 8px", fontFamily: "system-ui", fontSize: 12, fontWeight: 700 }}>TESTMODUS</span>}
         <span style={{ color: "#765234", fontFamily: "system-ui", fontSize: 13 }}><strong>Verbindung:</strong> {status}</span>
+        {itsMyTurn && <span style={{ background: "#d6199b", color: "#fff", borderRadius: 6, padding: "2px 10px", fontFamily: "system-ui", fontSize: 13, fontWeight: 700 }}>Du bist dran</span>}
         {state && (
           <span style={{ color: "#765234", fontFamily: "system-ui", fontSize: 13 }}>
             <strong>Startspieler:</strong>{" "}
@@ -176,6 +182,8 @@ export function App() {
                   onShuffle={() => send({ type: "ShuffleCards", force: testMode || undefined })}
                   onRequestDevil={(target) => send({ type: "RequestDevilView", target })}
                   lastBallMove={state.lastBallMove}
+                  turnSeat={settings.showTurnMarker ? turnSeat : null}
+                  animateMoves={settings.animateMoves}
                   showFieldNumbers={showFieldNumbers}
                   discardEntries={state.discardEntries}
                   onMoveBall={moveBall}

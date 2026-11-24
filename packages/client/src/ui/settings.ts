@@ -6,10 +6,16 @@
 export interface Settings {
   /** Feldnummern auf dem Brett anzeigen. */
   showFieldNumbers: boolean;
+  /** Ring um das Startfeld des Spielers, der laut Ableitung dran ist (F1). */
+  showTurnMarker: boolean;
+  /** Fremdzüge Feld für Feld animieren (F2). */
+  animateMoves: boolean;
 }
 
 export const DEFAULT_SETTINGS: Settings = {
   showFieldNumbers: false,
+  showTurnMarker: true,
+  animateMoves: true,
 };
 
 export const SETTINGS_STORAGE_KEY = "tac.settings";

@@ -2,13 +2,14 @@
 
 import type { Ball, BallPosition, DiscardEntry, Player, Seat } from "@tac/shared";
 import { BALLS_PER_PLAYER, CIRCLE_FIELD_COUNT, SEATS, cardLabel } from "@tac/shared";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { BALL_FILL, BALL_STROKE, COLOR_LABEL } from "./colors.js";
 import { CardArtwork } from "../ui/cardArtwork.js";
 import boardImage from "../../../../vorlage/Board.png";
 import { CardBackFace } from "../ui/cardFaces.js";
 import {
   type BoardGeometry,
+  angleForFieldIndex,
   circleFieldPosition,
   defaultGeometry,
   discardPlacement,
@@ -17,8 +18,22 @@ import {
   vorfeldBallPosition,
   vorfeldCenter,
 } from "./geometry.js";
+import { type MovePath, movePath } from "./movePath.js";
+import { type SeenMove, moveKey, updateSeenMoves, visibleMoves } from "./recentMoves.js";
 
 const COLOR_BY_SEAT_LOCAL = ["blau", "gelb", "gruen", "rot"] as const;
+
+/** Markierung des letzten Zugs: weder Kugel- noch Holzfarbe (REQ-FEEDBACK F2). */
+const MARK_COLOR = "#d6199b";
+/** Dauer eines Einzelschritts bzw. eines Gleitflugs der Zug-Animation. */
+const STEP_MS = 150;
+const GLIDE_MS = 650;
+
+interface MoveAnim { ballId: string; path: MovePath; start: number }
+
+const animDuration = (path: MovePath): number =>
+  path.mode === "glide" ? GLIDE_MS : (path.waypoints.length - 1) * STEP_MS;
+const easeInOut = (u: number): number => (u < 0.5 ? 2 * u * u : 1 - 2 * (1 - u) * (1 - u));
 
 // ===========================================================================
 // KALIBRIER-KONSTANTEN für die Platzierung von Kartenanzeige und Nachziehstapel.
@@ -147,6 +162,10 @@ export interface BoardProps {
   /** Klick auf den Kartenrücken des linken Nachbarn (Teufel-Anfrage). */
   onRequestDevil?: (target: Seat) => void;
   lastBallMove?: { ballId: string; from: BallPosition; to: BallPosition } | null;
+  /** Sitz, der laut Ableitung als Nächstes spielt (Ring ums Startfeld), oder null. */
+  turnSeat?: Seat | null;
+  /** Zug-Animation für Fremdzüge (Einstellung). */
+  animateMoves?: boolean;
   showFieldNumbers?: boolean;
   discardEntries?: DiscardEntry[];
   onMoveBall: (ballId: string, to: BallPosition) => void;
@@ -156,9 +175,41 @@ export interface BoardProps {
 
 interface DragState { ballId: string; current: Point; moved: boolean; from: BallPosition }
 
-export function Board({ balls, players = [], handCounts = [], deckHolder = null, deckCount = 0, deckActive = false, deckShuffleable = false, anyDealer = false, onDeal, onShuffle, onRequestDevil, lastBallMove = null, showFieldNumbers = false, discardEntries = [], onMoveBall, onReturnCard, ownSeat }: BoardProps) {
+export function Board({ balls, players = [], handCounts = [], deckHolder = null, deckCount = 0, deckActive = false, deckShuffleable = false, anyDealer = false, onDeal, onShuffle, onRequestDevil, lastBallMove = null, turnSeat = null, animateMoves = true, showFieldNumbers = false, discardEntries = [], onMoveBall, onReturnCard, ownSeat }: BoardProps) {
   const geo = defaultGeometry(1024);
   const [drag, setDrag] = useState<DragState | null>(null);
+  const [seen, setSeen] = useState<SeenMove[]>(() => lastBallMove ? [{ move: lastBallMove, key: moveKey(lastBallMove), seenAt: Date.now() }] : []);
+  const seenRef = useRef<SeenMove[]>(seen);
+  const ownMoveKey = useRef<string | null>(null);
+  const [anims, setAnims] = useState<MoveAnim[]>([]);
+  const [now, setNow] = useState(0);
+  const lastKey = lastBallMove ? moveKey(lastBallMove) : null;
+
+  // Neuer Zug vom Server: für die Markierung merken und (bei Fremdzügen) animieren.
+  useEffect(() => {
+    const result = updateSeenMoves(seenRef.current, lastBallMove, Date.now());
+    seenRef.current = result.seen;
+    setSeen(result.seen);
+    if (!result.isNew || !lastBallMove || lastKey === ownMoveKey.current || !animateMoves) return;
+    if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return;
+    const path = movePath(lastBallMove.from, lastBallMove.to);
+    setAnims((current) => [...current.filter((a) => a.ballId !== lastBallMove.ballId), { ballId: lastBallMove.ballId, path, start: performance.now() }]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lastKey]);
+
+  const animating = anims.length > 0;
+  useEffect(() => {
+    if (!animating) return;
+    let frame = 0;
+    const tick = () => {
+      const t = performance.now();
+      setNow(t);
+      setAnims((current) => (current.some((a) => t - a.start >= animDuration(a.path)) ? current.filter((a) => t - a.start < animDuration(a.path)) : current));
+      frame = requestAnimationFrame(tick);
+    };
+    frame = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(frame);
+  }, [animating]);
 
   // ---------------------------------------------------------------------------
   // Perspektive OHNE Brettdrehung (Index-Mapping):
@@ -232,10 +283,74 @@ export function Board({ balls, players = [], handCounts = [], deckHolder = null,
     setDrag({ ...drag, current: toSvg(event, event.currentTarget as SVGSVGElement), moved: true });
   };
   const handleUp = () => {
-    if (drag?.moved) onMoveBall(drag.ballId, pointToDataPos(drag.current));
+    if (drag?.moved) {
+      const to = pointToDataPos(drag.current);
+      ownMoveKey.current = moveKey({ ballId: drag.ballId, from: drag.from, to });
+      onMoveBall(drag.ballId, to);
+    }
     setDrag(null);
   };
   const topCards = discardEntries.slice(-7);
+
+  // Zuletzt bewegte Kugeln (Trickser: zwei) für die Markierung.
+  const visible = visibleMoves(seen);
+  const markRole = (test: (pos: BallPosition, ballId: string) => boolean): "from" | "to" | null => {
+    if (visible.some((item) => test(item.move.to, item.move.ballId))) return "to";
+    if (visible.some((item) => test(item.move.from, item.move.ballId))) return "from";
+    return null;
+  };
+  const renderMark = (point: Point, role: "from" | "to" | null) => {
+    if (!role) return null;
+    const r = geo.fieldRadius * 1.9;
+    return role === "to"
+      ? <circle cx={point.x} cy={point.y} r={r} fill={MARK_COLOR} fillOpacity={0.2} stroke={MARK_COLOR} strokeWidth={4} style={{ pointerEvents: "none" }} />
+      : <circle cx={point.x} cy={point.y} r={r} fill="none" stroke={MARK_COLOR} strokeWidth={3.5} strokeDasharray="6 5" style={{ pointerEvents: "none" }} />;
+  };
+  const ballRadius = geo.fieldRadius * BALL_RADIUS_FACTOR;
+  const pointOf = (pos: BallPosition, ballId: string): Point => dataPosToPoint(pos, balls.find((b) => b.id === ballId));
+
+  /** Pfeil von Quelle nach Ziel; auf dem Kreis als Bogen, sonst gerade. */
+  const arrowPath = (move: { ballId: string; from: BallPosition; to: BallPosition }): string | null => {
+    const pad = ballRadius + 5;
+    if (move.from.kind === "FELD" && move.to.kind === "FELD" && movePath(move.from, move.to).mode === "steps") {
+      const forward = (move.to.index - move.from.index + CIRCLE_FIELD_COUNT) % CIRCLE_FIELD_COUNT <= 16;
+      const dir = forward ? 1 : -1;
+      const a1 = angleForFieldIndex(visIndex(move.from.index)) + dir * (pad / geo.circleRadius);
+      const a2 = angleForFieldIndex(visIndex(move.to.index)) - dir * (pad / geo.circleRadius);
+      const p1 = { x: geo.center.x + geo.circleRadius * Math.cos(a1), y: geo.center.y + geo.circleRadius * Math.sin(a1) };
+      const p2 = { x: geo.center.x + geo.circleRadius * Math.cos(a2), y: geo.center.y + geo.circleRadius * Math.sin(a2) };
+      return `M ${p1.x} ${p1.y} A ${geo.circleRadius} ${geo.circleRadius} 0 0 ${forward ? 1 : 0} ${p2.x} ${p2.y}`;
+    }
+    const a = pointOf(move.from, move.ballId);
+    const b = pointOf(move.to, move.ballId);
+    const len = Math.hypot(b.x - a.x, b.y - a.y);
+    if (len < pad * 2.5) return null;
+    const ux = (b.x - a.x) / len;
+    const uy = (b.y - a.y) / len;
+    return `M ${a.x + ux * pad} ${a.y + uy * pad} L ${b.x - ux * pad} ${b.y - uy * pad}`;
+  };
+
+  /** Aktuelle Bildposition einer animierten Kugel. */
+  const animPoint = (anim: MoveAnim): Point => {
+    const target = ballPoints.get(anim.ballId);
+    const wps = anim.path.waypoints.map((pos) => pointOf(pos, anim.ballId));
+    if (target) wps[wps.length - 1] = target;
+    const elapsed = Math.max(0, now - anim.start);
+    if (anim.path.mode === "glide") {
+      const a = wps[0]!;
+      const b = wps[1]!;
+      const e = easeInOut(Math.min(1, elapsed / GLIDE_MS));
+      const dx = b.x - a.x;
+      const dy = b.y - a.y;
+      const bulge = Math.sin(Math.PI * e) * 0.12;
+      return { x: a.x + dx * e - dy * bulge, y: a.y + dy * e + dx * bulge };
+    }
+    const segment = Math.min(Math.floor(elapsed / STEP_MS), wps.length - 2);
+    const u = easeInOut(Math.min(1, elapsed / STEP_MS - segment));
+    const a = wps[segment]!;
+    const b = wps[segment + 1]!;
+    return { x: a.x + (b.x - a.x) * u, y: a.y + (b.y - a.y) * u };
+  };
 
   return (
     <div className="board-frame" style={{ background: "#5b321e", borderRadius: 24, padding: 12, boxShadow: "0 16px 35px #2d170d55", border: "8px solid #8c5831", boxSizing: "border-box", maxHeight: "100%", maxWidth: "100%" }}>
@@ -244,16 +359,80 @@ export function Board({ balls, players = [], handCounts = [], deckHolder = null,
           <radialGradient id="well" cx="35%" cy="30%"><stop offset="0" stopColor="#382b24" /><stop offset=".65" stopColor="#0d0d0d" /><stop offset="1" stopColor="#020202" /></radialGradient>
           <radialGradient id="hole" cx="30%" cy="25%"><stop offset="0" stopColor="#ead19a" /><stop offset=".45" stopColor="#9a642d" /><stop offset="1" stopColor="#3f2414" /></radialGradient>
           {SEATS.map((seat) => <radialGradient id={`marble-${seat}`} key={`gradient-${seat}`} cx="30%" cy="25%"><stop offset="0" stopColor="#fff" stopOpacity=".8" /><stop offset=".2" stopColor={BALL_FILL[COLOR_BY_SEAT_LOCAL[seat]]} /><stop offset="1" stopColor={BALL_STROKE[COLOR_BY_SEAT_LOCAL[seat]]} /></radialGradient>)}
+          <marker id="move-arrow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="4.5" markerHeight="4.5" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill={MARK_COLOR} /></marker>
           <filter id="shadow"><feDropShadow dx="2" dy="3" stdDeviation="3" floodOpacity=".35" /></filter>
         </defs>
         <g>
           <image href={boardImage} x="0" y="0" width={geo.size} height={geo.size} preserveAspectRatio="none" />
           {/* Laufbahn-Felder: an BILD-Feld `vi` liegt DATEN-Feld `di`. */}
-          {Array.from({ length: CIRCLE_FIELD_COUNT }, (_, vi) => { const di = dataIndex(vi); const point = circleFieldPosition(vi, geo); const source = drag?.from.kind === "FELD" && drag.from.index === di; const lastFrom = lastBallMove?.from.kind === "FELD" && lastBallMove.from.index === di; const lastTo = lastBallMove?.to.kind === "FELD" && lastBallMove.to.index === di; return <g key={`field-${vi}`}><circle cx={point.x} cy={point.y} r={geo.fieldRadius * (lastFrom || lastTo ? 1.9 : 1.45)} fill={lastFrom ? "#e7a928" : lastTo ? "#f7e28b" : "transparent"} opacity=".72" /><circle cx={point.x} cy={point.y} r={geo.fieldRadius + (source ? 5 : 0)} fill={source ? "#fff1a8" : "transparent"} stroke={lastFrom || lastTo ? "#fff2b0" : "transparent"} strokeWidth={source ? 5 : lastFrom || lastTo ? 4 : 2} />{showFieldNumbers && <text x={point.x} y={point.y + 4} textAnchor="middle" fill="#4b3a2b" fontSize="9" fontFamily="system-ui" fontWeight="700">{di}</text>}</g>; })}
+          {Array.from({ length: CIRCLE_FIELD_COUNT }, (_, vi) => {
+            const di = dataIndex(vi);
+            const point = circleFieldPosition(vi, geo);
+            const source = drag?.from.kind === "FELD" && drag.from.index === di;
+            const role = markRole((pos) => pos.kind === "FELD" && pos.index === di);
+            return (
+              <g key={`field-${vi}`}>
+                {source && <circle cx={point.x} cy={point.y} r={geo.fieldRadius + 5} fill="#fff" fillOpacity={0.8} stroke="#fff" strokeWidth={4} />}
+                {renderMark(point, role)}
+                {showFieldNumbers && <text x={point.x} y={point.y + 4} textAnchor="middle" fill="#4b3a2b" fontSize="9" fontFamily="system-ui" fontWeight="700">{di}</text>}
+              </g>
+            );
+          })}
           {/* Häuser: an BILD-Sitz `vs` liegt DATEN-Sitz `ds`. */}
-          {SEATS.map((vs) => { const ds = dataSeat(vs); return <g key={`house-${vs}`}>{housePositions(vs, geo).map((point, slot) => { const source = drag?.from.kind === "HAUS" && drag.from.owner === ds && drag.from.slot === slot; const lastFrom = lastBallMove?.from.kind === "HAUS" && lastBallMove.from.owner === ds && lastBallMove.from.slot === slot; const lastTo = lastBallMove?.to.kind === "HAUS" && lastBallMove.to.owner === ds && lastBallMove.to.slot === slot; return <g key={`house-${vs}-${slot}`}><circle cx={point.x} cy={point.y} r={geo.fieldRadius + (source ? 5 : lastFrom || lastTo ? 3 : 0)} fill={source ? "#fff1a8" : lastFrom ? "#e7a928" : lastTo ? "#f7e28b" : "transparent"} stroke={lastFrom || lastTo ? "#fff2b0" : "transparent"} strokeWidth={source ? 5 : lastFrom || lastTo ? 4 : 2.5} />{showFieldNumbers && <text x={point.x} y={point.y + 5} textAnchor="middle" fill="#c0392b" fontSize="14" fontFamily="system-ui" fontWeight="800" style={{ pointerEvents: "none" }}>#{slot}</text>}</g>; })}</g>; })}
+          {SEATS.map((vs) => {
+            const ds = dataSeat(vs);
+            return (
+              <g key={`house-${vs}`}>
+                {housePositions(vs, geo).map((point, slot) => {
+                  const source = drag?.from.kind === "HAUS" && drag.from.owner === ds && drag.from.slot === slot;
+                  const role = markRole((pos) => pos.kind === "HAUS" && pos.owner === ds && pos.slot === slot);
+                  return (
+                    <g key={`house-${vs}-${slot}`}>
+                      {source && <circle cx={point.x} cy={point.y} r={geo.fieldRadius + 5} fill="#fff" fillOpacity={0.8} stroke="#fff" strokeWidth={4} />}
+                      {renderMark(point, role)}
+                      {showFieldNumbers && <text x={point.x} y={point.y + 5} textAnchor="middle" fill="#c0392b" fontSize="14" fontFamily="system-ui" fontWeight="800" style={{ pointerEvents: "none" }}>#{slot}</text>}
+                    </g>
+                  );
+                })}
+              </g>
+            );
+          })}
           {/* Vorfelder: an BILD-Sitz `vs` liegt DATEN-Sitz `ds`. */}
-          {SEATS.map((vs) => { const ds = dataSeat(vs); return <g key={`vorfeld-${vs}`}>{Array.from({ length: BALLS_PER_PLAYER }, (_, slot) => { const point = vorfeldBallPosition(vs, slot, geo); const ballId = `${COLOR_BY_SEAT_LOCAL[ds]}-${slot}`; const source = drag?.ballId === ballId && drag.from.kind === "VORFELD"; const lastFrom = lastBallMove?.ballId === ballId && lastBallMove.from.kind === "VORFELD"; const lastTo = lastBallMove?.ballId === ballId && lastBallMove.to.kind === "VORFELD"; return <circle key={`vorfeld-${vs}-${slot}`} cx={point.x} cy={point.y} r={geo.fieldRadius + (source ? 5 : lastFrom || lastTo ? 3 : 0)} fill={source ? "#fff1a8" : lastFrom ? "#e7a928" : lastTo ? "#f7e28b" : "transparent"} stroke={lastFrom || lastTo ? "#fff2b0" : BALL_STROKE[COLOR_BY_SEAT_LOCAL[ds]]} strokeDasharray={lastFrom || lastTo ? undefined : "5 4"} strokeWidth={source ? 5 : lastFrom || lastTo ? 4 : 2.5} />; })}</g>; })}
+          {SEATS.map((vs) => {
+            const ds = dataSeat(vs);
+            return (
+              <g key={`vorfeld-${vs}`}>
+                {Array.from({ length: BALLS_PER_PLAYER }, (_, slot) => {
+                  const point = vorfeldBallPosition(vs, slot, geo);
+                  const ballId = `${COLOR_BY_SEAT_LOCAL[ds]}-${slot}`;
+                  const source = drag?.ballId === ballId && drag.from.kind === "VORFELD";
+                  const role = markRole((pos, id) => pos.kind === "VORFELD" && id === ballId);
+                  return (
+                    <g key={`vorfeld-${vs}-${slot}`}>
+                      <circle cx={point.x} cy={point.y} r={geo.fieldRadius + (source ? 5 : 0)} fill={source ? "#fff" : "transparent"} fillOpacity={0.8} stroke={BALL_STROKE[COLOR_BY_SEAT_LOCAL[ds]]} strokeDasharray="5 4" strokeWidth={2.5} />
+                      {renderMark(point, role)}
+                    </g>
+                  );
+                })}
+              </g>
+            );
+          })}
+          {/* Zug-Pfeile (letzter Zug, bei Trickser zwei). */}
+          {visible.map((item) => {
+            const d = arrowPath(item.move);
+            return d ? <path key={`arrow-${item.key}`} d={d} fill="none" stroke={MARK_COLOR} strokeWidth={4} strokeOpacity={0.6} strokeLinecap="round" markerEnd="url(#move-arrow)" style={{ pointerEvents: "none" }} /> : null;
+          })}
+          {/* „Wer ist dran": pulsierender Ring ums Startfeld (REQ-FEEDBACK F1). */}
+          {turnSeat != null && (() => {
+            const p = circleFieldPosition(visIndex(turnSeat * (CIRCLE_FIELD_COUNT / 4)), geo);
+            const color = BALL_FILL[COLOR_BY_SEAT_LOCAL[turnSeat]];
+            return (
+              <g className="turn-ring" style={{ pointerEvents: "none" }}>
+                <circle cx={p.x} cy={p.y} r={geo.fieldRadius * 2.5} fill="none" stroke="#1b1008" strokeWidth={9} strokeOpacity={0.55} />
+                <circle cx={p.x} cy={p.y} r={geo.fieldRadius * 2.5} fill="none" stroke={color} strokeWidth={5} />
+              </g>
+            );
+          })()}
           {/* Spielernamen mittig ins Vorfeld; Handkarten-Rücken einheitlich NEBEN
               dem Vorfeld. Da nicht mehr gedreht wird, sind die Positionen für alle
               Betrachter gleich (per Index-Mapping wandern nur die DATEN). */}
@@ -350,7 +529,7 @@ export function Board({ balls, players = [], handCounts = [], deckHolder = null,
               </g>
             );
           })}
-          {balls.map((ball) => { const isDragged = drag?.ballId === ball.id; const point = isDragged && drag.moved ? drag.current : ballPoints.get(ball.id) ?? geo.center; return <g key={ball.id} onPointerDown={(event) => handleDown(event, ball)} style={{ cursor: "grab" }}><circle cx={point.x} cy={point.y} r={geo.fieldRadius * BALL_RADIUS_FACTOR} fill={`url(#marble-${ball.owner})`} stroke={isDragged ? "#fff7cf" : BALL_STROKE[ball.color]} strokeWidth={isDragged ? 5 : 2.5} filter="url(#shadow)" /><circle cx={point.x - geo.fieldRadius * 0.4} cy={point.y - geo.fieldRadius * 0.5} r={geo.fieldRadius * .2} fill="#fff" opacity=".7" /></g>; })}
+          {balls.map((ball) => { const isDragged = drag?.ballId === ball.id; const anim = anims.find((a) => a.ballId === ball.id); const point = isDragged && drag.moved ? drag.current : anim ? animPoint(anim) : ballPoints.get(ball.id) ?? geo.center; return <g key={ball.id} onPointerDown={(event) => handleDown(event, ball)} style={{ cursor: "grab" }}><circle cx={point.x} cy={point.y} r={ballRadius} fill={`url(#marble-${ball.owner})`} stroke={isDragged ? "#fff7cf" : BALL_STROKE[ball.color]} strokeWidth={isDragged ? 5 : 2.5} filter="url(#shadow)" /><circle cx={point.x - geo.fieldRadius * 0.4} cy={point.y - geo.fieldRadius * 0.5} r={geo.fieldRadius * .2} fill="#fff" opacity=".7" /></g>; })}
         </g>
       </svg>
       {topCards.length > 0 && onReturnCard && <div style={{ display: "flex", justifyContent: "center", gap: 6, flexWrap: "wrap", marginTop: 8 }}><span style={{ color: "#f5d3a0", fontSize: 12 }}>Ablage:</span>{topCards.map((entry) => <button key={`return-${entry.card.id}`} type="button" onClick={() => onReturnCard(entry.card.id)} style={{ background: "#f8e5c4", border: 0, borderRadius: 5, color: "#5b321e", padding: "3px 7px", cursor: "pointer" }}>↩ {cardLabel(entry.card)}</button>)}</div>}

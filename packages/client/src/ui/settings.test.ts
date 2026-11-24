@@ -11,7 +11,7 @@ describe("Einstellungen (REQ-FEEDBACK F10)", () => {
   });
 
   it("Given ein Wert mit falschem Typ, Then fällt er auf den Standard zurück", () => {
-    expect(parseSettings('{"showFieldNumbers":"ja"}')).toEqual(DEFAULT_SETTINGS);
+    expect(parseSettings('{"showFieldNumbers":"ja","animateMoves":"nein"}')).toEqual(DEFAULT_SETTINGS);
   });
 
   it("Given gespeicherte Einstellungen, When geladen, Then werden sie übernommen", () => {
@@ -20,8 +20,8 @@ describe("Einstellungen (REQ-FEEDBACK F10)", () => {
       getItem: (key: string) => store.get(key) ?? null,
       setItem: (key: string, value: string) => void store.set(key, value),
     };
-    saveSettings({ showFieldNumbers: true }, storage);
+    saveSettings({ ...DEFAULT_SETTINGS, showFieldNumbers: true, animateMoves: false }, storage);
     expect(store.has(SETTINGS_STORAGE_KEY)).toBe(true);
-    expect(loadSettings(storage)).toEqual({ showFieldNumbers: true });
+    expect(loadSettings(storage)).toEqual({ ...DEFAULT_SETTINGS, showFieldNumbers: true, animateMoves: false });
   });
 });

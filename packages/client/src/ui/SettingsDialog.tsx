@@ -34,6 +34,22 @@ export function SettingsDialog({ settings, onChange, onClose }: SettingsDialogPr
           />
           Feldnummern anzeigen
         </label>
+        <label style={{ display: "flex", gap: 8, alignItems: "center", marginTop: 8 }}>
+          <input
+            type="checkbox"
+            checked={settings.showTurnMarker}
+            onChange={(event) => onChange({ ...settings, showTurnMarker: event.target.checked })}
+          />
+          „Wer ist dran" markieren (Ring ums Startfeld)
+        </label>
+        <label style={{ display: "flex", gap: 8, alignItems: "center", marginTop: 8 }}>
+          <input
+            type="checkbox"
+            checked={settings.animateMoves}
+            onChange={(event) => onChange({ ...settings, animateMoves: event.target.checked })}
+          />
+          Züge der anderen animieren
+        </label>
       </div>
     </div>
   );
