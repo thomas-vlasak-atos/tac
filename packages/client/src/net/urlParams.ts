@@ -39,3 +39,8 @@ export function isTestMode(search: string): boolean {
   const value = new URLSearchParams(search).get("test");
   return value === "1" || value === "true";
 }
+
+/** Eigenständige Meisterkarten-Seite (`?view=meisterkarten`, ohne Spielverbindung). */
+export function isMasterCardsView(search: string): boolean {
+  return new URLSearchParams(search).get("view") === "meisterkarten";
+}

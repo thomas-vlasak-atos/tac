@@ -10,7 +10,11 @@
  * reine Nachschlage-Hilfe.
  */
 
+import type { SpecialCardKind } from "@tac/shared";
+import { CardArtwork } from "./cardArtwork.js";
+
 interface MasterCard {
+  kind: SpecialCardKind;
   name: string;
   summary: string;
   details: string[];
@@ -18,6 +22,7 @@ interface MasterCard {
 
 const MASTER_CARDS: MasterCard[] = [
   {
+    kind: "engel",
     name: "Engel",
     summary:
       "Für den im Uhrzeigersinn folgenden Spieler eine Kugel vom Vorfeld auf sein Startfeld setzen.",
@@ -29,6 +34,7 @@ const MASTER_CARDS: MasterCard[] = [
     ],
   },
   {
+    kind: "teufel",
     name: "Teufel",
     summary:
       "Du spielst für den folgenden Spieler eine Karte aus dessen Hand und führst die Aktion mit dessen Kugeln aus.",
@@ -40,6 +46,7 @@ const MASTER_CARDS: MasterCard[] = [
     ],
   },
   {
+    kind: "krieger",
     name: "Krieger",
     summary:
       "Die im Uhrzeigersinn auf eine eigene Kugel folgende Kugel wird geworfen; deine Kugel rückt auf das frei gewordene Feld.",
@@ -51,6 +58,7 @@ const MASTER_CARDS: MasterCard[] = [
     ],
   },
   {
+    kind: "narr",
     name: "Narr",
     summary:
       "Alle geben ihre Handkarten verdeckt an den rechten Nachbarn weiter; du spielst danach sofort eine deiner neuen Karten.",
@@ -61,6 +69,16 @@ const MASTER_CARDS: MasterCard[] = [
     ],
   },
 ];
+
+/** Kurzwirkung einer Meisterkarte (z. B. für den Tooltip an der Handkarte); sonst undefined. */
+export function masterCardSummary(kind: string): string | undefined {
+  return MASTER_CARDS.find((card) => card.kind === kind)?.summary;
+}
+
+/** Adresse der eigenständigen Meisterkarten-Seite (zweites Fenster, ohne Spielverbindung). */
+export function masterCardsWindowUrl(): string {
+  return `${window.location.pathname}?view=meisterkarten`;
+}
 
 export function MasterCardsHelp({ onClose }: { onClose: () => void }) {
   return (
@@ -96,9 +114,14 @@ export function MasterCardsHelp({ onClose }: { onClose: () => void }) {
       >
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 12 }}>
           <h2 style={{ margin: 0, letterSpacing: 1 }}>Meisterkarten</h2>
-          <button type="button" onClick={onClose}>
-            schließen
-          </button>
+          <span style={{ display: "flex", gap: 8 }}>
+            <button type="button" onClick={() => window.open(masterCardsWindowUrl(), "tac-meisterkarten", "popup,width=760,height=900")} title="Als eigenes Fenster öffnen, z. B. auf einem zweiten Bildschirm">
+              neues Fenster
+            </button>
+            <button type="button" onClick={onClose}>
+              schließen
+            </button>
+          </span>
         </div>
         <p style={{ fontFamily: "system-ui", fontSize: 13, color: "#6b3d22", marginTop: 6 }}>
           Kurzanleitung zu den vier Sonderkarten der Meisterversion. Die Regeln
@@ -127,5 +150,35 @@ export function MasterCardsHelp({ onClose }: { onClose: () => void }) {
         </div>
       </div>
     </div>
+  );
+}
+
+/** Eigenständige, große Seite mit allen Meisterkarten (`?view=meisterkarten`), auch zum Screenshot. */
+export function MasterCardsPage() {
+  return (
+    <main style={{ background: "#f5e5c8", color: "#4c2a1a", minHeight: "100vh", padding: 24, boxSizing: "border-box" }}>
+      <h1 style={{ margin: "0 0 4px", letterSpacing: 1 }}>Meisterkarten</h1>
+      <p style={{ fontFamily: "system-ui", fontSize: 14, color: "#6b3d22", marginTop: 0 }}>
+        Kurzanleitung zu den vier Sonderkarten. Die Regeln werden im Spiel nicht erzwungen.
+      </p>
+      <div style={{ display: "grid", gap: 18, gridTemplateColumns: "repeat(auto-fit, minmax(340px, 1fr))", maxWidth: 1100 }}>
+        {MASTER_CARDS.map((card) => (
+          <section key={card.name} style={{ display: "flex", gap: 14, background: "#fffaf0", borderRadius: 12, border: "1px solid #c8955c", padding: 14 }}>
+            <div style={{ width: 110, flex: "0 0 auto" }}>
+              <CardArtwork card={{ id: `help-${card.kind}`, kind: card.kind }} />
+            </div>
+            <div>
+              <h2 style={{ margin: "0 0 4px" }}>{card.name}</h2>
+              <p style={{ margin: "0 0 8px", fontWeight: 600, fontSize: 16 }}>{card.summary}</p>
+              <ul style={{ margin: 0, paddingLeft: 18, fontFamily: "system-ui", fontSize: 15, lineHeight: 1.45 }}>
+                {card.details.map((line, index) => (
+                  <li key={index}>{line}</li>
+                ))}
+              </ul>
+            </div>
+          </section>
+        ))}
+      </div>
+    </main>
   );
 }

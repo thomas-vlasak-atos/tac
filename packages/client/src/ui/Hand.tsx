@@ -3,6 +3,7 @@
 import { type Card, cardLabel } from "@tac/shared";
 import { useRef, useState } from "react";
 import { CardArtwork } from "./cardArtwork.js";
+import { masterCardSummary } from "./MasterCardsHelp.js";
 
 /** Name der Drop-Zone, auf der eine Karte losgelassen wurde (Attribut `data-card-drop`). */
 export type CardDropZone = string;
@@ -107,7 +108,7 @@ export function Hand({ cards, compact = false, onPlayCard, onDropCard, onDragCha
                 if (!disabled && allowClick) onPlayCard?.(card.id);
               }
             }}
-            title={`${label} – ${disabled ? "nicht möglich" : (actionHint ?? "spielen")}`}
+            title={`${label}${masterCardSummary(card.kind) ? `: ${masterCardSummary(card.kind)}` : ""} – ${disabled ? "nicht möglich" : (actionHint ?? "spielen")}`}
             style={{
               width: compact ? undefined : 94,
               flex: "0 0 auto",

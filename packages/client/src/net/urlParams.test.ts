@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { directJoinFromUrl, isTestMode, readUrlDefaults } from "./urlParams.js";
+import { directJoinFromUrl, isMasterCardsView, isTestMode, readUrlDefaults } from "./urlParams.js";
 
 describe("URL-Parameter (ADR-0002 Sitzplatz-Links)", () => {
   it("Given Raum, Name und Platz, When die Seite geöffnet wird, Then tritt der Client direkt bei", () => {
@@ -35,5 +35,16 @@ describe("URL-Parameter (ADR-0002 Sitzplatz-Links)", () => {
     expect(isTestMode("?test=true")).toBe(true);
     expect(isTestMode("?test=0")).toBe(false);
     expect(isTestMode("")).toBe(false);
+  });
+});
+
+describe("Meisterkarten-Seite (REQ-FEEDBACK F11)", () => {
+  it("Given ?view=meisterkarten, Then wird die eigenständige Seite erkannt", () => {
+    expect(isMasterCardsView("?view=meisterkarten")).toBe(true);
+  });
+
+  it("Given kein oder anderer view-Parameter, Then normales Spiel", () => {
+    expect(isMasterCardsView("")).toBe(false);
+    expect(isMasterCardsView("?room=tac&view=x")).toBe(false);
   });
 });

@@ -53,7 +53,7 @@ Aufwand, offene Fragen O1–O7). Kurzliste:
 - [x] **F8** Teufel: Nachbarkarten größer (direkt per Klick spielen)
 - [x] **F9** Karten per Klick **und** Drag & Drop – am Brett prüfen
 - [~] **F10** Einstellungen (lokal): Grundgerüst steht, weitere Schalter kommen mit den Features
-- [ ] **F11** Meisterkarten: eigenes Fenster / Kurzinfo
+- [x] **F11** Meisterkarten: eigenes Fenster (`?view=meisterkarten`) und Kurzinfo per Tooltip – am Brett prüfen
 - [ ] **F12** Gimmick „Anstupsen" für alle, Name wird vorgelesen (Prio 10000)
 
 Brett-Technik: `vorlage/Board.png` ist der Hintergrund, alles Interaktive ist ein

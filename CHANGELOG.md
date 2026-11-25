@@ -8,6 +8,10 @@ Versionierung nach [Semantic Versioning](https://semver.org/lang/de/).
 ## [Unreleased]
 
 ### Added
+- **Meisterkarten besser einsehbar (F11):** Eigene Seite `?view=meisterkarten` (ohne
+  Spielverbindung, große Karten mit Erklärung, auch für Screenshot oder zweiten Bildschirm),
+  im Overlay per „neues Fenster" öffnbar. Beim Überfahren einer Meisterkarte in der Hand
+  zeigt der Tooltip die Kurzwirkung.
 - **Karten per Drag & Drop und Klick (F9):** Handkarten lassen sich zusätzlich zum Klick auf das
   Brett ziehen (Spielphase: Ablagekreis in der Mitte; Tauschphase: Vorfeld des Partners). Die
   Drop-Zone erscheint nur beim Ziehen. Klick und Ziehen sind in den Einstellungen einzeln
