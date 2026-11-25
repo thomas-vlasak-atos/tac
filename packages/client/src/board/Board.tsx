@@ -26,6 +26,8 @@ const COLOR_BY_SEAT_LOCAL = ["blau", "gelb", "gruen", "rot"] as const;
 
 /** Markierung des letzten Zugs: weder Kugel- noch Holzfarbe (REQ-FEEDBACK F2). */
 const MARK_COLOR = "#d6199b";
+/** Deckkraft des vorletzten Zugs, damit man die Reihenfolge erkennt. */
+const FADED_OPACITY = 0.4;
 
 interface MoveAnim { ballId: string; path: MovePath; start: number }
 
@@ -297,17 +299,24 @@ export function Board({ balls, players = [], handCounts = [], deckHolder = null,
 
   // Zuletzt bewegte Kugeln (Trickser: zwei) für die Markierung.
   const visible = visibleMoves(seen);
-  const markRole = (test: (pos: BallPosition, ballId: string) => boolean): "from" | "to" | null => {
-    if (visible.some((item) => test(item.move.to, item.move.ballId))) return "to";
-    if (visible.some((item) => test(item.move.from, item.move.ballId))) return "from";
+  // Der jüngste Zug hat Vorrang; der Zug davor wird blasser gezeichnet (`faded`).
+  type Mark = { role: "from" | "to"; faded: boolean };
+  const markRole = (test: (pos: BallPosition, ballId: string) => boolean): Mark | null => {
+    for (let i = visible.length - 1; i >= 0; i--) {
+      const item = visible[i]!;
+      const faded = i < visible.length - 1;
+      if (test(item.move.to, item.move.ballId)) return { role: "to", faded };
+      if (test(item.move.from, item.move.ballId)) return { role: "from", faded };
+    }
     return null;
   };
-  const renderMark = (point: Point, role: "from" | "to" | null) => {
-    if (!role) return null;
+  const renderMark = (point: Point, mark: Mark | null) => {
+    if (!mark) return null;
     const r = geo.fieldRadius * 1.9;
-    return role === "to"
-      ? <circle cx={point.x} cy={point.y} r={r} fill={MARK_COLOR} fillOpacity={0.2} stroke={MARK_COLOR} strokeWidth={4} style={{ pointerEvents: "none" }} />
-      : <circle cx={point.x} cy={point.y} r={r} fill="none" stroke={MARK_COLOR} strokeWidth={3.5} strokeDasharray="6 5" style={{ pointerEvents: "none" }} />;
+    const opacity = mark.faded ? FADED_OPACITY : 1;
+    return mark.role === "to"
+      ? <circle cx={point.x} cy={point.y} r={r} fill={MARK_COLOR} fillOpacity={0.2} stroke={MARK_COLOR} strokeWidth={4} opacity={opacity} style={{ pointerEvents: "none" }} />
+      : <circle cx={point.x} cy={point.y} r={r} fill="none" stroke={MARK_COLOR} strokeWidth={3.5} strokeDasharray="6 5" opacity={opacity} style={{ pointerEvents: "none" }} />;
   };
   const ballRadius = geo.fieldRadius * BALL_RADIUS_FACTOR;
   const pointOf = (pos: BallPosition, ballId: string): Point => dataPosToPoint(pos, balls.find((b) => b.id === ballId));
@@ -457,9 +466,9 @@ export function Board({ balls, players = [], handCounts = [], deckHolder = null,
             );
           })()}
           {/* Zug-Pfeile (letzter Zug, bei Trickser zwei). */}
-          {visible.map((item) => {
+          {visible.map((item, index) => {
             const d = arrowPath(item.move);
-            return d ? <path key={`arrow-${item.key}`} d={d} fill="none" stroke={MARK_COLOR} strokeWidth={4} strokeOpacity={0.6} strokeLinecap="round" markerEnd="url(#move-arrow)" style={{ pointerEvents: "none" }} /> : null;
+            return d ? <path key={`arrow-${item.key}`} d={d} fill="none" stroke={MARK_COLOR} strokeWidth={4} strokeOpacity={0.6} strokeLinecap="round" markerEnd="url(#move-arrow)" opacity={index < visible.length - 1 ? FADED_OPACITY : 1} style={{ pointerEvents: "none" }} /> : null;
           })}
           {/* „Wer ist dran": pulsierender Ring ums Vorfeld des Spielers (REQ-FEEDBACK F1). */}
           {turnSeat != null && (() => {
