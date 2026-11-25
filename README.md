@@ -21,7 +21,7 @@ eigenständig gestaltet und bilden keine geschützten Originalmaterialien nach.
 
 ## Projektstatus
 
-Frühe Phase. Vorhanden:
+Im Praxiseinsatz (zu viert getestet, online auf Render). Vorhanden:
 - Vollständige Dokumentation (Anforderungen, Architektur, Entscheidungen).
 - Monorepo-Grundgerüst (npm workspaces, TypeScript, Vitest).
 - Paket `@tac/shared`: gemeinsame Typen (GameState, Kugeln, Karten, Aktionen),
@@ -32,13 +32,25 @@ Frühe Phase. Vorhanden:
 - Paket `@tac/client`: React + Vite Brett-UI. Schematisches SVG-Brett (berechnete
   Geometrie), Kugeln per Drag & Drop mit Herkunfts-Marker, Handkarten, Ablage,
   Geben-Steuerung, Verlauf, Beitritts-Bildschirm (inkl. URL-Parameter).
+- Bedienhilfen im Client: Markierung und Pfeil des letzten Zugs (bei Trickser beide Züge),
+  Zug-Animation (Feld für Feld bzw. Gleitflug), Hinweis „Wer ist dran", Zielhilfe mit
+  Distanz beim Ziehen, Karten per Klick **und** Drag & Drop, Kartenflug in die Mitte,
+  Narr-Animation, optionale Töne, verstecktes „Anstupsen" (Klick auf den Namen eines
+  Mitspielers) und eine eigene Meisterkarten-Seite.
+- **Einstellungen** (Zahnrad in der Kopfzeile, lokal pro Gerät): Feldnummern, „Wer ist
+  dran"-Marker, Animationen, Zielhilfe, Kartenbedienung (Klick/Ziehen), Anstupsen-Ton,
+  Töne „Zug gemacht" und „Du bist dran" (Standard: aus).
 
-Als Nächstes: Design-Feinschliff und lokales Zusammenspiel zu viert testen.
+Offen: Zählpunkte und Hausdarstellung werden von Hand in `vorlage/Board.png` ergänzt;
+danach Kalibrierung prüfen (siehe `docs/requirements/REQ-FEEDBACK.md`).
 
 ## Dokumentation
 
 - `docs/requirements/REQ-BOARD.md` – **primäre Anforderung**: freies Brett, Kugeln, Karten, Verlauf
+- `docs/requirements/REQ-FEEDBACK.md` – Feedback aus dem Praxistest (Bedienhilfen, Animationen, Töne)
+- `docs/requirements/REQ-DESIGN.md` – visueller Ausbau
 - `docs/requirements/REQ-RULES.md` – Spielregeln als **Referenz** (nicht erzwungen)
+- `docs/STATUS.md` – Projektstatus und Handover
 - `docs/architecture/ARCH-OVERVIEW.md` – technische Architektur
 - `docs/decisions/ADR-0001-freies-brett.md` – Entscheidung freies Brett statt Regel-Engine
 - `docs/decisions/` – weitere Architecture Decision Records (ADRs)
@@ -82,6 +94,9 @@ Beitritt vorbelegen; sind `room` und `name` gesetzt, geht es **ohne Startformula
 auf das Spielbrett** (fehlt einer von beiden, wird das Formular vorbelegt), z. B. `http://localhost:5173/?room=abc&name=Anna&seat=0`
 (siehe `docs/decisions/ADR-0002-hosting-und-sitzplatz-links.md`).
 
+**Meisterkarten-Seite:** `?view=meisterkarten` zeigt die Erklärung der Meisterkarten in einer
+eigenen Seite ohne Spielverbindung (z. B. für ein zweites Fenster oder einen Screenshot).
+
 **Testmodus:** Mit zusätzlichem Parameter `test=1` (z. B. `?room=abc&name=Anna&seat=0&test=1`)
 entfällt der Partnertausch – ein Klick auf eine Handkarte legt sie sofort ab – und jeder
 Sitz darf geben/mischen (nicht nur der zuständige Geber). Im Header erscheint „TESTMODUS".
@@ -108,6 +123,9 @@ Schritte:
    `render.yaml` und legt beide Dienste an.
 3. Nach dem ersten Deploy die Client-URL öffnen (z. B.
    `https://tac-client.onrender.com`), ggf. mit `?room=…&name=…&seat=…`.
+
+### Hosting
+https://dashboard.render.com/
 
 Hinweise zum Free-Tier: Der Server **schläft** nach einigen Minuten Inaktivität und
 braucht beim nächsten Zugriff ein paar Sekunden zum Aufwachen. Der Spielzustand

@@ -1,9 +1,11 @@
 # Anforderungen: Feedback aus dem Praxistest (Runde 2)
 
 **Kennung:** `REQ-FEEDBACK`
-**Version:** 0.1 (Entwurf, zur Diskussion)
-**Stand:** 2026-11-24
-**Status:** AUSGEARBEITET, Fragen entschieden (§4), NOCH NICHT UMGESETZT.
+**Version:** 0.2
+**Stand:** 2026-11-25
+**Status:** UMGESETZT (F1–F4, F7–F12). F5 und F6 hängen an der manuellen Bearbeitung
+> von `vorlage/Board.png`. Die Abschnitte unten beschreiben Entwurf **und** Entscheidungen;
+> bei Abweichungen gelten §4 und das `CHANGELOG`.
 
 > Quelle: Rückmeldungen der Mitspieler aus dem Spiel zu viert plus eigene
 > Beobachtungen des Projektinhabers. Die Punkte ergänzen `REQ-BOARD` und

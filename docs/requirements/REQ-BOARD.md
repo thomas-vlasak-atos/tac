@@ -213,7 +213,7 @@
 ## 7. Mögliche Erweiterungen (später, optional)
 
 - ~~Regel-Hilfen / Zielfeld-Hervorhebung~~ – vom Projektinhaber verworfen.
-- Würfel/Chat/Emotes, Sound.
+- Würfel/Chat/Emotes. (Sound und „Anstupsen" sind umgesetzt, siehe `REQ-FEEDBACK` F3/F12.)
 - Zwei Design-Varianten zum Vergleich (modern-flach vs. hochwertig-realistisch).
 
 ## 8. Offene Punkte
@@ -231,6 +231,14 @@
   Teufel eine Karte aus dessen Hand offen ausspielen.
 - [x] Narr-Sonderaktion: alle Hände können bewusst an den rechten Nachbarn
       weitergegeben werden (mit Bestätigungsdialog, D14).
+
+## 8a. Ergänzungen aus dem Praxistest (2026-11)
+
+Bedienhilfen, Animationen, Töne, Einstellungen und Kartenbedienung per Drag & Drop sind in
+`REQ-FEEDBACK` (F1–F12) beschrieben und umgesetzt. Sie ergänzen B3a/B4b/K3a/K4:
+- Karten lassen sich zusätzlich zum Klick auf das Brett ziehen (K3a erweitert).
+- Der letzte Zug wird magenta markiert (Quelle gestrichelt, Ziel durchgezogen) mit Pfeil.
+- Beim Ziehen zeigen Einrastfeld und Distanz („+5") das Ziel (regelfrei).
 
 ## 9.1 Präzisierungen für den aktuellen Spielablauf
 

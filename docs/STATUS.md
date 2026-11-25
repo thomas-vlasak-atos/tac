@@ -1,12 +1,34 @@
 # Projektstatus & Handover für die nächste Session
 
 **Kennung:** `STATUS`
-**Stand:** 2026-09-30
+**Stand:** 2026-11-25
 **Zweck:** Schneller Wiedereinstieg – was ist da, was ist offen, wie startet man.
 
 ---
 
-## 0. Update 2026-09-30 (jüngste Session)
+## 0. Update 2026-11-25 (jüngste Session): Feedback aus dem Praxistest
+
+Alles aus `docs/requirements/REQ-FEEDBACK.md` (F1–F12) ist umgesetzt, in `main` und gepusht,
+**außer F5/F6** (Zählpunkte und Haus werden von Hand in `vorlage/Board.png` ergänzt,
+danach Kalibrierung in `geometry.ts` prüfen). Neues am Client:
+
+- **Einstellungen** (`ui/settings.ts`, `SettingsDialog.tsx`, lokal in `localStorage`).
+- **Letzter Zug:** Magenta-Markierung (Quelle gestrichelt, Ziel durchgezogen), Pfeil,
+  vorletzter Zug blasser; Zug-Animation Feld für Feld bzw. Gleitflug
+  (`board/movePath.ts`, `board/recentMoves.ts`).
+- **Wer ist dran:** `nextToPlay` in `@tac/shared`; Ring ums Vorfeld, erst nachdem nach der
+  Karte eine Kugel bewegt wurde (neues Zustandsfeld `ballMovedSinceCard`).
+- **Zielhilfe** beim Ziehen (`board/dragHint.ts`), **Karten per Drag & Drop** (`ui/Hand.tsx`,
+  Drop-Zonen im Brett), **Kartenflug** in die Mitte, **Narr-Animation**.
+- **Töne** (`ui/sounds.ts`, Standard aus), **verstecktes Anstupsen** (`Nudge`/`Nudged`,
+  Server-Abkühlzeit in `server/src/nudge.ts`, Sprachausgabe in `ui/nudge.ts`).
+- **Meisterkarten-Seite** `?view=meisterkarten`; Teufel-Karten in Handkartengröße;
+  Kugeln größer (`BALL_RADIUS_FACTOR`); Motive der Karten 4, 8, 13 um 180° gedreht.
+- Tests: **164** Vitest-Tests grün, `npm run typecheck` sauber. Das Verhalten der Animationen
+  und Töne ist nur durch Tests der reinen Logik abgedeckt; die Optik beim nächsten realen
+  Spiel prüfen (Tempo, Kugelgröße, Ring, Drop-Zone, Sprachausgabe).
+
+## 0a. Update 2026-09-30
 
 Seit dem letzten Stand umgesetzt (alle in `main`, gepusht):
 
@@ -133,7 +155,7 @@ React + Vite, schematisches SVG-Brett.
   Verlauf, Beitritt (mit URL-Parametern `?room=&name=&seat=`).
 - `App.tsx` / `main.tsx` – Zusammenbau, Steuerung (Geben/Meister/Reset).
 
-**Tests:** 96 Vitest-Tests, alle grün. `npm run typecheck` sauber.
+**Tests:** 164 Vitest-Tests, alle grün. `npm run typecheck` sauber.
 `npm run build` (Client) läuft.
 
 ---
@@ -245,7 +267,8 @@ npm run typecheck  # tsc --build über alle Pakete
 ### Später / optional
 - [x] Hosting läuft (Render, siehe README/ADR-0002). Offen/optional: Sitzplatz-Link-
       Erzeugung im Client.
-- [x] ~~Regel-Hilfen / Zielfeld-Hervorhebung~~ – vom Projektinhaber verworfen.
+- [x] ~~Regel-Hilfen / Zielfeld-Hervorhebung~~ – vom Projektinhaber verworfen. (Die regelfreie
+      Zielhilfe F7 mit Einrastfeld und Distanz ist davon unabhängig und umgesetzt.)
 - [x] Einstufiges Undo für den Urheber der letzten Aktion (REQ-BOARD U1).
 - [x] Exakte Deck-Zusammensetzung je Kartenwert verifiziert (Auszählung echter
       Kartensatz; eingetragen in `SINGLE_DECK_COUNTS`, siehe REQ-RULES §3).

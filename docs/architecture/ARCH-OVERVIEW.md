@@ -56,9 +56,10 @@ Serialisierbar (JSON), bewusst einfach:
 - `hands[playerId]`: Karten – **nur** an den jeweiligen Spieler ausgeliefert
 - `dealer`, `deckHolder` (Sitz, bei dem der Reststapel liegt, oder null = Mitte), `masterMode`
 - `history[]`: Liste von Verlaufseinträgen (`{ actor, text, timestamp }`)
+- `lastBallMove`, `ballMovedSinceCard` (Kugel seit der letzten Karte bewegt?)
 
-Es gibt **keine** `phase`/`currentPlayer`-Erzwingung. Optionaler, rein
-informativer "Am Zug"-Marker kann später ergänzt werden (ohne Sperre).
+Es gibt **keine** `phase`/`currentPlayer`-Erzwingung. Der rein informative "Wer ist dran"-Hinweis
+wird im Client aus dem Zustand abgeleitet (`nextToPlay` in `@tac/shared`) und sperrt nichts.
 
 ## 4. Aktionen (Client → Server)
 
@@ -76,12 +77,15 @@ Atomar, ohne Regelprüfung:
   `PlayForeignCard`).
 - `Undo` – macht die letzte Aktion des Absenders rückgängig (einstufig, nur wenn seither
   nichts geschah; serverseitiger `UndoTracker`, REQ-BOARD U1).
+- `Nudge { target }` – Gimmick „Anstupsen"; ändert keinen Zustand, der Server leitet nur an das
+  Ziel weiter (Abkühlzeit 10 s pro Absender/Ziel).
 - `ResetGame` – Sitzungssteuerung. Die Meisterversion ist fest aktiviert.
 
 ## 5. Nachrichten (Server → Client)
 
 - `StateUpdate` – **gefiltert**: öffentlicher Zustand + nur die eigene Hand.
 - `PlayerJoined/Left`, `Error`.
+- `Nudged { fromSeat, fromName }` – nur an den angestupsten Spieler.
 - Reconnect: Client meldet Raum-ID + Name → Server ordnet Sitzplatz zu und sendet
   aktuellen (gefilterten) Zustand.
 
