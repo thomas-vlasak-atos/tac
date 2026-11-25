@@ -24,4 +24,10 @@ describe("Einstellungen (REQ-FEEDBACK F10)", () => {
     expect(store.has(SETTINGS_STORAGE_KEY)).toBe(true);
     expect(loadSettings(storage)).toEqual({ ...DEFAULT_SETTINGS, showFieldNumbers: true, animateMoves: false });
   });
+
+  it("Given Klick und Ziehen beide ausgeschaltet, Then bleibt Klick aktiv (mindestens eine Bedienart)", () => {
+    const parsed = parseSettings('{"cardClick":false,"cardDrag":false}');
+    expect(parsed.cardClick).toBe(true);
+    expect(parsed.cardDrag).toBe(false);
+  });
 });

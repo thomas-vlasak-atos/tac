@@ -58,6 +58,24 @@ export function SettingsDialog({ settings, onChange, onClose }: SettingsDialogPr
           />
           Zielhilfe beim Ziehen (Einrastfeld und Distanz)
         </label>
+        <label style={{ display: "flex", gap: 8, alignItems: "center", marginTop: 8 }}>
+          <input
+            type="checkbox"
+            checked={settings.cardClick}
+            disabled={settings.cardClick && !settings.cardDrag}
+            onChange={(event) => onChange({ ...settings, cardClick: event.target.checked })}
+          />
+          Karten per Klick spielen
+        </label>
+        <label style={{ display: "flex", gap: 8, alignItems: "center", marginTop: 8 }}>
+          <input
+            type="checkbox"
+            checked={settings.cardDrag}
+            disabled={settings.cardDrag && !settings.cardClick}
+            onChange={(event) => onChange({ ...settings, cardDrag: event.target.checked })}
+          />
+          Karten per Drag &amp; Drop spielen
+        </label>
       </div>
     </div>
   );

@@ -12,6 +12,10 @@ export interface Settings {
   animateMoves: boolean;
   /** Einrastfeld und Distanz beim Ziehen einer Kugel anzeigen (F7). */
   showDragHint: boolean;
+  /** Handkarten per Klick bedienen (F9). Mindestens Klick oder Ziehen bleibt aktiv. */
+  cardClick: boolean;
+  /** Handkarten per Drag & Drop bedienen (F9). */
+  cardDrag: boolean;
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -19,6 +23,8 @@ export const DEFAULT_SETTINGS: Settings = {
   showTurnMarker: true,
   animateMoves: true,
   showDragHint: true,
+  cardClick: true,
+  cardDrag: true,
 };
 
 export const SETTINGS_STORAGE_KEY = "tac.settings";
@@ -40,6 +46,8 @@ export function parseSettings(raw: string | null | undefined): Settings {
       (result[key] as Settings[keyof Settings]) = record[key] as Settings[keyof Settings];
     }
   }
+  // Mindestens eine Bedienart muss aktiv bleiben.
+  if (!result.cardClick && !result.cardDrag) result.cardClick = true;
   return result;
 }
 

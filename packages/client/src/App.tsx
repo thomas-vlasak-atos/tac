@@ -53,6 +53,7 @@ export function App() {
   const [joined, setJoined] = useState(false);
   const [settings, setSettings] = useState<Settings>(() => loadSettings());
   const [showSettings, setShowSettings] = useState(false);
+  const [cardDragging, setCardDragging] = useState(false);
   const showFieldNumbers = settings.showFieldNumbers;
   const updateSettings = (next: Settings) => {
     setSettings(next);
@@ -125,6 +126,11 @@ export function App() {
   const turnSeat = state && state.ballMovedSinceCard && state.discardEntries.length > 0 ? nextToPlay(state) : null;
   const itsMyTurn = settings.showTurnMarker && seat != null && turnSeat === seat;
 
+  // Karte auf eine Drop-Zone gezogen: gleiche Aktion wie der Klick, aber nur auf der zur Phase passenden Zone.
+  const dropHandCard = (cardId: string, zone: string) => {
+    if (isTradePhase ? zone === "partner" && !tradeOfferBlocked : zone === "play") playHandCard(cardId);
+  };
+
   return (
     <div className="app-shell">
       <header className="app-header">
@@ -186,6 +192,7 @@ export function App() {
                   turnSeat={settings.showTurnMarker ? turnSeat : null}
                   animateMoves={settings.animateMoves}
                   showDragHint={settings.showDragHint}
+                  cardDropMode={cardDragging ? (isTradePhase ? "partner" : "play") : null}
                   showFieldNumbers={showFieldNumbers}
                   discardEntries={state.discardEntries}
                   onMoveBall={moveBall}
@@ -247,6 +254,10 @@ export function App() {
                 cards={state.ownHand}
                 compact
                 onPlayCard={playHandCard}
+                allowClick={settings.cardClick}
+                allowDrag={settings.cardDrag}
+                onDragChange={setCardDragging}
+                onDropCard={dropHandCard}
                 actionHint={isTradePhase ? "an Partner" : "ablegen"}
                 disabled={isTradePhase && tradeOfferBlocked}
               />

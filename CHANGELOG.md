@@ -8,6 +8,11 @@ Versionierung nach [Semantic Versioning](https://semver.org/lang/de/).
 ## [Unreleased]
 
 ### Added
+- **Karten per Drag & Drop und Klick (F9):** Handkarten lassen sich zusätzlich zum Klick auf das
+  Brett ziehen (Spielphase: Ablagekreis in der Mitte; Tauschphase: Vorfeld des Partners). Die
+  Drop-Zone erscheint nur beim Ziehen. Klick und Ziehen sind in den Einstellungen einzeln
+  schaltbar (mindestens eines bleibt aktiv); eine Bewegungsschwelle von 6 px trennt Klick und
+  Ziehen, Pointer-Events funktionieren auch per Touch.
 - **Zielhilfe beim Ziehen (F7, Stufe 1):** Das Feld, auf dem die Kugel einrasten würde, wird
   hervorgehoben und die Distanz angezeigt („+5" im Uhrzeigersinn, „−3" rückwärts, auch ins
   Haus). Regelfrei, abschaltbar (`board/dragHint.ts`, getestet).

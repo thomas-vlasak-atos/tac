@@ -165,6 +165,8 @@ export interface BoardProps {
   animateMoves?: boolean;
   /** Einrastfeld und Distanz beim Ziehen einblenden (F7). */
   showDragHint?: boolean;
+  /** Drop-Zone für gezogene Handkarten: Ablage in der Mitte oder Partner (F9); null = keine. */
+  cardDropMode?: "play" | "partner" | null;
   showFieldNumbers?: boolean;
   discardEntries?: DiscardEntry[];
   onMoveBall: (ballId: string, to: BallPosition) => void;
@@ -174,7 +176,7 @@ export interface BoardProps {
 
 interface DragState { ballId: string; current: Point; moved: boolean; from: BallPosition }
 
-export function Board({ balls, players = [], handCounts = [], deckHolder = null, deckCount = 0, deckActive = false, deckShuffleable = false, anyDealer = false, onDeal, onShuffle, onRequestDevil, lastBallMove = null, turnSeat = null, animateMoves = true, showDragHint = true, showFieldNumbers = false, discardEntries = [], onMoveBall, onReturnCard, ownSeat }: BoardProps) {
+export function Board({ balls, players = [], handCounts = [], deckHolder = null, deckCount = 0, deckActive = false, deckShuffleable = false, anyDealer = false, onDeal, onShuffle, onRequestDevil, lastBallMove = null, turnSeat = null, animateMoves = true, showDragHint = true, cardDropMode = null, showFieldNumbers = false, discardEntries = [], onMoveBall, onReturnCard, ownSeat }: BoardProps) {
   const geo = defaultGeometry(1024);
   const [drag, setDrag] = useState<DragState | null>(null);
   const [seen, setSeen] = useState<SeenMove[]>(() => lastBallMove ? [{ move: lastBallMove, key: moveKey(lastBallMove), seenAt: Date.now() }] : []);
@@ -432,6 +434,23 @@ export function Board({ balls, players = [], handCounts = [], deckHolder = null,
                 <circle cx={p.x} cy={p.y} r={r} fill="#fff" fillOpacity={0.25} stroke="#1b1008" strokeWidth={7} strokeOpacity={0.6} />
                 <circle cx={p.x} cy={p.y} r={r} fill="none" stroke="#fff" strokeWidth={3.5} />
                 {label && <text x={p.x} y={p.y - r - 8} textAnchor="middle" fill="#fff" stroke="#1b1008" strokeWidth={4} paintOrder="stroke" fontSize={26} fontFamily="system-ui" fontWeight={800}>{label}</text>}
+              </g>
+            );
+          })()}
+          {/* Drop-Zonen für gezogene Handkarten (REQ-FEEDBACK F9). */}
+          {cardDropMode === "play" && (
+            <g data-card-drop="play">
+              <circle cx={geo.center.x} cy={geo.center.y} r={DISCARD_RADIUS + 14} fill="#fff" fillOpacity={0.18} stroke="#fff" strokeWidth={5} strokeDasharray="12 8" />
+              <text x={geo.center.x} y={geo.center.y + DISCARD_RADIUS + 44} textAnchor="middle" fill="#fff" stroke="#1b1008" strokeWidth={4} paintOrder="stroke" fontSize={26} fontFamily="system-ui" fontWeight={800} style={{ pointerEvents: "none" }}>hier ablegen</text>
+            </g>
+          )}
+          {cardDropMode === "partner" && ownSeat != null && (() => {
+            const p = vorfeldCenter(visSeat(((ownSeat + 2) % 4) as Seat), geo);
+            const r = geo.vorfeldOuterRadius * 1.5;
+            return (
+              <g data-card-drop="partner">
+                <circle cx={p.x} cy={p.y} r={r} fill="#fff" fillOpacity={0.25} stroke="#fff" strokeWidth={5} strokeDasharray="12 8" />
+                <text x={p.x} y={p.y + r + 30} textAnchor="middle" fill="#fff" stroke="#1b1008" strokeWidth={4} paintOrder="stroke" fontSize={24} fontFamily="system-ui" fontWeight={800} style={{ pointerEvents: "none" }}>an Partner geben</text>
               </g>
             );
           })()}
