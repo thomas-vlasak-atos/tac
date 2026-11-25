@@ -51,7 +51,7 @@ export function Hand({ cards, compact = false, onPlayCard, onDropCard, onDragCha
   const [drag, setDrag] = useState<DragState | null>(null);
   const suppressClick = useRef(false);
 
-  if (cards.length === 0) return <p style={{ color: "#765234" }}>Keine Handkarten. „Geben“ drücken.</p>;
+  if (cards.length === 0) return <p style={{ color: "var(--muted)" }}>Keine Handkarten. „Geben“ drücken.</p>;
 
   const finish = (event: React.PointerEvent, cancelled: boolean) => {
     if (!drag) return;

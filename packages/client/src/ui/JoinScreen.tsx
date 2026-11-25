@@ -39,7 +39,7 @@ export function JoinScreen({ initial, onJoin }: JoinScreenProps) {
   return (
     <div style={{ maxWidth: 420, margin: "80px auto", fontFamily: "system-ui" }}>
       <h1>TAC Online</h1>
-      <p style={{ color: "#64748b" }}>
+      <p style={{ color: "var(--muted)" }}>
         Freies Brett – ihr zieht selbst, keine Regelprüfung.
       </p>
       <label style={{ display: "block", marginTop: 16 }}>

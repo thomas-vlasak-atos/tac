@@ -102,10 +102,10 @@ export function MasterCardsHelp({ onClose }: { onClose: () => void }) {
       <div
         onClick={(event) => event.stopPropagation()}
         style={{
-          background: "#f5e5c8",
-          color: "#4c2a1a",
+          background: "var(--panel-bg)",
+          color: "var(--text)",
           borderRadius: 16,
-          border: "2px solid #9b5c31",
+          border: "2px solid var(--accent)",
           maxWidth: 620,
           width: "100%",
           padding: 20,
@@ -123,7 +123,7 @@ export function MasterCardsHelp({ onClose }: { onClose: () => void }) {
             </button>
           </span>
         </div>
-        <p style={{ fontFamily: "system-ui", fontSize: 13, color: "#6b3d22", marginTop: 6 }}>
+        <p style={{ fontFamily: "system-ui", fontSize: 13, color: "var(--muted-strong)", marginTop: 6 }}>
           Kurzanleitung zu den vier Sonderkarten der Meisterversion. Die Regeln
           werden nicht erzwungen – dies ist nur zum Nachschlagen.
         </p>
@@ -132,9 +132,9 @@ export function MasterCardsHelp({ onClose }: { onClose: () => void }) {
             <section
               key={card.name}
               style={{
-                background: "#fffaf0",
+                background: "var(--panel-card)",
                 borderRadius: 12,
-                border: "1px solid #c8955c",
+                border: "1px solid var(--border)",
                 padding: 12,
               }}
             >
@@ -156,14 +156,14 @@ export function MasterCardsHelp({ onClose }: { onClose: () => void }) {
 /** Eigenständige, große Seite mit allen Meisterkarten (`?view=meisterkarten`), auch zum Screenshot. */
 export function MasterCardsPage() {
   return (
-    <main style={{ background: "#f5e5c8", color: "#4c2a1a", minHeight: "100vh", padding: 24, boxSizing: "border-box" }}>
+    <main style={{ background: "var(--panel-bg)", color: "var(--text)", minHeight: "100vh", padding: 24, boxSizing: "border-box" }}>
       <h1 style={{ margin: "0 0 4px", letterSpacing: 1 }}>Meisterkarten</h1>
-      <p style={{ fontFamily: "system-ui", fontSize: 14, color: "#6b3d22", marginTop: 0 }}>
+      <p style={{ fontFamily: "system-ui", fontSize: 14, color: "var(--muted-strong)", marginTop: 0 }}>
         Kurzanleitung zu den vier Sonderkarten. Die Regeln werden im Spiel nicht erzwungen.
       </p>
       <div style={{ display: "grid", gap: 18, gridTemplateColumns: "repeat(auto-fit, minmax(340px, 1fr))", maxWidth: 1100 }}>
         {MASTER_CARDS.map((card) => (
-          <section key={card.name} style={{ display: "flex", gap: 14, background: "#fffaf0", borderRadius: 12, border: "1px solid #c8955c", padding: 14 }}>
+          <section key={card.name} style={{ display: "flex", gap: 14, background: "var(--panel-card)", borderRadius: 12, border: "1px solid var(--border)", padding: 14 }}>
             <div style={{ width: 110, flex: "0 0 auto" }}>
               <CardArtwork card={{ id: `help-${card.kind}`, kind: card.kind }} />
             </div>

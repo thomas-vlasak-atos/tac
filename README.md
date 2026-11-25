@@ -37,7 +37,8 @@ Im Praxiseinsatz (zu viert getestet, online auf Render). Vorhanden:
   Distanz beim Ziehen, Karten per Klick **und** Drag & Drop, Kartenflug in die Mitte,
   Narr-Animation, optionale Töne, verstecktes „Anstupsen" (Klick auf den Namen eines
   Mitspielers) und eine eigene Meisterkarten-Seite.
-- **Einstellungen** (Zahnrad in der Kopfzeile, lokal pro Gerät): Feldnummern, „Wer ist
+- **Einstellungen** (Zahnrad in der Kopfzeile, lokal pro Gerät): Darstellung (hell/dunkel/wie System),
+  Brett-Hintergrund, Feldnummern, „Wer ist
   dran"-Marker, Animationen, Zielhilfe, Kartenbedienung (Klick/Ziehen), Anstupsen-Ton,
   Töne „Zug gemacht" und „Du bist dran" (Standard: aus).
 

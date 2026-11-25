@@ -28,7 +28,7 @@ danach Kalibrierung in `geometry.ts` prüfen). Neues am Client:
   SVG; Vorschau in `vorlage/board_generated.svg` (plus `_transparent`), noch nicht im Client eingebunden. Ersetzt
   künftig das manuelle Bearbeiten von `Board.png` (F5/F6: Zählpunkte sind schon enthalten;
   Hausdarstellung folgt mit der Referenz). Ein Holz-PNG kann darunterliegen (`--transparent`).
-- Tests: **190** Vitest-Tests grün, `npm run typecheck` sauber. Das Verhalten der Animationen
+- Tests: **195** Vitest-Tests grün, `npm run typecheck` sauber. Das Verhalten der Animationen
   und Töne ist nur durch Tests der reinen Logik abgedeckt; die Optik beim nächsten realen
   Spiel prüfen (Tempo, Kugelgröße, Ring, Drop-Zone, Sprachausgabe).
 

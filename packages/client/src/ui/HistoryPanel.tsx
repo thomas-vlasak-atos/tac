@@ -18,11 +18,11 @@ export function HistoryPanel({ entries, limit = 20 }: HistoryPanelProps) {
     <div
       className="history-panel"
       style={{
-        border: "1px solid #e2e8f0",
+        border: "1px solid var(--hist-border)",
         borderRadius: 8,
         padding: 8,
         overflowY: "auto",
-        background: "#f8fafc",
+        background: "var(--hist-bg)",
         fontSize: 13,
         display: "flex",
         flexDirection: "column",
@@ -30,7 +30,7 @@ export function HistoryPanel({ entries, limit = 20 }: HistoryPanelProps) {
     >
       <strong style={{ flex: "0 0 auto" }}>Verlauf</strong>
       {recent.length === 0 ? (
-        <p style={{ color: "#94a3b8" }}>Noch keine Züge.</p>
+        <p style={{ color: "var(--muted)" }}>Noch keine Züge.</p>
       ) : (
         <ul style={{ margin: "6px 0 0", paddingLeft: 16, overflowY: "auto", flex: "1 1 auto", minHeight: 0 }}>
           {recent.map((e) => (

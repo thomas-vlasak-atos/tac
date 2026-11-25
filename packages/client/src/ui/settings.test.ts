@@ -30,6 +30,13 @@ describe("Einstellungen (REQ-FEEDBACK F10)", () => {
     expect(parseSettings("{}").boardBackground).toBe("");
   });
 
+  it("Given der Modus, Then wird er übernommen; ungültige Werte fallen auf hell zurück", () => {
+    expect(parseSettings('{"theme":"dark"}').theme).toBe("dark");
+    expect(parseSettings('{"theme":"system"}').theme).toBe("system");
+    expect(parseSettings('{"theme":"neon"}').theme).toBe("light");
+    expect(parseSettings("{}").theme).toBe("light");
+  });
+
   it("Given Klick und Ziehen beide ausgeschaltet, Then bleibt Klick aktiv (mindestens eine Bedienart)", () => {
     const parsed = parseSettings('{"cardClick":false,"cardDrag":false}');
     expect(parsed.cardClick).toBe(true);

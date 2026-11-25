@@ -14,16 +14,56 @@
    - Einspaltig, normaler Fluss, darf vertikal scrollen.
    =========================================================================== */
 
+/* Farbpalette der Oberfläche (Karten und Brett haben eigene Farben). Dunkler Modus: data-theme="dark". */
+:root {
+  color-scheme: light;
+  --page-bg: #f1dfc2;
+  --text: #4c2a1a;
+  --panel-bg: #f5e5c8;
+  --panel-bg-strong: #fff6e6;
+  --panel-card: #fffaf0;
+  --panel-alt: #ead0a8;
+  --border: #c8955c;
+  --border-strong: #bb7a38;
+  --accent: #9b5c31;
+  --muted: #765234;
+  --muted-strong: #6b3d22;
+  --muted-weak: #8a5a33;
+  --hist-bg: #f8fafc;
+  --hist-border: #e2e8f0;
+  --danger: #b91c1c;
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --page-bg: #1b1410;
+  --text: #ead9c2;
+  --panel-bg: #2b2018;
+  --panel-bg-strong: #33261c;
+  --panel-card: #392b20;
+  --panel-alt: #3c2d20;
+  --border: #6a4a2c;
+  --border-strong: #9a6a38;
+  --accent: #d19a63;
+  --muted: #b9a07f;
+  --muted-strong: #cdb392;
+  --muted-weak: #a98f6e;
+  --hist-bg: #241b15;
+  --hist-border: #4a3a2c;
+  --danger: #f08a8a;
+}
+
 html,
 body {
   margin: 0;
-  background: #f1dfc2;
+  background: var(--page-bg);
+  color: var(--text);
 }
 
 .app-shell {
   box-sizing: border-box;
-  background: #f1dfc2;
-  color: #4c2a1a;
+  background: var(--page-bg);
+  color: var(--text);
   font-family: Georgia, serif;
 }
 

@@ -22,18 +22,26 @@ export function SettingsDialog({ settings, onChange, onClose }: SettingsDialogPr
     >
       <div
         onClick={(event) => event.stopPropagation()}
-        style={{ background: "#f5e5c8", color: "#4c2a1a", borderRadius: 16, border: "2px solid #9b5c31", maxWidth: 460, width: "100%", maxHeight: "80vh", overflowY: "auto", padding: 20, boxShadow: "0 18px 40px #00000055", fontFamily: "system-ui", fontSize: 14 }}
+        style={{ background: "var(--panel-bg)", color: "var(--text)", borderRadius: 16, border: "2px solid var(--accent)", maxWidth: 460, width: "100%", maxHeight: "80vh", overflowY: "auto", padding: 20, boxShadow: "0 18px 40px #00000055", fontFamily: "system-ui", fontSize: 14 }}
       >
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 12 }}>
           <h2 style={{ margin: 0 }}>Einstellungen</h2>
           <button type="button" onClick={onClose}>schließen</button>
         </div>
-        <p style={{ fontSize: 12, color: "#6b3d22" }}>Gelten nur auf diesem Gerät.</p>
-        <fieldset style={{ border: "1px solid #c8955c", borderRadius: 10, margin: "0 0 12px", padding: "8px 10px" }}>
+        <p style={{ fontSize: 12, color: "var(--muted-strong)" }}>Gelten nur auf diesem Gerät.</p>
+        <label style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 12 }}>
+          Darstellung
+          <select value={settings.theme} onChange={(event) => onChange({ ...settings, theme: event.target.value as Settings["theme"] })}>
+            <option value="light">Hell</option>
+            <option value="dark">Dunkel</option>
+            <option value="system">Wie System</option>
+          </select>
+        </label>
+        <fieldset style={{ border: "1px solid var(--border)", borderRadius: 10, margin: "0 0 12px", padding: "8px 10px" }}>
           <legend style={{ padding: "0 6px" }}>Brett-Hintergrund</legend>
           {(["bright", "dark"] as const).map((tone) => (
             <div key={tone} style={{ marginBottom: 6 }}>
-              <div style={{ fontSize: 12, color: "#6b3d22", marginBottom: 4 }}>{tone === "bright" ? "Hell (graues Brett)" : "Dunkel (goldenes Brett)"}</div>
+              <div style={{ fontSize: 12, color: "var(--muted-strong)", marginBottom: 4 }}>{tone === "bright" ? "Hell (graues Brett)" : "Dunkel (goldenes Brett)"}</div>
               <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
                 {BACKGROUND_OPTIONS.filter((option) => option.tone === tone).map((option) => (
                   <button
@@ -42,7 +50,7 @@ export function SettingsDialog({ settings, onChange, onClose }: SettingsDialogPr
                     title={option.label}
                     aria-pressed={selectedBackground === option.id}
                     onClick={() => onChange({ ...settings, boardBackground: option.id })}
-                    style={{ padding: 0, width: 62, height: 62, borderRadius: 8, overflow: "hidden", cursor: "pointer", border: selectedBackground === option.id ? "3px solid #d6199b" : "2px solid #c8955c", background: "none" }}
+                    style={{ padding: 0, width: 62, height: 62, borderRadius: 8, overflow: "hidden", cursor: "pointer", border: selectedBackground === option.id ? "3px solid #d6199b" : "2px solid var(--border)", background: "none" }}
                   >
                     <img src={option.url} alt={option.label} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
                   </button>

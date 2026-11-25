@@ -20,6 +20,7 @@ import { playNudge } from "./ui/nudge.js";
 import { type SoundSnapshot, playMoveSound, playTurnSound, soundEvents } from "./ui/sounds.js";
 import { SettingsDialog } from "./ui/SettingsDialog.js";
 import { type Settings, loadSettings, saveSettings } from "./ui/settings.js";
+import { applyTheme } from "./ui/theme.js";
 import "./styles.css";
 
 /**
@@ -87,6 +88,9 @@ export function App() {
     else if (events.move && settings.soundMove) playMoveSound();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state]);
+
+  // Heller/dunkler Modus (data-theme am Dokument).
+  useEffect(() => applyTheme(settings.theme), [settings.theme]);
 
   // Verstecktes Gimmick (F12): Mitspieler hat mich angestupst.
   useEffect(() => {
@@ -178,8 +182,8 @@ export function App() {
   return (
     <div className="app-shell">
       <header className="app-header">
-        <h1 className="app-title">TAC <span style={{ color: "#9b5c31" }}>ONLINE</span></h1>
-        <span style={{ color: "#765234", fontFamily: "system-ui", fontSize: 13 }}>
+        <h1 className="app-title">TAC <span style={{ color: "var(--accent)" }}>ONLINE</span></h1>
+        <span style={{ color: "var(--muted)", fontFamily: "system-ui", fontSize: 13 }}>
           Raum <strong>{join.roomId}</strong>
           {seat != null ? (
             <> · du bist <strong>{COLOR_LABEL[(["blau", "gelb", "gruen", "rot"] as const)[seat]]}</strong> (Platz {seat + 1})</>
@@ -188,10 +192,10 @@ export function App() {
           )}
         </span>
         {testMode && <span title="URL-Parameter test=1: kein Partnertausch, jeder darf geben" style={{ background: "#b91c1c", color: "#fff", borderRadius: 6, padding: "2px 8px", fontFamily: "system-ui", fontSize: 12, fontWeight: 700 }}>TESTMODUS</span>}
-        <span style={{ color: "#765234", fontFamily: "system-ui", fontSize: 13 }}><strong>Verbindung:</strong> {status}</span>
+        <span style={{ color: "var(--muted)", fontFamily: "system-ui", fontSize: 13 }}><strong>Verbindung:</strong> {status}</span>
         {itsMyTurn && <span style={{ background: "#d6199b", color: "#fff", borderRadius: 6, padding: "2px 10px", fontFamily: "system-ui", fontSize: 13, fontWeight: 700 }}>Du bist dran</span>}
         {state && (
-          <span style={{ color: "#765234", fontFamily: "system-ui", fontSize: 13 }}>
+          <span style={{ color: "var(--muted)", fontFamily: "system-ui", fontSize: 13 }}>
             <strong>Startspieler:</strong>{" "}
             {state.deckHolder == null ? "wer zuerst klickt" : (state.players[state.deckHolder]?.name ?? "—")}
           </span>
@@ -212,7 +216,7 @@ export function App() {
       {showSettings && <SettingsDialog settings={settings} onChange={updateSettings} onClose={() => setShowSettings(false)} />}
 
       {error && (
-        <p style={{ color: "#b91c1c" }}>Fehler: {error}</p>
+        <p style={{ color: "var(--danger)" }}>Fehler: {error}</p>
       )}
 
       {!state ? (
@@ -262,7 +266,7 @@ export function App() {
               const targetName = state.players[request.target]?.name ?? `Platz ${request.target + 1}`;
               return (
                 <div key={`overlay-${request.id}`} style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", background: "#2b1a0e88", borderRadius: 16, zIndex: 10 }}>
-                  <div style={{ background: "#fff6e6", border: "3px solid #bb7a38", borderRadius: 14, padding: 20, maxWidth: 360, textAlign: "center", fontFamily: "system-ui", color: "#4c2a1a", boxShadow: "0 12px 30px #00000055" }}>
+                  <div style={{ background: "var(--panel-bg-strong)", border: "3px solid var(--border-strong)", borderRadius: 14, padding: 20, maxWidth: 360, textAlign: "center", fontFamily: "system-ui", color: "var(--text)", boxShadow: "0 12px 30px #00000055" }}>
                     {asTarget ? (
                       <>
                         <p style={{ margin: "0 0 14px", fontSize: 15 }}>
@@ -289,9 +293,9 @@ export function App() {
           </div>
 
           <aside className="side-panel">
-            <div className="own-hand-panel" style={{ padding: 12, borderRadius: 12, background: "#f5e5c8", color: "#6b3d22" }}>
+            <div className="own-hand-panel" style={{ padding: 12, borderRadius: 12, background: "var(--panel-bg)", color: "var(--muted-strong)" }}>
               <h3 style={{ margin: "0 0 8px" }}>Deine Handkarten</h3>
-              <p style={{ margin: "0 0 8px", fontFamily: "system-ui", fontSize: 12, color: "#8a5a33" }}>
+              <p style={{ margin: "0 0 8px", fontFamily: "system-ui", fontSize: 12, color: "var(--muted-weak)" }}>
                 {isTradePhase
                   ? (tradeOfferBlocked
                       ? (iAmTradeDone
@@ -312,7 +316,7 @@ export function App() {
                 disabled={isTradePhase && tradeOfferBlocked}
               />
               {iAmTradeDone && (
-                <p style={{ marginTop: 8, fontFamily: "system-ui", fontSize: 12, color: "#8a5a33" }}>
+                <p style={{ marginTop: 8, fontFamily: "system-ui", fontSize: 12, color: "var(--muted-weak)" }}>
                   Du hast in dieser Runde bereits mit dem Partner getauscht.
                 </p>
               )}
@@ -321,7 +325,7 @@ export function App() {
                 ausgeblendet – erst nach dem nächsten Geben wieder sichtbar (dann ist
                 `tradeDone`/`tradeOffers` zurückgesetzt). */}
             {!testMode && !iAmTradeDone && state.tradeOffers.length > 0 && (
-              <div style={{ marginTop: 12, padding: 12, borderRadius: 12, background: "#f5e5c8", border: "1px solid #c8955c" }}>
+              <div style={{ marginTop: 12, padding: 12, borderRadius: 12, background: "var(--panel-bg)", border: "1px solid var(--border)" }}>
                 <strong>Partnertausch</strong>
                 <div style={{ display: "grid", gap: 6, marginTop: 8 }}>
                   {state.tradeOffers.filter((offer) => !offer.claimed).map((offer) => {
@@ -349,9 +353,9 @@ export function App() {
                 </div>
               </div>
             )}
-            <div style={{ marginTop: 12, padding: 12, borderRadius: 12, background: "#f5e5c8", color: "#6b3d22", fontFamily: "system-ui", fontSize: 13 }}><strong>Meisteraktionen</strong><div style={{ marginTop: 8, display: "grid", gap: 6 }}><button type="button" onClick={handlePassHands}>Narr: alle Hände weitergeben</button></div><p style={{ margin: "8px 0 0", fontSize: 12, color: "#8a5a33" }}>Teufel: auf den Kartenstapel deines linken Nachbarn am Brett klicken.</p></div>
+            <div style={{ marginTop: 12, padding: 12, borderRadius: 12, background: "var(--panel-bg)", color: "var(--muted-strong)", fontFamily: "system-ui", fontSize: 13 }}><strong>Meisteraktionen</strong><div style={{ marginTop: 8, display: "grid", gap: 6 }}><button type="button" onClick={handlePassHands}>Narr: alle Hände weitergeben</button></div><p style={{ margin: "8px 0 0", fontSize: 12, color: "var(--muted-weak)" }}>Teufel: auf den Kartenstapel deines linken Nachbarn am Brett klicken.</p></div>
             {state.devilRequests.map((request) => request.controller === seat && request.approved && request.visibleCards ? (
-              <div key={request.id} className="own-hand-panel" style={{ marginTop: 12, padding: 12, borderRadius: 12, background: "#ead0a8", fontFamily: "system-ui", fontSize: 13 }}>
+              <div key={request.id} className="own-hand-panel" style={{ marginTop: 12, padding: 12, borderRadius: 12, background: "var(--panel-alt)", fontFamily: "system-ui", fontSize: 13 }}>
                 <strong>Teufel-Hand von {state.players[request.target]?.name}</strong>
                 <div style={{ marginTop: 8 }}>
                   <Hand

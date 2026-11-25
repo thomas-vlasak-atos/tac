@@ -3,7 +3,11 @@
  * nicht auf dem Server.
  */
 
+import { type ThemePreference, isThemePreference } from "./theme.js";
+
 export interface Settings {
+  /** Hell, dunkel oder wie das System (Oberfläche). */
+  theme: ThemePreference;
   /** Feldnummern auf dem Brett anzeigen. */
   showFieldNumbers: boolean;
   /** Ring um das Startfeld des Spielers, der laut Ableitung dran ist (F1). */
@@ -27,6 +31,7 @@ export interface Settings {
 }
 
 export const DEFAULT_SETTINGS: Settings = {
+  theme: "light",
   showFieldNumbers: false,
   showTurnMarker: true,
   animateMoves: true,
@@ -58,6 +63,7 @@ export function parseSettings(raw: string | null | undefined): Settings {
       (result[key] as Settings[keyof Settings]) = record[key] as Settings[keyof Settings];
     }
   }
+  if (!isThemePreference(result.theme)) result.theme = DEFAULT_SETTINGS.theme;
   // Mindestens eine Bedienart muss aktiv bleiben.
   if (!result.cardClick && !result.cardDrag) result.cardClick = true;
   return result;

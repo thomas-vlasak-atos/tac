@@ -8,6 +8,11 @@ Versionierung nach [Semantic Versioning](https://semver.org/lang/de/).
 ## [Unreleased]
 
 ### Added
+- **Dunkler Modus:** In den Einstellungen unter „Darstellung“: Hell (Standard), Dunkel oder Wie System.
+  Die Oberfläche (Seite, Panels, Dialoge, Verlauf, Meisterkarten-Seite) nutzt dafür CSS-Variablen
+  (`:root[data-theme="dark"]` in `styles.css`); Karten und Brett behalten ihre eigenen Farben. Der
+  Modus wird vor dem ersten Zeichnen gesetzt (`ui/theme.ts`, getestet). Der Brett-Hintergrund bleibt
+  unabhängig wählbar.
 - **Wählbarer Brett-Hintergrund:** In den Einstellungen lassen sich Holztexturen aus
   `vorlage/background` wählen (Vorschaubilder; Präfix `bright_` = hell, `dark_` = dunkel; zusätzlich
   das klassische `Board.png`). Hell nutzt das graue Brett-SVG (`board_generated_transparent.svg`),
