@@ -64,6 +64,23 @@ export const DEFAULT_BOARD_COLORS: BoardColors = {
   frame: SILVER,
 };
 
+/** Gold für das Brett auf dunklem Holz (statt Silbergrau). */
+const GOLD = "#cda349";
+
+/** Farben für dunkles Holz: Kreise, Punkte und Rahmen in Gold, dunklere Mulden, goldener Muldenrand. */
+export const DARK_BOARD_COLORS: BoardColors = {
+  ...DEFAULT_BOARD_COLORS,
+  background: "#3a2414",
+  circles: GOLD,
+  lines: "#8c6d2c",
+  holeLight: "#4a3d31",
+  holeDark: "#110d09",
+  rimDark: "#15100a",
+  rimLight: "#dcbc62",
+  dot: GOLD,
+  frame: GOLD,
+};
+
 const SQRT3 = Math.sqrt(3);
 
 /** Muldenradien relativ zum Feldradius (nach Foto: Hausmulden etwas größer als Laufmulden). */

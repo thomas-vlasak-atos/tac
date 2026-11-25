@@ -8,6 +8,12 @@ Versionierung nach [Semantic Versioning](https://semver.org/lang/de/).
 ## [Unreleased]
 
 ### Added
+- **Wählbarer Brett-Hintergrund:** In den Einstellungen lassen sich Holztexturen aus
+  `vorlage/background` wählen (Vorschaubilder; Präfix `bright_` = hell, `dark_` = dunkel; zusätzlich
+  das klassische `Board.png`). Hell nutzt das graue Brett-SVG (`board_generated_transparent.svg`),
+  dunkel ein neues goldenes (`board_generated_dark_transparent.svg`, Farben `DARK_BOARD_COLORS`).
+  Nicht quadratische Texturen werden gekachelt. Neue Dateien werden mit dem Präfix automatisch
+  erkannt (`board/backgrounds.ts`, `board/boardAssets.ts`, `board/BoardBackdrop.tsx`, getestet).
 - **Brett-Generator:** `npm run generate:board` berechnet das Brettbild als SVG
   (`vorlage/board_generated.svg` und `board_generated_transparent.svg` ohne Hintergrund, z. B.
   über einem Holz-PNG) aus dem einen Grundmaß `gridRadius`: Blume-des-Lebens-Gitter

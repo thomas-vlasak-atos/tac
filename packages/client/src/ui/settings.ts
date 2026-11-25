@@ -22,6 +22,8 @@ export interface Settings {
   soundMove: boolean;
   /** Ton, wenn ich dran bin (F3). */
   soundTurn: boolean;
+  /** Brett-Hintergrund (Id aus board/backgrounds.ts); leer = Standard (erster heller). */
+  boardBackground: string;
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -34,6 +36,7 @@ export const DEFAULT_SETTINGS: Settings = {
   nudgeSound: true,
   soundMove: false,
   soundTurn: false,
+  boardBackground: "",
 };
 
 export const SETTINGS_STORAGE_KEY = "tac.settings";

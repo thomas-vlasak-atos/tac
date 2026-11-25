@@ -5,7 +5,8 @@ import { BALLS_PER_PLAYER, CIRCLE_FIELD_COUNT, SEATS, cardLabel } from "@tac/sha
 import { useEffect, useRef, useState } from "react";
 import { BALL_FILL, BALL_STROKE, COLOR_LABEL } from "./colors.js";
 import { CardArtwork } from "../ui/cardArtwork.js";
-import boardImage from "../../../../vorlage/Board.png";
+import { BoardBackdrop } from "./BoardBackdrop.js";
+import { boardLayers } from "./boardAssets.js";
 import { CardBackFace } from "../ui/cardFaces.js";
 import {
   type BoardGeometry,
@@ -178,6 +179,8 @@ export interface BoardProps {
   onNudge?: (target: Seat) => void;
   /** true = für diese Karte keinen Flug zeigen (z. B. eigene Karte wurde per Drag & Drop abgelegt). */
   skipCardFly?: (actor: Seat) => boolean;
+  /** Id des Brett-Hintergrunds (siehe backgrounds.ts); leer = Standard. */
+  background?: string;
   /** Zählt hoch, wenn der Narr gespielt wurde: Handkarten-Rücken wandern zum Nachbarn. */
   passHandsKey?: number;
   /** Drop-Zone für gezogene Handkarten: Ablage in der Mitte oder Partner (F9); null = keine. */
@@ -191,7 +194,7 @@ export interface BoardProps {
 
 interface DragState { ballId: string; current: Point; moved: boolean; from: BallPosition }
 
-export function Board({ balls, players = [], handCounts = [], deckHolder = null, deckCount = 0, deckActive = false, deckShuffleable = false, anyDealer = false, onDeal, onShuffle, onRequestDevil, lastBallMove = null, turnSeat = null, animateMoves = true, showDragHint = true, cardDropMode = null, onNudge, skipCardFly, passHandsKey = 0, showFieldNumbers = false, discardEntries = [], onMoveBall, onReturnCard, ownSeat }: BoardProps) {
+export function Board({ balls, players = [], handCounts = [], deckHolder = null, deckCount = 0, deckActive = false, deckShuffleable = false, anyDealer = false, onDeal, onShuffle, onRequestDevil, lastBallMove = null, turnSeat = null, animateMoves = true, showDragHint = true, cardDropMode = null, onNudge, skipCardFly, background = "", passHandsKey = 0, showFieldNumbers = false, discardEntries = [], onMoveBall, onReturnCard, ownSeat }: BoardProps) {
   const geo = defaultGeometry(1024);
   const [drag, setDrag] = useState<DragState | null>(null);
   const [seen, setSeen] = useState<SeenMove[]>(() => lastBallMove ? [{ move: lastBallMove, key: moveKey(lastBallMove), seenAt: Date.now() }] : []);
@@ -416,7 +419,7 @@ export function Board({ balls, players = [], handCounts = [], deckHolder = null,
           <filter id="shadow"><feDropShadow dx="2" dy="3" stdDeviation="3" floodOpacity=".35" /></filter>
         </defs>
         <g>
-          <image href={boardImage} x="0" y="0" width={geo.size} height={geo.size} preserveAspectRatio="none" />
+          <BoardBackdrop layers={boardLayers(background)} size={geo.size} />
           {/* Laufbahn-Felder: an BILD-Feld `vi` liegt DATEN-Feld `di`. */}
           {Array.from({ length: CIRCLE_FIELD_COUNT }, (_, vi) => {
             const di = dataIndex(vi);

@@ -240,6 +240,7 @@ export function App() {
                   showDragHint={settings.showDragHint}
                   onNudge={(target) => send({ type: "Nudge", target })}
                   passHandsKey={passHandsKey}
+                  background={settings.boardBackground}
                   skipCardFly={(actor) => actor === seat && Date.now() - ownCardDropAt.current < 3000}
                   cardDropMode={cardDragging ? (isTradePhase ? "partner" : "play") : null}
                   showFieldNumbers={showFieldNumbers}

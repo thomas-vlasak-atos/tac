@@ -97,6 +97,11 @@ Beitritt vorbelegen; sind `room` und `name` gesetzt, geht es **ohne Startformula
 auf das Spielbrett** (fehlt einer von beiden, wird das Formular vorbelegt), z. B. `http://localhost:5173/?room=abc&name=Anna&seat=0`
 (siehe `docs/decisions/ADR-0002-hosting-und-sitzplatz-links.md`).
 
+**Brett-Hintergrund:** Holztexturen liegen in `vorlage/background/` (Präfix `bright_` = helles Holz mit
+grauem Brett, `dark_` = dunkles Holz mit goldenem Brett) und sind in den Einstellungen wählbar.
+Neue Bilder einfach mit passendem Präfix dort ablegen. Lizenzen der Texturen (ambientCG: CC0;
+Texturelabs: eigene Lizenz) bitte vor einer Veröffentlichung prüfen.
+
 **Meisterkarten-Seite:** `?view=meisterkarten` zeigt die Erklärung der Meisterkarten in einer
 eigenen Seite ohne Spielverbindung (z. B. für ein zweites Fenster oder einen Screenshot).
 

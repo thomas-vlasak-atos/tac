@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { circleFieldPosition, defaultGeometry, houseCenter, housePositions } from "./geometry.js";
-import { countingDotPositions, generateBoardSvg, latticeCenters, axisTick, houseWay, latticeLines, outerLatticeCenters, TRACK_HOLE_FACTOR } from "./boardSvg.js";
+import { DARK_BOARD_COLORS, countingDotPositions, generateBoardSvg, latticeCenters, axisTick, houseWay, latticeLines, outerLatticeCenters, TRACK_HOLE_FACTOR } from "./boardSvg.js";
 
 const count = (svg: string, tag: string) => (svg.match(new RegExp(`<${tag}[ >]`, "g")) ?? []).length;
 
@@ -92,6 +92,14 @@ describe("generateBoardSvg (berechnetes Brettbild)", () => {
     expect(left.from.x).toBeCloseTo(1.3, 5);
     expect(left.to.x).toBeCloseTo(countingDotPositions(geo)[8]!.x, 5);
     expect(left.from.y).toBeCloseTo(left.to.y, 5);
+  });
+
+  it("Given die dunkle Variante, Then sind Kreise, Zählpunkte und Rahmen golden statt silbern", () => {
+    const dark = generateBoardSvg({ background: null, colors: DARK_BOARD_COLORS });
+    expect(dark).toContain(`stroke="${DARK_BOARD_COLORS.circles}"`);
+    expect(dark).toContain(`fill="${DARK_BOARD_COLORS.dot}"`);
+    expect(dark).not.toContain("#8a8a8a");
+    expect(dark).not.toContain('id="background"');
   });
 
   it("Given die drei Gitterrichtungen, Then gibt es 3 × 7 Linien", () => {
