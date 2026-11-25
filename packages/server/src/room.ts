@@ -12,6 +12,7 @@
 import {
   type BallPosition,
   cardLabel,
+  PASS_HANDS_HISTORY_TEXT,
   COLOR_BY_SEAT,
   createInitialState,
   deal,
@@ -469,7 +470,7 @@ export function playForeignCard(state: GameState, controller: Seat, requestId: s
 /** Gibt alle Hände verdeckt gegen den Uhrzeigersinn (Sitz i → Sitz i-1) weiter (Narr). */
 export function passHandsRight(state: GameState, actor: Seat): GameState {
   const hands = state.hands.map((_, index) => state.hands[(index + 1) % 4] ?? []);
-  return pushHistory({ ...state, hands }, actor, `${seatLabel(state, actor)}: Alle Hände gegen den Uhrzeigersinn weitergegeben`);
+  return pushHistory({ ...state, hands }, actor, `${seatLabel(state, actor)}: ${PASS_HANDS_HISTORY_TEXT}`);
 }
 
 /** Der gegenübersitzende Partner-Sitzplatz. */

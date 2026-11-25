@@ -29,6 +29,13 @@ const MARK_COLOR = "#d6199b";
 /** Deckkraft des vorletzten Zugs, damit man die Reihenfolge erkennt. */
 const FADED_OPACITY = 0.4;
 
+interface CardFly { key: string; start: number; from: Point }
+/** Flugdauer einer abgelegten Karte. */
+const CARD_FLY_MS = 480;
+/** Dauer der Narr-Animation (Hände wandern zum Nachbarn). */
+const PASS_MS = 800;
+const easeOut = (u: number): number => 1 - (1 - u) ** 3;
+
 interface MoveAnim { ballId: string; path: MovePath; start: number }
 
 const animDuration = totalDuration;
@@ -169,6 +176,10 @@ export interface BoardProps {
   showDragHint?: boolean;
   /** Verstecktes Gimmick: Klick auf den Namen eines Mitspielers stupst ihn an (F12). */
   onNudge?: (target: Seat) => void;
+  /** true = für diese Karte keinen Flug zeigen (z. B. eigene Karte wurde per Drag & Drop abgelegt). */
+  skipCardFly?: (actor: Seat) => boolean;
+  /** Zählt hoch, wenn der Narr gespielt wurde: Handkarten-Rücken wandern zum Nachbarn. */
+  passHandsKey?: number;
   /** Drop-Zone für gezogene Handkarten: Ablage in der Mitte oder Partner (F9); null = keine. */
   cardDropMode?: "play" | "partner" | null;
   showFieldNumbers?: boolean;
@@ -180,7 +191,7 @@ export interface BoardProps {
 
 interface DragState { ballId: string; current: Point; moved: boolean; from: BallPosition }
 
-export function Board({ balls, players = [], handCounts = [], deckHolder = null, deckCount = 0, deckActive = false, deckShuffleable = false, anyDealer = false, onDeal, onShuffle, onRequestDevil, lastBallMove = null, turnSeat = null, animateMoves = true, showDragHint = true, cardDropMode = null, onNudge, showFieldNumbers = false, discardEntries = [], onMoveBall, onReturnCard, ownSeat }: BoardProps) {
+export function Board({ balls, players = [], handCounts = [], deckHolder = null, deckCount = 0, deckActive = false, deckShuffleable = false, anyDealer = false, onDeal, onShuffle, onRequestDevil, lastBallMove = null, turnSeat = null, animateMoves = true, showDragHint = true, cardDropMode = null, onNudge, skipCardFly, passHandsKey = 0, showFieldNumbers = false, discardEntries = [], onMoveBall, onReturnCard, ownSeat }: BoardProps) {
   const geo = defaultGeometry(1024);
   const [drag, setDrag] = useState<DragState | null>(null);
   const [seen, setSeen] = useState<SeenMove[]>(() => lastBallMove ? [{ move: lastBallMove, key: moveKey(lastBallMove), seenAt: Date.now() }] : []);
@@ -202,7 +213,32 @@ export function Board({ balls, players = [], handCounts = [], deckHolder = null,
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lastKey]);
 
-  const animating = anims.length > 0;
+  // Neu abgelegte Karten fliegen vom Vorfeld des Spielers in die Mitte (REQ-FEEDBACK).
+  const [flies, setFlies] = useState<CardFly[]>([]);
+  const seenCards = useRef<Set<string> | null>(null);
+  const cardKeys = discardEntries.map((e) => `${e.card.id}:${e.timestamp}`).join("|");
+  useEffect(() => {
+    const previous = seenCards.current;
+    seenCards.current = new Set(discardEntries.map((e) => `${e.card.id}:${e.timestamp}`));
+    if (!previous || !animateMoves || window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return;
+    const fresh = discardEntries.filter((e) => !previous.has(`${e.card.id}:${e.timestamp}`) && !skipCardFly?.(e.actor));
+    if (fresh.length === 0) return;
+    const start = performance.now();
+    setFlies((current) => [...current, ...fresh.map((e) => ({ key: `${e.card.id}:${e.timestamp}`, start, from: vorfeldCenter(visSeat(e.actor), geo) }))]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cardKeys]);
+
+  // Narr: Die Handkarten-Rücken wandern zum Nachbarn (Sitz i bekommt die Hand von Sitz i+1).
+  const [passStart, setPassStart] = useState<number | null>(null);
+  const prevPassKey = useRef(passHandsKey);
+  useEffect(() => {
+    const previous = prevPassKey.current;
+    prevPassKey.current = passHandsKey;
+    if (passHandsKey <= previous || !animateMoves || window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return;
+    setPassStart(performance.now());
+  }, [passHandsKey]);
+
+  const animating = anims.length > 0 || flies.length > 0 || passStart != null;
   useEffect(() => {
     if (!animating) return;
     let frame = 0;
@@ -210,6 +246,8 @@ export function Board({ balls, players = [], handCounts = [], deckHolder = null,
       const t = performance.now();
       setNow(t);
       setAnims((current) => (current.some((a) => t - a.start >= animDuration(a.path)) ? current.filter((a) => t - a.start < animDuration(a.path)) : current));
+      setPassStart((current) => (current != null && t - current >= PASS_MS ? null : current));
+      setFlies((current) => (current.some((f) => t - f.start >= CARD_FLY_MS) ? current.filter((f) => t - f.start < CARD_FLY_MS) : current));
       frame = requestAnimationFrame(tick);
     };
     frame = requestAnimationFrame(tick);
@@ -499,7 +537,13 @@ export function Board({ balls, players = [], handCounts = [], deckHolder = null,
             const ch = cw * CARD_ASPECT;
             // Kartenanzahl seitlich neben dem Vorfeld, mit gleichem Abstand
             // (HANDCOUNT_GAP) zum Vorfeld-Außenkreis und zur Brett-Rahmenlinie.
-            const cardAt = placeBesideVorfeld(c, geo, cw, ch, geo.size * HANDCOUNT_GAP_FACTOR);
+            const handGap = geo.size * HANDCOUNT_GAP_FACTOR;
+            let cardAt = placeBesideVorfeld(c, geo, cw, ch, handGap);
+            if (passStart != null) {
+              const source = placeBesideVorfeld(vorfeldCenter(visSeat(((ds + 1) % 4) as Seat), geo), geo, cw, ch, handGap);
+              const u = easeInOut(Math.min(1, Math.max(0, now - passStart) / PASS_MS));
+              cardAt = { x: source.x + (cardAt.x - source.x) * u, y: source.y + (cardAt.y - source.y) * u };
+            }
             return (
               <g key={`vfname-${vs}`}>
                 {!isOwn && onNudge && <rect x={c.x - 70} y={c.y - 14} width={140} height={34} fill="transparent" onClick={() => onNudge(ds)} />}
@@ -571,8 +615,17 @@ export function Board({ balls, players = [], handCounts = [], deckHolder = null,
           {topCards.map((entry) => {
             const stroke = BALL_STROKE[COLOR_BY_SEAT_LOCAL[entry.actor]];
             const placement = discardPlacement(`${entry.card.id}:${entry.timestamp}`, DISCARD_RADIUS, DISCARD_CARD_W / 2, DISCARD_CARD_H / 2);
+            const fly = flies.find((f) => f.key === `${entry.card.id}:${entry.timestamp}`);
+            const u = fly ? easeOut(Math.min(1, Math.max(0, now - fly.start) / CARD_FLY_MS)) : 1;
+            const tx = geo.center.x + placement.x;
+            const ty = geo.center.y + placement.y;
+            const cx = fly ? fly.from.x + (tx - fly.from.x) * u : tx;
+            const cy = fly ? fly.from.y + (ty - fly.from.y) * u : ty;
+            const rot = placement.rotation * u;
+            const scale = 1.3 - 0.3 * u;
+            const fadeIn = fly ? 0.3 + 0.7 * u : 1;
             return (
-              <g key={entry.card.id} transform={`translate(${geo.center.x + placement.x} ${geo.center.y + placement.y}) rotate(${placement.rotation})`}>
+              <g key={entry.card.id} transform={`translate(${cx} ${cy}) rotate(${rot}) scale(${scale})`} opacity={fadeIn}>
                 <rect x={-DISCARD_CARD_W / 2 + DISCARD_CARD_W * CARD_INSET_X} y={-DISCARD_CARD_H / 2 + DISCARD_CARD_H * CARD_INSET_Y} width={DISCARD_CARD_W * (1 - 2 * CARD_INSET_X)} height={DISCARD_CARD_H * (1 - 2 * CARD_INSET_Y)} rx={DISCARD_CARD_W * CARD_RADIUS_FACTOR} fill="#fff" stroke={stroke} strokeWidth="4" filter="url(#shadow)" />
                 <foreignObject x={-DISCARD_CARD_W / 2} y={-DISCARD_CARD_H / 2} width={DISCARD_CARD_W} height={DISCARD_CARD_H}><CardArtwork card={entry.card} /></foreignObject>
                 <title>{cardLabel(entry.card)} von {COLOR_LABEL[COLOR_BY_SEAT_LOCAL[entry.actor]]}. Zum Zurücknehmen unten nutzen.</title>

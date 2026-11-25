@@ -153,3 +153,6 @@ export interface PublicGameState {
    */
   undoLabel: string | null;
 }
+
+/** Verlaufstext des Narren (Hände weitergeben); der Client erkennt daran die Animation. */
+export const PASS_HANDS_HISTORY_TEXT = "Alle Hände gegen den Uhrzeigersinn weitergegeben";

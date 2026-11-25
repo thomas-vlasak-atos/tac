@@ -48,7 +48,7 @@ export function SettingsDialog({ settings, onChange, onClose }: SettingsDialogPr
             checked={settings.animateMoves}
             onChange={(event) => onChange({ ...settings, animateMoves: event.target.checked })}
           />
-          Züge der anderen animieren
+          Züge und Karten animieren
         </label>
         <label style={{ display: "flex", gap: 8, alignItems: "center", marginTop: 8 }}>
           <input

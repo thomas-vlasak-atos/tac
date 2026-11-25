@@ -5,7 +5,7 @@
  */
 
 import type { BallPosition } from "@tac/shared";
-import { nextToPlay } from "@tac/shared";
+import { PASS_HANDS_HISTORY_TEXT, nextToPlay } from "@tac/shared";
 import { useEffect, useRef, useState } from "react";
 import { Board } from "./board/Board.js";
 import { COLOR_LABEL } from "./board/colors.js";
@@ -55,6 +55,8 @@ export function App() {
   const { status, state, seat, error, nudge, send: sendRaw } = useTacSocket(serverUrl());
   // Eigene Aktionen merken, damit sie keinen „Zug gemacht"-Ton auslösen (F3).
   const ownActionAt = useRef(0);
+  // Zeitpunkt der letzten eigenen Karte per Drag & Drop: dafür braucht es keinen Flug in die Mitte.
+  const ownCardDropAt = useRef(0);
   const send: typeof sendRaw = (action) => {
     ownActionAt.current = Date.now();
     sendRaw(action);
@@ -66,6 +68,8 @@ export function App() {
   const [nudgeNotice, setNudgeNotice] = useState<string | null>(null);
   // Karte spielen merkt vor, erst das Bewegen einer Kugel löst die Anzeige aus.
   const turnSeat = state && state.ballMovedSinceCard && state.discardEntries.length > 0 ? nextToPlay(state) : null;
+  // Letzter Narr im Verlauf (steigende ID löst die Animation der wandernden Hände aus).
+  const passHandsKey = state ? state.history.reduce((id, entry) => (entry.text.endsWith(PASS_HANDS_HISTORY_TEXT) ? entry.id : id), 0) : 0;
   const myName = seat != null ? state?.players[seat]?.name : undefined;
 
   // Töne (F3): „Zug gemacht" bei Aktionen anderer, „Du bist dran" wenn der Hinweis auf mich wechselt.
@@ -165,7 +169,10 @@ export function App() {
 
   // Karte auf eine Drop-Zone gezogen: gleiche Aktion wie der Klick, aber nur auf der zur Phase passenden Zone.
   const dropHandCard = (cardId: string, zone: string) => {
-    if (isTradePhase ? zone === "partner" && !tradeOfferBlocked : zone === "play") playHandCard(cardId);
+    if (isTradePhase ? zone === "partner" && !tradeOfferBlocked : zone === "play") {
+      ownCardDropAt.current = Date.now();
+      playHandCard(cardId);
+    }
   };
 
   return (
@@ -232,6 +239,8 @@ export function App() {
                   animateMoves={settings.animateMoves}
                   showDragHint={settings.showDragHint}
                   onNudge={(target) => send({ type: "Nudge", target })}
+                  passHandsKey={passHandsKey}
+                  skipCardFly={(actor) => actor === seat && Date.now() - ownCardDropAt.current < 3000}
                   cardDropMode={cardDragging ? (isTradePhase ? "partner" : "play") : null}
                   showFieldNumbers={showFieldNumbers}
                   discardEntries={state.discardEntries}

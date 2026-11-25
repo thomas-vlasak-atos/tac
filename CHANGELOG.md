@@ -8,6 +8,15 @@ Versionierung nach [Semantic Versioning](https://semver.org/lang/de/).
 ## [Unreleased]
 
 ### Added
+- **Narr animiert:** Spielt jemand den Narren, wandern die Handkarten-Rücken am Brett in ca.
+  0,8 s zum Nachbarn (gegen den Uhrzeigersinn; Sitz i bekommt die Hand von Sitz i+1). Erkannt
+  wird der Narr am Verlaufseintrag (`PASS_HANDS_HISTORY_TEXT` in `@tac/shared`); beim Laden
+  der Seite oder nach Undo gibt es keine Animation. Hängt am Schalter „Züge und Karten animieren".
+- **Karten fliegen in die Mitte:** Neu abgelegte Karten fliegen in ca. 0,5 s vom Vorfeld des
+  Spielers in den Ablagekreis (drehen sich dabei in ihre Endlage, werden kleiner und
+  deckender). Gilt für alle Spieler, auch für die eigenen Karten (außer bei eigenem Drag & Drop,
+  dort liegt die Karte ja schon an Ort und Stelle). Hängt am Einstellungsschalter
+  „Züge und Karten animieren" und an „reduzierte Bewegung".
 - **Töne (F3):** „Zug gemacht" (kurzes Klack bei Kugelzug oder Karte eines anderen) und
   „Du bist dran" (Zweiklang, wenn der Hinweis auf mich wechselt; ersetzt dann das Klack).
   Per Web Audio erzeugt, **standardmäßig aus**, zwei einzelne Schalter in den Einstellungen.
