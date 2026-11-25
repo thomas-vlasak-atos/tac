@@ -155,18 +155,18 @@ function RedNumber({ value }: { value: number }) {
         </>
       )}
       {value === 4 && (
-        <>
+        <g transform="rotate(180 302 499)">
           <Tri points="240,395 240,603 298,497" />
           <Tri points="300,395 300,603 358,497" />
-        </>
+        </g>
       )}
       {value === 7 && DOTS_7.map(([x, y]) => <Dot key={`${x}-${y}`} x={x} y={y} />)}
       {value === 13 && (
-        <>
+        <g transform="rotate(180 302 499)">
           <Tri points={`${x3},${y1} ${x3},${y3} 297,499`} />
           <path d="M205 337L235 392L267 445M267 337L235 392L205 445M205 552L237 607L267 660M267 552L237 607L205 660" fill="none" stroke={LINE} strokeWidth={1.6} />
           {DOTS_13.map(([x, y]) => <Dot key={`${x}-${y}`} x={x} y={y} />)}
-        </>
+        </g>
       )}
     </CardBase>
   );
