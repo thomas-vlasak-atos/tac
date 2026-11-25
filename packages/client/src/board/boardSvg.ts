@@ -61,7 +61,7 @@ export const DEFAULT_BOARD_COLORS: BoardColors = {
   wellLight: "#34466e",
   wellDark: "#141c30",
   dot: SILVER,
-  frame: "#111111",
+  frame: SILVER,
 };
 
 const SQRT3 = Math.sqrt(3);
@@ -70,30 +70,83 @@ const SQRT3 = Math.sqrt(3);
 export const TRACK_HOLE_FACTOR = 1.3;
 export const HOUSE_HOLE_FACTOR = 1.45;
 
-/** Radius des grauen Rings im Haus relativ zum Abstand der Hausmulden vom Hauszentrum (nach Foto ≈ 0,8). */
-export const HOUSE_RING_FACTOR = 0.8;
+/** Radius des grauen Hausrings relativ zum Abstand der Hausmulden vom Hauszentrum (von Hand auf Radius 60 gesetzt). */
+export const HOUSE_RING_FACTOR = 0.733;
+
+/** Abstand der Punktmitte vom Weg- bzw. Ringende (Punkt liegt knapp innerhalb: am Weg nach vorn, am Ring zur Mitte hin). */
+const DOT_INSET = 2.6;
+
+const angleOf = (from: Point, to: Point): number => Math.atan2(to.y - from.y, to.x - from.x);
+const TWO_PI = 2 * Math.PI;
+const mod2pi = (a: number): number => ((a % TWO_PI) + TWO_PI) % TWO_PI;
+
+/** Kurzer Strich vom Brettrand bis zum Zählpunkt der Startmulde (Achsenmarkierung). */
+export function axisTick(seat: Seat, geo: BoardGeometry): { from: Point; to: Point } {
+  // Der Zählpunkt der Startmulde ist der (seat·8)-te Zählpunkt (Startfeld seat·16, jedes 2. Feld).
+  const dot = countingDotPositions(geo)[seat * 8]!;
+  const dx = dot.x - geo.center.x;
+  const dy = dot.y - geo.center.y;
+  const len = Math.hypot(dx, dy);
+  const ux = dx / len;
+  const uy = dy / len;
+  const edge = 1.3;
+  // Strecke bis zum Brettrand entlang der (achsenparallelen) Richtung.
+  const toEdge = Math.abs(ux) > Math.abs(uy) ? ((ux > 0 ? geo.size - edge : edge) - dot.x) / ux : ((uy > 0 ? geo.size - edge : edge) - dot.y) / uy;
+  return { from: { x: dot.x + ux * toEdge, y: dot.y + uy * toEdge }, to: dot };
+}
+
+export interface HouseWay {
+  /** Strich von der Startmulde (Muldenrand + 4) bis zum Eingang bzw. zum Hausring. */
+  path: { from: Point; to: Point };
+  /** Liegt der Eingang (Hausmulde) auf der Achse: kurzer Strich vom anderen Muldenrand bis zum Ring. */
+  stub: { from: Point; to: Point } | null;
+  /** Offener Hausring: Bogen von der Wegmündung im Uhrzeigersinn bis zur Richtung der letzten Hausmulde. */
+  ring: { start: Point; end: Point; sweep: number };
+  /** Punkte: am Wegbeginn und am Ende des Rings. */
+  startDot: Point;
+  endDot: Point;
+}
 
 /**
- * Weg ins Haus: Strecke von der Startmulde (am Rand der Mulde) entlang der Achse zum Hauszentrum,
- * endet am grauen Hausring oder, wenn eine Hausmulde (Eingang) auf der Achse liegt, kurz davor.
+ * Weg ins Haus: Strich von der Startmulde zum Haus, grauer Ring (offen, nach Hausgeometrie) und zwei Punkte.
+ * Der Ring beginnt dort, wo der Weg mündet, läuft im Uhrzeigersinn und endet in Richtung der letzten
+ * Hausmulde (Slot 3). Dadurch ist die Öffnung bei unten/oben 90°, bei links/rechts 120°.
  */
-export function housePath(seat: Seat, geo: BoardGeometry, trackHoleR: number, ringR: number, houseHoleR: number): { from: Point; to: Point } {
+export function houseWay(seat: Seat, geo: BoardGeometry, trackHoleR: number, ringR: number, houseHoleR: number): HouseWay {
   const start = circleFieldPosition(seat * (CIRCLE_FIELD_COUNT / 4), geo);
   const h = houseCenter(seat, geo);
   const len = Math.hypot(h.x - start.x, h.y - start.y);
   const ux = (h.x - start.x) / len;
   const uy = (h.y - start.y) / len;
-  const gap = trackHoleR + 4;
-  // Liegt eine Hausmulde auf der Achse (Eingang), endet der Weg an ihrem Rand.
-  let endDistance = len - ringR;
+  const at = (distance: number): Point => ({ x: start.x + ux * distance, y: start.y + uy * distance });
+  const from = at(trackHoleR + 4);
+  const ringPoint = at(len - ringR);
+
+  // Liegt eine Hausmulde auf der Achse (Eingang), läuft der Strich bis zu ihrem Rand und dahinter weiter zum Ring.
+  let pathEnd = len - ringR;
+  let stub: HouseWay["stub"] = null;
+  let nearest = Infinity; // nur die der Startmulde nächste Hausmulde auf der Achse zählt
   for (const hole of housePositions(seat, geo)) {
     const along = (hole.x - start.x) * ux + (hole.y - start.y) * uy;
     const across = Math.abs((hole.x - start.x) * uy - (hole.y - start.y) * ux);
-    if (across < 2 && along > 0) endDistance = Math.min(endDistance, along - houseHoleR - 4);
+    if (across < 2 && along > 0 && along < nearest) {
+      nearest = along;
+      pathEnd = along - houseHoleR;
+      stub = { from: at(along + houseHoleR), to: ringPoint };
+    }
   }
+
+  const junction = angleOf(h, start);
+  const last = housePositions(seat, geo)[3]!;
+  const sweep = mod2pi(angleOf(h, last) - junction);
+  const onRing = (angle: number, radius = ringR): Point => ({ x: h.x + Math.cos(angle) * radius, y: h.y + Math.sin(angle) * radius });
+  const endAngle = junction + sweep;
   return {
-    from: { x: start.x + ux * gap, y: start.y + uy * gap },
-    to: { x: start.x + ux * endDistance, y: start.y + uy * endDistance },
+    path: { from, to: at(pathEnd) },
+    stub,
+    ring: { start: onRing(junction), end: onRing(endAngle), sweep },
+    startDot: at(trackHoleR + 4 + DOT_INSET),
+    endDot: onRing(endAngle, ringR - DOT_INSET), // knapp innerhalb des Ringendes
   };
 }
 
@@ -201,7 +254,7 @@ export function generateBoardSvg(options: BoardSvgOptions = {}): string {
   for (const [a, b] of latticeLines(geo)) parts.push(`<line x1="${n(a.x)}" y1="${n(a.y)}" x2="${n(b.x)}" y2="${n(b.y)}" />`);
   parts.push(`</g>`);
 
-  parts.push(`<g id="rings" inkscape:groupmode="layer" inkscape:label="rings and frame" fill="none" stroke="${c.frame}" stroke-width="1.2">`);
+  parts.push(`<g id="rings" inkscape:groupmode="layer" inkscape:label="rings and frame" fill="none" stroke="${c.frame}" stroke-width="1.6">`);
   parts.push(`<circle cx="${n(geo.center.x)}" cy="${n(geo.center.y)}" r="${n(clipRadius)}" />`);
   parts.push(`<circle cx="${n(geo.center.x)}" cy="${n(geo.center.y)}" r="${n(outerRing)}" />`);
   const inset = geo.boardBorderInset;
@@ -210,7 +263,7 @@ export function generateBoardSvg(options: BoardSvgOptions = {}): string {
 
   parts.push(`<g id="wells" inkscape:groupmode="layer" inkscape:label="wells">`);
   const well = (p: Point, radius: number, outerRing = true) => {
-    if (outerRing) parts.push(`<circle cx="${n(p.x)}" cy="${n(p.y)}" r="${n(radius + 8)}" fill="none" stroke="${c.frame}" stroke-width="1.2" />`);
+    if (outerRing) parts.push(`<circle cx="${n(p.x)}" cy="${n(p.y)}" r="${n(radius + 8)}" fill="none" stroke="${c.frame}" stroke-width="1.6" />`);
     parts.push(`<circle cx="${n(p.x)}" cy="${n(p.y)}" r="${n(radius)}" fill="url(#well-fill)" stroke="url(#hole-rim)" stroke-width="7" />`);
   };
   // Ablagefeld in der Mitte: ohne schwarzen Zusatzring; zwischen Mulde und grauem Mittelkreis bleibt Platz.
@@ -247,22 +300,32 @@ export function generateBoardSvg(options: BoardSvgOptions = {}): string {
   }
   parts.push(`</g>`);
 
-  // Häuser: grauer Ring innerhalb der vier Mulden und der Weg ins Haus (silberner Strich über schwarzem,
-  // von der Startmulde zum Ring) mit einem Punkt am Ende.
+  // Häuser: offener grauer Ring innerhalb der vier Mulden und der Weg ins Haus (silberner Strich von der
+  // Startmulde zum Haus) mit Punkten am Wegbeginn und am Ringende; dazu die Achsenstriche vom Brettrand.
   const houseRingR = (geo.gridRadius / SQRT3) * HOUSE_RING_FACTOR;
+  const ways = SEATS.map((seat) => houseWay(seat, geo, trackHoleR, houseRingR, houseHoleR));
+  const line = (a: Point, b: Point) => `<line x1="${n(a.x)}" y1="${n(a.y)}" x2="${n(b.x)}" y2="${n(b.y)}" />`;
   parts.push(`<g id="house-rings" inkscape:groupmode="layer" inkscape:label="house rings" fill="none" stroke="${c.circles}" stroke-width="1.6">`);
-  for (const seat of SEATS) {
-    const h = houseCenter(seat, geo);
-    parts.push(`<circle cx="${n(h.x)}" cy="${n(h.y)}" r="${n(houseRingR)}" />`);
+  for (const way of ways) {
+    const { start, end, sweep } = way.ring;
+    parts.push(`<path d="M ${n(start.x)} ${n(start.y)} A ${n(houseRingR)} ${n(houseRingR)} 0 ${sweep > Math.PI ? 1 : 0} 1 ${n(end.x)} ${n(end.y)}" />`);
   }
   parts.push(`</g>`);
 
-  parts.push(`<g id="house-paths" inkscape:groupmode="layer" inkscape:label="house paths" stroke-linecap="butt">`);
+  parts.push(`<g id="house-paths" inkscape:groupmode="layer" inkscape:label="house paths" stroke="${c.circles}" stroke-width="1.6" stroke-linecap="butt">`);
   for (const seat of SEATS) {
-    const { from, to } = housePath(seat, geo, trackHoleR, houseRingR, houseHoleR);
-    parts.push(`<line x1="${n(from.x)}" y1="${n(from.y)}" x2="${n(to.x)}" y2="${n(to.y)}" stroke="${c.lines}" stroke-width="2.8" />`);
-    parts.push(`<line x1="${n(from.x)}" y1="${n(from.y)}" x2="${n(to.x)}" y2="${n(to.y)}" stroke="${c.circles}" stroke-width="1.3" />`);
-    parts.push(`<circle cx="${n(to.x)}" cy="${n(to.y)}" r="3.4" fill="${c.circles}" stroke="${c.lines}" stroke-width="0.8" />`);
+    const way = ways[seat]!;
+    const tick = axisTick(seat, geo);
+    parts.push(line(tick.from, tick.to));
+    parts.push(line(way.path.from, way.path.to));
+    if (way.stub) parts.push(line(way.stub.from, way.stub.to));
+  }
+  parts.push(`</g>`);
+
+  parts.push(`<g id="house-dots" inkscape:groupmode="layer" inkscape:label="house dots" fill="${c.circles}">`);
+  for (const way of ways) {
+    parts.push(`<circle cx="${n(way.startDot.x)}" cy="${n(way.startDot.y)}" r="3.4" />`);
+    parts.push(`<circle cx="${n(way.endDot.x)}" cy="${n(way.endDot.y)}" r="3.4" />`);
   }
   parts.push(`</g>`);
 

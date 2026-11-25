@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { circleFieldPosition, defaultGeometry, houseCenter, housePositions } from "./geometry.js";
-import { countingDotPositions, generateBoardSvg, latticeCenters, housePath, latticeLines, outerLatticeCenters, TRACK_HOLE_FACTOR } from "./boardSvg.js";
+import { countingDotPositions, generateBoardSvg, latticeCenters, axisTick, houseWay, latticeLines, outerLatticeCenters, TRACK_HOLE_FACTOR } from "./boardSvg.js";
 
 const count = (svg: string, tag: string) => (svg.match(new RegExp(`<${tag}[ >]`, "g")) ?? []).length;
 
@@ -52,27 +52,46 @@ describe("generateBoardSvg (berechnetes Brettbild)", () => {
     expect(svg).toContain('r="132" fill="url(#well-fill)"');
   });
 
-  it("Given die Häuser, Then gibt es je einen grauen Ring, einen Weg (silber über schwarz) und einen Punkt am Ende", () => {
+  it("Given die Häuser, Then gibt es je einen offenen grauen Ring, einen Weg und zwei Punkte", () => {
     const svg = generateBoardSvg();
     const rings = svg.slice(svg.indexOf('id="house-rings"'), svg.indexOf('id="house-paths"'));
-    const paths = svg.slice(svg.indexOf('id="house-paths"'), svg.indexOf('id="center-boundary"'));
-    expect(count(rings, "circle")).toBe(4);
-    expect(count(paths, "line")).toBe(8);
-    expect(count(paths, "circle")).toBe(4);
+    const paths = svg.slice(svg.indexOf('id="house-paths"'), svg.indexOf('id="house-dots"'));
+    const dots = svg.slice(svg.indexOf('id="house-dots"'), svg.indexOf('id="center-boundary"'));
+    expect(count(rings, "path")).toBe(4);
+    expect(count(paths, "line")).toBe(4 + 4 + 2); // Achsenstrich + Weg je Haus, plus 2 Stummel (links/rechts)
+    expect(count(dots, "circle")).toBe(8);
+    expect(paths).not.toContain('stroke="#111111"'); // Weg nur silbern, ohne schwarze Unterlage
   });
 
-  it("Given der Weg ins Haus, Then läuft er von der Startmulde zum Hausring (unten: senkrecht nach oben)", () => {
-    const { from, to } = housePath(0, geo, 17, 65, 19);
-    expect(from.x).toBeCloseTo(to.x, 5);
-    expect(from.y).toBeGreaterThan(to.y);
-    expect(Math.abs(to.y - houseCenter(0, geo).y)).toBeCloseTo(65, 5);
+  it("Given der Weg ins untere Haus, Then läuft er senkrecht von der Startmulde zum Ring", () => {
+    const way = houseWay(0, geo, 17, 60, 19);
+    expect(way.path.from.x).toBeCloseTo(way.path.to.x, 5);
+    expect(way.path.from.y).toBeGreaterThan(way.path.to.y);
+    expect(Math.abs(way.path.to.y - houseCenter(0, geo).y)).toBeCloseTo(60, 5);
+    expect(way.stub).toBeNull();
   });
 
-  it("Given eine Hausmulde auf der Achse (links/rechts), Then endet der Weg kurz vor dieser Mulde", () => {
-    const left = housePath(1, geo, 17, 65, 19);
+  it("Given eine Hausmulde auf der Achse (links), Then endet der Strich am Muldenrand und ein Stummel führt zum Ring", () => {
+    const way = houseWay(1, geo, 17, 60, 19);
     const entrance = housePositions(1, geo)[0]!;
-    expect(left.to.y).toBeCloseTo(entrance.y, 5);
-    expect(entrance.x - left.to.x).toBeCloseTo(19 + 4, 5);
+    expect(entrance.x - way.path.to.x).toBeCloseTo(19, 5);
+    expect(way.stub!.from.x - entrance.x).toBeCloseTo(19, 5);
+    expect(Math.abs(way.stub!.to.x - houseCenter(1, geo).x)).toBeCloseTo(60, 5);
+  });
+
+  it("Given der Hausring, Then ist er offen: 270° bei unten/oben, 240° bei links/rechts", () => {
+    const deg = (seat: 0 | 1 | 2 | 3) => (houseWay(seat, geo, 17, 60, 19).ring.sweep * 180) / Math.PI;
+    expect(deg(0)).toBeCloseTo(270, 3);
+    expect(deg(2)).toBeCloseTo(270, 3);
+    expect(deg(1)).toBeCloseTo(240, 3);
+    expect(deg(3)).toBeCloseTo(240, 3);
+  });
+
+  it("Given der Achsenstrich, Then geht er vom Brettrand bis zum Zählpunkt der Startmulde", () => {
+    const left = axisTick(1, geo);
+    expect(left.from.x).toBeCloseTo(1.3, 5);
+    expect(left.to.x).toBeCloseTo(countingDotPositions(geo)[8]!.x, 5);
+    expect(left.from.y).toBeCloseTo(left.to.y, 5);
   });
 
   it("Given die drei Gitterrichtungen, Then gibt es 3 × 7 Linien", () => {

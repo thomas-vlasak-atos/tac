@@ -17,9 +17,14 @@ Versionierung nach [Semantic Versioning](https://semver.org/lang/de/).
   Löcher mit rundem Verlauf, mittlere Mulde (Radius 132) ohne schwarzen Zusatzring; der graue Mittelkreis
   (Radius 141,8) ist eine Grenze, in die weder Linien noch graue Kreise hineinragen; die grauen
   Kreise liegen auf der obersten Ebene und haben dieselbe Silbergrau-Farbe wie die Zählpunkte.
-  Mulden nach Foto größer (Laufmulden ×1,3, Hausmulden ×1,45 des Feldradius); Häuser mit grauem
-  Ring innerhalb der vier Mulden sowie dem Weg ins Haus (silberner Strich über schwarzem, von der
-  Startmulde zum Hausring) mit einem Punkt am Ende. Neu: `houseCenter` in `geometry.ts`. Farben zentral in
+  Mulden nach Foto größer (Laufmulden ×1,3, Hausmulden ×1,45 des Feldradius); Häuser mit offenem
+  grauem Ring (Radius 60; beginnt an der Wegmündung, läuft im Uhrzeigersinn bis zur Richtung der
+  letzten Hausmulde: 270° unten/oben, 240° links/rechts), silbernem Weg von der Startmulde ins Haus
+  (bei links/rechts durch die Eingangsmulde mit Stummel zum Ring), Punkten am Wegbeginn und am
+  Ringende sowie Achsenstrichen vom Brettrand zum Zählpunkt der Startmulde. Ringe, Rahmen und
+  Mulden-Außenringe sind silbern (1,6). Neu: `houseCenter` in `geometry.ts`. Diese Details
+  stammen aus deinen manuellen Änderungen in Inkscape (links/oben), die ich auf alle vier Häuser
+  übertragen habe. Farben zentral in
   `boardSvg.ts` (`DEFAULT_BOARD_COLORS`). Noch nicht im Client eingebunden (Vergleich mit `Board.png` steht aus).
   Reine Funktion `generateBoardSvg` in `board/boardSvg.ts`, getestet.
 - **Narr animiert:** Spielt jemand den Narren, wandern die Handkarten-Rücken am Brett in ca.
