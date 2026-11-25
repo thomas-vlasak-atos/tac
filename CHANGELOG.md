@@ -8,6 +8,11 @@ Versionierung nach [Semantic Versioning](https://semver.org/lang/de/).
 ## [Unreleased]
 
 ### Added
+- **Töne (F3):** „Zug gemacht" (kurzes Klack bei Kugelzug oder Karte eines anderen) und
+  „Du bist dran" (Zweiklang, wenn der Hinweis auf mich wechselt; ersetzt dann das Klack).
+  Per Web Audio erzeugt, **standardmäßig aus**, zwei einzelne Schalter in den Einstellungen.
+  Eigene Aktionen (bis 1,5 s danach) und der erste Zustand nach dem Laden bleiben stumm
+  (`ui/sounds.ts`, getestet).
 - **Verstecktes Anstupsen (F12):** Klick auf den Namen eines Mitspielers im Vorfeld stupst ihn
   an (kein sichtbarer Button). Der Empfänger hört „{Name}, du bist dran!" (Sprachausgabe,
   Deutsch; ohne Stimme ein Signalton) und sieht kurz „X stupst dich an". Server leitet nur an

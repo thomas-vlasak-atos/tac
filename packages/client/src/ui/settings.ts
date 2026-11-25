@@ -18,6 +18,10 @@ export interface Settings {
   cardDrag: boolean;
   /** Anstupsen von Mitspielern hören (Sprache/Signalton). */
   nudgeSound: boolean;
+  /** Ton, wenn ein anderer gezogen oder eine Karte gespielt hat (F3). */
+  soundMove: boolean;
+  /** Ton, wenn ich dran bin (F3). */
+  soundTurn: boolean;
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -28,6 +32,8 @@ export const DEFAULT_SETTINGS: Settings = {
   cardClick: true,
   cardDrag: true,
   nudgeSound: true,
+  soundMove: false,
+  soundTurn: false,
 };
 
 export const SETTINGS_STORAGE_KEY = "tac.settings";

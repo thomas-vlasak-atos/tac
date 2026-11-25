@@ -293,8 +293,8 @@ Zentrale Schalter, **nur pro Gerät** in `localStorage` (kein Servertzustand):
 
 | Schalter                              | Standard | Bezug |
 |---------------------------------------|----------|-------|
-| Ton „Zug gemacht"                     | an       | F3    |
-| Ton „Du bist dran"                    | an       | F3    |
+| Ton „Zug gemacht"                     | aus      | F3    |
+| Ton „Du bist dran"                    | aus      | F3    |
 | Lautstärke                            | 50 %     | F3    |
 | Animationen (Gleiten, Pulsieren)      | an       | F2    |
 | „Wer ist dran"-Marker                 | an       | F1    |

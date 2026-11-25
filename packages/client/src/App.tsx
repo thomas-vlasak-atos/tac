@@ -6,7 +6,7 @@
 
 import type { BallPosition } from "@tac/shared";
 import { nextToPlay } from "@tac/shared";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Board } from "./board/Board.js";
 import { COLOR_LABEL } from "./board/colors.js";
 import { directJoinFromUrl, isTestMode, readUrlDefaults } from "./net/urlParams.js";
@@ -15,7 +15,9 @@ import { Hand } from "./ui/Hand.js";
 import { HistoryPanel } from "./ui/HistoryPanel.js";
 import { type JoinInfo, JoinScreen } from "./ui/JoinScreen.js";
 import { MasterCardsHelp } from "./ui/MasterCardsHelp.js";
+import { moveKey } from "./board/recentMoves.js";
 import { playNudge } from "./ui/nudge.js";
+import { type SoundSnapshot, playMoveSound, playTurnSound, soundEvents } from "./ui/sounds.js";
 import { SettingsDialog } from "./ui/SettingsDialog.js";
 import { type Settings, loadSettings, saveSettings } from "./ui/settings.js";
 import "./styles.css";
@@ -50,13 +52,37 @@ function serverUrl(): string {
 export function App() {
   // Enthält die URL Raum + Name (Sitzplatz-Link), geht es ohne Startformular direkt ins Spiel.
   const [join, setJoin] = useState<JoinInfo | null>(() => directJoinFromUrl(window.location.search));
-  const { status, state, seat, error, nudge, send } = useTacSocket(serverUrl());
+  const { status, state, seat, error, nudge, send: sendRaw } = useTacSocket(serverUrl());
+  // Eigene Aktionen merken, damit sie keinen „Zug gemacht"-Ton auslösen (F3).
+  const ownActionAt = useRef(0);
+  const send: typeof sendRaw = (action) => {
+    ownActionAt.current = Date.now();
+    sendRaw(action);
+  };
   const [joined, setJoined] = useState(false);
   const [settings, setSettings] = useState<Settings>(() => loadSettings());
   const [showSettings, setShowSettings] = useState(false);
   const [cardDragging, setCardDragging] = useState(false);
   const [nudgeNotice, setNudgeNotice] = useState<string | null>(null);
+  // Karte spielen merkt vor, erst das Bewegen einer Kugel löst die Anzeige aus.
+  const turnSeat = state && state.ballMovedSinceCard && state.discardEntries.length > 0 ? nextToPlay(state) : null;
   const myName = seat != null ? state?.players[seat]?.name : undefined;
+
+  // Töne (F3): „Zug gemacht" bei Aktionen anderer, „Du bist dran" wenn der Hinweis auf mich wechselt.
+  const prevSnapshot = useRef<SoundSnapshot | null>(null);
+  useEffect(() => {
+    if (!state) return;
+    const next: SoundSnapshot = {
+      moveKey: state.lastBallMove ? moveKey(state.lastBallMove) : null,
+      discardLength: state.discardEntries.length,
+      turnSeat,
+    };
+    const events = soundEvents(prevSnapshot.current, next, seat, Date.now() - ownActionAt.current < 1500);
+    prevSnapshot.current = next;
+    if (events.turn && settings.soundTurn) playTurnSound();
+    else if (events.move && settings.soundMove) playMoveSound();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state]);
 
   // Verstecktes Gimmick (F12): Mitspieler hat mich angestupst.
   useEffect(() => {
@@ -135,8 +161,6 @@ export function App() {
   };
 
   // „Wer ist dran" (rein informativ, REQ-FEEDBACK F1).
-  // Karte spielen merkt vor, erst das Bewegen einer Kugel löst die Anzeige aus.
-  const turnSeat = state && state.ballMovedSinceCard && state.discardEntries.length > 0 ? nextToPlay(state) : null;
   const itsMyTurn = settings.showTurnMarker && seat != null && turnSeat === seat;
 
   // Karte auf eine Drop-Zone gezogen: gleiche Aktion wie der Klick, aber nur auf der zur Phase passenden Zone.

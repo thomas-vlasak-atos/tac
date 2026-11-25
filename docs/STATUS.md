@@ -45,7 +45,7 @@ Aufwand, offene Fragen O1–O7). Kurzliste:
 - [x] **F1** „Wer ist dran": Ring ums Vorfeld (Name in der Mitte) des nächsten Spielers im Uhrzeigersinn, erst nachdem nach der Karte eine Kugel bewegt wurde
 - [x] **F2** Letzten Zug sichtbarer: andere Farbe als Gelb, Pfeil, Zähl-Animation
       Feld für Feld (2er-Schritte bei > 5, Einzelschritte vor/im Haus) – am Brett prüfen
-- [ ] **F3** Töne: „Zug gemacht" / „Du bist dran"
+- [x] **F3** Töne: „Zug gemacht" / „Du bist dran" (standardmäßig aus, in den Einstellungen) – am Brett prüfen
 - [ ] **F4** ~~Kugeln größer~~ ✅ umgesetzt (×1,25, am Brett prüfen/nachjustieren)
 - [ ] **F5** Zählpunkte: vom Projektinhaber von Hand ins `Board.png` (danach prüfen)
 - [ ] **F6** Häuser: ebenfalls von Hand ins `Board.png`, danach Kalibrierung prüfen

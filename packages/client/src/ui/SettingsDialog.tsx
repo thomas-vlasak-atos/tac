@@ -84,6 +84,22 @@ export function SettingsDialog({ settings, onChange, onClose }: SettingsDialogPr
           />
           Ton, wenn mich jemand anstupst
         </label>
+        <label style={{ display: "flex", gap: 8, alignItems: "center", marginTop: 8 }}>
+          <input
+            type="checkbox"
+            checked={settings.soundMove}
+            onChange={(event) => onChange({ ...settings, soundMove: event.target.checked })}
+          />
+          Ton, wenn ein anderer gezogen oder gespielt hat
+        </label>
+        <label style={{ display: "flex", gap: 8, alignItems: "center", marginTop: 8 }}>
+          <input
+            type="checkbox"
+            checked={settings.soundTurn}
+            onChange={(event) => onChange({ ...settings, soundTurn: event.target.checked })}
+          />
+          Ton, wenn ich dran bin
+        </label>
       </div>
     </div>
   );
