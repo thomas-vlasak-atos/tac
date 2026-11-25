@@ -32,11 +32,12 @@ export function toneFromId(id: string): BackgroundTone | null {
   return null;
 }
 
-/** `bright_Wood097_1K-PNG_Color` → `Wood097`, `dark_Texturelabs_Wood_130M` → `Texturelabs Wood 130M`. */
+/** `bright_Wood097_1K-PNG_Color` → `Wood097`, `bright_white_maple_veneer_diff_4k` → `white maple veneer`, `dark_Texturelabs_Wood_130M` → `Texturelabs Wood 130M`. */
 export function backgroundLabel(id: string): string {
   return id
     .replace(/^(bright|dark)_/, "")
     .replace(/_1K-PNG_Color$/, "")
+    .replace(/_diff_4k$/, "")
     .replace(/_/g, " ");
 }
 
@@ -51,9 +52,13 @@ export function buildBackgroundOptions(files: Record<string, string>): Backgroun
   return options.sort((a, b) => (a.tone === b.tone ? a.id.localeCompare(b.id) : a.tone === "bright" ? -1 : 1));
 }
 
-/** Gespeicherte Auswahl auflösen; unbekannt oder leer → erster heller Hintergrund, sonst klassisch. */
+/** Standard-Hintergrund, solange nichts gewählt ist (falls die Datei fehlt: erster heller). */
+export const DEFAULT_BACKGROUND_ID = "bright_white_maple_veneer_diff_4k";
+
+/** Gespeicherte Auswahl auflösen; unbekannt oder leer → Standard, sonst erster heller, sonst klassisch. */
 export function resolveBackgroundId(id: string, options: BackgroundOption[]): string {
   if (id === CLASSIC_BACKGROUND_ID) return CLASSIC_BACKGROUND_ID;
   if (options.some((option) => option.id === id)) return id;
+  if (options.some((option) => option.id === DEFAULT_BACKGROUND_ID)) return DEFAULT_BACKGROUND_ID;
   return options.find((option) => option.tone === "bright")?.id ?? CLASSIC_BACKGROUND_ID;
 }
