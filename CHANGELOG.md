@@ -49,8 +49,8 @@ Versionierung nach [Semantic Versioning](https://semver.org/lang/de/).
   Praxistest (F1–F12) mit Priorisierung und Entscheidungen; Verweis in `STATUS.md`.
 
 ### Changed
-- **Karten 4 und 13:** Das Motiv in der Kartenmitte (Dreiecke bzw. Dreieck mit Punktemuster)
-  ist um 180° gedreht; die Eckzahlen bleiben unverändert.
+- **Karten 4, 8 und 13:** Das Motiv in der Kartenmitte (Dreiecke, Punkte, Linie und Raute) ist
+  um 180° gedreht; die Eckzahlen bleiben unverändert.
 - **Vorletzter Zug blasser (F2):** Bei zwei markierten Zügen (z. B. Trickser) wird der ältere
   mit 40 % Deckkraft gezeichnet (Ring und Pfeil), der jüngste bleibt voll sichtbar.
 - **Kugeln größer (F4):** Radius `× 1,25` des Feldradius (Konstante `BALL_RADIUS_FACTOR`),

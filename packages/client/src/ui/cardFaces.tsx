@@ -191,9 +191,11 @@ function Eight() {
   return (
     <CardBase>
       <Corners text="8" color={RED} />
-      {DOTS_8.map(([x, y]) => <Dot key={`${x}-${y}`} x={x} y={y} />)}
-      <path d="M318 337V660" fill="none" stroke={LINE} strokeWidth={1.6} />
-      <Diamond cx={380} cy={499} w={38} h={66} />
+      <g transform="rotate(180 302 499)">
+        {DOTS_8.map(([x, y]) => <Dot key={`${x}-${y}`} x={x} y={y} />)}
+        <path d="M318 337V660" fill="none" stroke={LINE} strokeWidth={1.6} />
+        <Diamond cx={380} cy={499} w={38} h={66} />
+      </g>
     </CardBase>
   );
 }
