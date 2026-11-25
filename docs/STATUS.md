@@ -24,7 +24,11 @@ danach Kalibrierung in `geometry.ts` prüfen). Neues am Client:
   Server-Abkühlzeit in `server/src/nudge.ts`, Sprachausgabe in `ui/nudge.ts`).
 - **Meisterkarten-Seite** `?view=meisterkarten`; Teufel-Karten in Handkartengröße;
   Kugeln größer (`BALL_RADIUS_FACTOR`); Motive der Karten 4, 8, 13 um 180° gedreht.
-- Tests: **164** Vitest-Tests grün, `npm run typecheck` sauber. Das Verhalten der Animationen
+- **Brett-Generator** (`npm run generate:board`, `board/boardSvg.ts`): berechnet das Brettbild als
+  SVG; Vorschau in `vorlage/board_generated.svg` (plus `_transparent`), noch nicht im Client eingebunden. Ersetzt
+  künftig das manuelle Bearbeiten von `Board.png` (F5/F6: Zählpunkte sind schon enthalten;
+  Hausdarstellung folgt mit der Referenz). Ein Holz-PNG kann darunterliegen (`--transparent`).
+- Tests: **179** Vitest-Tests grün, `npm run typecheck` sauber. Das Verhalten der Animationen
   und Töne ist nur durch Tests der reinen Logik abgedeckt; die Optik beim nächsten realen
   Spiel prüfen (Tempo, Kugelgröße, Ring, Drop-Zone, Sprachausgabe).
 

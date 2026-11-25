@@ -118,6 +118,19 @@ export function allCircleFieldPositions(geo: BoardGeometry): Point[] {
   );
 }
 
+/** Mittelpunkt des Hauses eines Spielers (Gitterknoten auf den Brettachsen). */
+export function houseCenter(seat: Seat, geo: BoardGeometry): Point {
+  const r = geo.gridRadius;
+  const c = geo.center;
+  const centers: Record<Seat, Point> = {
+    0: { x: c.x, y: c.y + 2 * r }, // unten
+    1: { x: c.x - Math.sqrt(3) * r, y: c.y }, // links
+    2: { x: c.x, y: c.y - 2 * r }, // oben
+    3: { x: c.x + Math.sqrt(3) * r, y: c.y }, // rechts
+  };
+  return centers[seat];
+}
+
 /**
  * Positionen der vier Hausfelder eines Spielers. Die Häuser liegen radial nach
  * innen, ausgehend vom Startfeld des Spielers (Richtung Mittelpunkt).
@@ -148,14 +161,6 @@ export function housePositions(seat: Seat, geo: BoardGeometry): Point[] {
   const r = geo.gridRadius;
   const rMulde = r / SQRT3;
 
-  const c = geo.center;
-  const centers: Record<Seat, Point> = {
-    0: { x: c.x, y: c.y + 2 * r }, // unten
-    1: { x: c.x - SQRT3 * r, y: c.y }, // links
-    2: { x: c.x, y: c.y - 2 * r }, // oben
-    3: { x: c.x + SQRT3 * r, y: c.y }, // rechts
-  };
-
   // Winkel in Grad je Sitzplatz (an unserer verifizierten Vorlage geprüft,
   // vorlage/board.svg). Die seitlichen Mulden zeigen bei ALLEN Häusern zur
   // Brettmitte hin (nach innen), daher sind links/rechts bzw. oben/unten
@@ -169,7 +174,7 @@ export function housePositions(seat: Seat, geo: BoardGeometry): Point[] {
     3: [0, 240, 180, 120], // rechts: 3, 7, 9, 11 Uhr
   };
 
-  const center = centers[seat];
+  const center = houseCenter(seat, geo);
   return anglesBySeat[seat].map((deg) => {
     const a = (deg * Math.PI) / 180;
     return {

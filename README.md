@@ -81,6 +81,9 @@ npm run test:watch
 # TypeScript typprüfen (alle Pakete)
 npm run typecheck
 
+# Brettbild (SVG) neu berechnen -> vorlage/board_generated(.svg|_transparent.svg)
+npm run generate:board
+
 # Server starten (WebSocket, Standardport 3001)
 npm run dev:server
 

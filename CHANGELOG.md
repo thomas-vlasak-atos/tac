@@ -8,6 +8,20 @@ Versionierung nach [Semantic Versioning](https://semver.org/lang/de/).
 ## [Unreleased]
 
 ### Added
+- **Brett-Generator:** `npm run generate:board` berechnet das Brettbild als SVG
+  (`vorlage/board_generated.svg` und `board_generated_transparent.svg` ohne Hintergrund, z. B.
+  über einem Holz-PNG) aus dem einen Grundmaß `gridRadius`: Blume-des-Lebens-Gitter
+  (37 Kreise plus 18 Randkreise, die das Muster am Ring komplettieren), schwarze Linien durch die Gitterpunkte, 64 Lauf- und 16 Hausmulden, fünf große
+  Mulden, Zählpunkte bei jedem 2. Feld, Ringe und Rahmen. Große Mulden mit 3D-Rand
+  (Licht von rechts oben: Rand oben rechts dunkel, unten links hell), kleine Mulden als schlichte
+  Löcher mit rundem Verlauf, mittlere Mulde (Radius 132) ohne schwarzen Zusatzring; der graue Mittelkreis
+  (Radius 141,8) ist eine Grenze, in die weder Linien noch graue Kreise hineinragen; die grauen
+  Kreise liegen auf der obersten Ebene und haben dieselbe Silbergrau-Farbe wie die Zählpunkte.
+  Mulden nach Foto größer (Laufmulden ×1,3, Hausmulden ×1,45 des Feldradius); Häuser mit grauem
+  Ring innerhalb der vier Mulden sowie dem Weg ins Haus (silberner Strich über schwarzem, von der
+  Startmulde zum Hausring) mit einem Punkt am Ende. Neu: `houseCenter` in `geometry.ts`. Farben zentral in
+  `boardSvg.ts` (`DEFAULT_BOARD_COLORS`). Noch nicht im Client eingebunden (Vergleich mit `Board.png` steht aus).
+  Reine Funktion `generateBoardSvg` in `board/boardSvg.ts`, getestet.
 - **Narr animiert:** Spielt jemand den Narren, wandern die Handkarten-Rücken am Brett in ca.
   0,8 s zum Nachbarn (gegen den Uhrzeigersinn; Sitz i bekommt die Hand von Sitz i+1). Erkannt
   wird der Narr am Verlaufseintrag (`PASS_HANDS_HISTORY_TEXT` in `@tac/shared`); beim Laden
