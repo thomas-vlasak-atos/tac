@@ -76,6 +76,14 @@ export function SettingsDialog({ settings, onChange, onClose }: SettingsDialogPr
           />
           Karten per Drag &amp; Drop spielen
         </label>
+        <label style={{ display: "flex", gap: 8, alignItems: "center", marginTop: 8 }}>
+          <input
+            type="checkbox"
+            checked={settings.nudgeSound}
+            onChange={(event) => onChange({ ...settings, nudgeSound: event.target.checked })}
+          />
+          Ton, wenn mich jemand anstupst
+        </label>
       </div>
     </div>
   );

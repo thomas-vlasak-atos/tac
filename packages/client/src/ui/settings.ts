@@ -16,6 +16,8 @@ export interface Settings {
   cardClick: boolean;
   /** Handkarten per Drag & Drop bedienen (F9). */
   cardDrag: boolean;
+  /** Anstupsen von Mitspielern hören (Sprache/Signalton). */
+  nudgeSound: boolean;
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -25,6 +27,7 @@ export const DEFAULT_SETTINGS: Settings = {
   showDragHint: true,
   cardClick: true,
   cardDrag: true,
+  nudgeSound: true,
 };
 
 export const SETTINGS_STORAGE_KEY = "tac.settings";

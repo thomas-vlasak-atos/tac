@@ -30,6 +30,8 @@ export type ClientAction =
   | { type: "CancelDevilView"; requestId: string }
   | { type: "PlayForeignCard"; requestId: string; cardId: string }
   | { type: "PassHandsRight" }
+  /** Gimmick: Mitspieler anstupsen („Name, du bist dran!"). Kein Spielzustand. */
+  | { type: "Nudge"; target: Seat }
   | { type: "Undo" }
   | { type: "ResetGame" };
 
@@ -38,4 +40,6 @@ export type ServerMessage =
   | { type: "StateUpdate"; state: PublicGameState; yourSeat: Seat | null }
   | { type: "PlayerJoined"; seat: Seat; name: string }
   | { type: "PlayerLeft"; seat: Seat }
+  /** Du wurdest von einem Mitspieler angestupst (nur an das Ziel gesendet). */
+  | { type: "Nudged"; fromSeat: Seat; fromName: string }
   | { type: "Error"; message: string };

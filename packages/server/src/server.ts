@@ -17,6 +17,7 @@ import { createServer, type IncomingMessage, type ServerResponse } from "node:ht
 import type { ClientAction, GameState, Seat, ServerMessage } from "@tac/shared";
 import { createInitialState } from "@tac/shared";
 import { WebSocket, WebSocketServer } from "ws";
+import { createNudgeLimiter, type NudgeLimiter } from "./nudge.js";
 import {
   dealCards,
   shuffleDiscard,
@@ -57,6 +58,7 @@ interface Room {
   state: GameState;
   /** Einstufiges Undo (REQ-BOARD U1). */
   undo: UndoTracker;
+  nudges: NudgeLimiter;
   connections: Set<Connection>;
 }
 
@@ -66,7 +68,7 @@ const rooms = new Map<string, Room>();
 function getOrCreateRoom(roomId: string): Room {
   let room = rooms.get(roomId);
   if (!room) {
-    room = { id: roomId, state: createInitialState(), undo: createUndoTracker(), connections: new Set() };
+    room = { id: roomId, state: createInitialState(), undo: createUndoTracker(), nudges: createNudgeLimiter(), connections: new Set() };
     rooms.set(roomId, room);
   }
   return room;
@@ -149,6 +151,16 @@ function handleAction(conn: Connection, action: ClientAction): void {
     room.state = result.state;
     room.undo = result.tracker;
     broadcastState(room);
+    return;
+  }
+
+  if (action.type === "Nudge") {
+    const targetPlayer = room.state.players[action.target];
+    if (!targetPlayer || !room.nudges.tryNudge(seat, action.target, Date.now())) return;
+    const fromName = room.state.players[seat]?.name ?? `Platz ${seat + 1}`;
+    for (const other of room.connections) {
+      if (other.seat === action.target) send(other, { type: "Nudged", fromSeat: seat, fromName });
+    }
     return;
   }
 

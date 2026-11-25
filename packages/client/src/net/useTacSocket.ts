@@ -23,6 +23,8 @@ export interface UseTacSocket {
   state: PublicGameState | null;
   seat: Seat | null;
   error: string | null;
+  /** Letztes Anstupsen von einem Mitspieler (`id` zählt hoch, damit jedes Ereignis erkannt wird). */
+  nudge: { id: number; fromSeat: Seat; fromName: string } | null;
   send: (action: ClientAction) => void;
 }
 
@@ -38,6 +40,7 @@ export function useTacSocket(url: string): UseTacSocket {
   const [state, setState] = useState<PublicGameState | null>(null);
   const [seat, setSeat] = useState<Seat | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [nudge, setNudge] = useState<UseTacSocket["nudge"]>(null);
 
   useEffect(() => {
     let disposed = false;
@@ -76,6 +79,9 @@ export function useTacSocket(url: string): UseTacSocket {
         case "Error":
           setError(msg.message);
           break;
+        case "Nudged":
+          setNudge((prev) => ({ id: (prev?.id ?? 0) + 1, fromSeat: msg.fromSeat, fromName: msg.fromName }));
+          break;
         // PlayerJoined/Left werden über das nachfolgende StateUpdate reflektiert.
       }
     };
@@ -99,5 +105,5 @@ export function useTacSocket(url: string): UseTacSocket {
     }
   }, []);
 
-  return { status, state, seat, error, send };
+  return { status, state, seat, error, nudge, send };
 }

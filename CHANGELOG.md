@@ -8,6 +8,11 @@ Versionierung nach [Semantic Versioning](https://semver.org/lang/de/).
 ## [Unreleased]
 
 ### Added
+- **Verstecktes Anstupsen (F12):** Klick auf den Namen eines Mitspielers im Vorfeld stupst ihn
+  an (kein sichtbarer Button). Der Empfänger hört „{Name}, du bist dran!" (Sprachausgabe,
+  Deutsch; ohne Stimme ein Signalton) und sieht kurz „X stupst dich an". Server leitet nur an
+  das Ziel weiter (`Nudge`/`Nudged`, kein Spielzustand), Abkühlzeit 10 s pro Absender und Ziel
+  (`server/src/nudge.ts`, getestet). Einstellung „Ton, wenn mich jemand anstupst".
 - **Meisterkarten besser einsehbar (F11):** Eigene Seite `?view=meisterkarten` (ohne
   Spielverbindung, große Karten mit Erklärung, auch für Screenshot oder zweiten Bildschirm),
   im Overlay per „neues Fenster" öffnbar. Beim Überfahren einer Meisterkarte in der Hand

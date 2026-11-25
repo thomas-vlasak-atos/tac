@@ -165,6 +165,8 @@ export interface BoardProps {
   animateMoves?: boolean;
   /** Einrastfeld und Distanz beim Ziehen einblenden (F7). */
   showDragHint?: boolean;
+  /** Verstecktes Gimmick: Klick auf den Namen eines Mitspielers stupst ihn an (F12). */
+  onNudge?: (target: Seat) => void;
   /** Drop-Zone für gezogene Handkarten: Ablage in der Mitte oder Partner (F9); null = keine. */
   cardDropMode?: "play" | "partner" | null;
   showFieldNumbers?: boolean;
@@ -176,7 +178,7 @@ export interface BoardProps {
 
 interface DragState { ballId: string; current: Point; moved: boolean; from: BallPosition }
 
-export function Board({ balls, players = [], handCounts = [], deckHolder = null, deckCount = 0, deckActive = false, deckShuffleable = false, anyDealer = false, onDeal, onShuffle, onRequestDevil, lastBallMove = null, turnSeat = null, animateMoves = true, showDragHint = true, cardDropMode = null, showFieldNumbers = false, discardEntries = [], onMoveBall, onReturnCard, ownSeat }: BoardProps) {
+export function Board({ balls, players = [], handCounts = [], deckHolder = null, deckCount = 0, deckActive = false, deckShuffleable = false, anyDealer = false, onDeal, onShuffle, onRequestDevil, lastBallMove = null, turnSeat = null, animateMoves = true, showDragHint = true, cardDropMode = null, onNudge, showFieldNumbers = false, discardEntries = [], onMoveBall, onReturnCard, ownSeat }: BoardProps) {
   const geo = defaultGeometry(1024);
   const [drag, setDrag] = useState<DragState | null>(null);
   const [seen, setSeen] = useState<SeenMove[]>(() => lastBallMove ? [{ move: lastBallMove, key: moveKey(lastBallMove), seenAt: Date.now() }] : []);
@@ -491,6 +493,7 @@ export function Board({ balls, players = [], handCounts = [], deckHolder = null,
             const cardAt = placeBesideVorfeld(c, geo, cw, ch, geo.size * HANDCOUNT_GAP_FACTOR);
             return (
               <g key={`vfname-${vs}`}>
+                {!isOwn && onNudge && <rect x={c.x - 70} y={c.y - 14} width={140} height={34} fill="transparent" onClick={() => onNudge(ds)} />}
                 <text x={c.x} y={c.y + geo.fieldRadius * 0.4} textAnchor="middle" fill="#fff" stroke="#2b1a0e" strokeWidth={3.2} paintOrder="stroke" fontSize={isOwn ? 26 : 22} fontFamily="Georgia, serif" fontWeight={700} opacity={0.96} style={{ pointerEvents: "none" }}>{rawName}</text>
                 {count != null && count > 0 && (
                   <g

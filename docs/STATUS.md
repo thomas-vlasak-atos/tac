@@ -54,7 +54,7 @@ Aufwand, offene Fragen O1–O7). Kurzliste:
 - [x] **F9** Karten per Klick **und** Drag & Drop – am Brett prüfen
 - [~] **F10** Einstellungen (lokal): Grundgerüst steht, weitere Schalter kommen mit den Features
 - [x] **F11** Meisterkarten: eigenes Fenster (`?view=meisterkarten`) und Kurzinfo per Tooltip – am Brett prüfen
-- [ ] **F12** Gimmick „Anstupsen" für alle, Name wird vorgelesen (Prio 10000)
+- [x] **F12** Gimmick „Anstupsen" – versteckt (Klick auf den Namen im Vorfeld), Name wird vorgelesen – am Brett prüfen
 
 Brett-Technik: `vorlage/Board.png` ist der Hintergrund, alles Interaktive ist ein
 SVG-Overlay (siehe REQ-FEEDBACK §0).

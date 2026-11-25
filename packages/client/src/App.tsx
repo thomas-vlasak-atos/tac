@@ -6,7 +6,7 @@
 
 import type { BallPosition } from "@tac/shared";
 import { nextToPlay } from "@tac/shared";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Board } from "./board/Board.js";
 import { COLOR_LABEL } from "./board/colors.js";
 import { directJoinFromUrl, isTestMode, readUrlDefaults } from "./net/urlParams.js";
@@ -15,6 +15,7 @@ import { Hand } from "./ui/Hand.js";
 import { HistoryPanel } from "./ui/HistoryPanel.js";
 import { type JoinInfo, JoinScreen } from "./ui/JoinScreen.js";
 import { MasterCardsHelp } from "./ui/MasterCardsHelp.js";
+import { playNudge } from "./ui/nudge.js";
 import { SettingsDialog } from "./ui/SettingsDialog.js";
 import { type Settings, loadSettings, saveSettings } from "./ui/settings.js";
 import "./styles.css";
@@ -49,11 +50,23 @@ function serverUrl(): string {
 export function App() {
   // Enthält die URL Raum + Name (Sitzplatz-Link), geht es ohne Startformular direkt ins Spiel.
   const [join, setJoin] = useState<JoinInfo | null>(() => directJoinFromUrl(window.location.search));
-  const { status, state, seat, error, send } = useTacSocket(serverUrl());
+  const { status, state, seat, error, nudge, send } = useTacSocket(serverUrl());
   const [joined, setJoined] = useState(false);
   const [settings, setSettings] = useState<Settings>(() => loadSettings());
   const [showSettings, setShowSettings] = useState(false);
   const [cardDragging, setCardDragging] = useState(false);
+  const [nudgeNotice, setNudgeNotice] = useState<string | null>(null);
+  const myName = seat != null ? state?.players[seat]?.name : undefined;
+
+  // Verstecktes Gimmick (F12): Mitspieler hat mich angestupst.
+  useEffect(() => {
+    if (!nudge) return;
+    setNudgeNotice(`${nudge.fromName} stupst dich an`);
+    if (settings.nudgeSound) playNudge(myName ?? join?.name ?? "Du");
+    const timer = setTimeout(() => setNudgeNotice(null), 4000);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [nudge?.id]);
   const showFieldNumbers = settings.showFieldNumbers;
   const updateSettings = (next: Settings) => {
     setSettings(next);
@@ -162,6 +175,8 @@ export function App() {
         </div>
       </header>
 
+      {nudgeNotice && <div role="status" style={{ position: "fixed", top: 16, left: "50%", transform: "translateX(-50%)", background: "#d6199b", color: "#fff", borderRadius: 10, padding: "10px 18px", fontFamily: "system-ui", fontWeight: 700, zIndex: 70, boxShadow: "0 8px 20px #0006" }}>👉 {nudgeNotice}</div>}
+
       {showMasterHelp && <MasterCardsHelp onClose={() => setShowMasterHelp(false)} />}
       {showSettings && <SettingsDialog settings={settings} onChange={updateSettings} onClose={() => setShowSettings(false)} />}
 
@@ -192,6 +207,7 @@ export function App() {
                   turnSeat={settings.showTurnMarker ? turnSeat : null}
                   animateMoves={settings.animateMoves}
                   showDragHint={settings.showDragHint}
+                  onNudge={(target) => send({ type: "Nudge", target })}
                   cardDropMode={cardDragging ? (isTradePhase ? "partner" : "play") : null}
                   showFieldNumbers={showFieldNumbers}
                   discardEntries={state.discardEntries}
